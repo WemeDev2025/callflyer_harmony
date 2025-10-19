@@ -42,7 +42,6 @@
           <view class="info-section">
             <text class="name">{{item.name}}</text>
             <text class="phone">{{item.phone}}</text>
-            <view class="badge">专业护理员</view>
           </view>
         </view>
 
@@ -78,6 +77,14 @@
             </view>
           </view>
         </view>
+
+        <!-- 更多介绍 -->
+        <view class="card-section">
+          <text class="section-title">更多介绍</text>
+          <text class="other-text">{{item.otherRequirements || '暂无更多介绍'}}</text>
+        </view>
+
+        
 
         <!-- 工作卡底部 -->
         <view class="card-footer">

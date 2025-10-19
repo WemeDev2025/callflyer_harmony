@@ -1,7 +1,7 @@
 /* pages/index/index.wxss */
 .container {
   min-height: 100vh;
-  background: #F9C1B1;
+  background: #3DC0B9;
   overflow-x: hidden;
   overflow-y: auto;
 }

@@ -1,11 +1,23 @@
 /* pages/elderly/elderly.wxss */
+
+/* 页面级别样式 */
+page {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #3DC0B9;
+}
+
 .container {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
-  padding-bottom: 40rpx;
+  height: 100vh;
+  background: #3DC0B9;
+  padding: 0;
+  margin: 0;
   display: block;
   align-items: stretch;
   justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 /* Tab切换 */
@@ -19,16 +31,16 @@
 }
 
 .tab-item {
-  flex: display;
-  padding: 24rpx 68rpx;
+  flex: 1;
+  padding: 24rpx 32rpx;
   text-align: center;
   background: #f8f9fa;
   transition: all 0.3s ease;
 }
 
 .tab-item.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #ffffff;
+  color: #3DC0B9;
 }
 
 .tab-text {
@@ -51,7 +63,7 @@
 
 .tag {
   display: inline-block;
-  background: #eee;
+  background: rgb(255, 255, 255);
   color: #666;
   padding: 12rpx 24rpx;
   border-radius: 30rpx;
@@ -66,7 +78,7 @@
 }
 
 .tag.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #161616;
   color: white;
   font-weight: bold;
   margin-top: 0;
@@ -100,11 +112,11 @@
 
 /* 工作卡头部 */
 .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background:#FFFFFF;
   padding: 40rpx;
   display: flex;
   align-items: center;
-  color: white;
+  color: rgb(5, 5, 5);
   width: 100%;
   box-sizing: border-box;
 }
@@ -217,8 +229,8 @@
 }
 
 .skill-tag {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #f8f9fa;
+  color: #666;
   border-radius: 20rpx;
   padding: 12rpx 24rpx;
   font-size: 24rpx;

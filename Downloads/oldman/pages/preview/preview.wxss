@@ -1,9 +1,16 @@
 /* pages/preview/preview.wxss */
+page {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .container {
   min-height: 100vh;
   background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
   padding: 40rpx;
   padding-bottom: 160rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 移除加载状态样式 */
@@ -14,6 +21,8 @@
   box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.15);
   overflow: hidden;
   margin-bottom: 40rpx;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* 工作卡头部 */
@@ -150,6 +159,13 @@
   border-left: 4rpx solid #667eea;
 }
 
+.other-text.placeholder {
+  color: #999;
+  font-style: italic;
+  background: #f0f0f0;
+  border-left: 4rpx solid #ddd;
+}
+
 /* 工作卡底部 */
 .card-footer {
   background: #f8f9fa;
@@ -178,6 +194,8 @@
   bottom: 40rpx;
   left: 40rpx;
   right: 40rpx;
+  width: calc(100% - 80rpx);
+  box-sizing: border-box;
 }
 
 .action-btn {

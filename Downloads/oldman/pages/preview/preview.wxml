@@ -54,22 +54,26 @@
       </view>
     </view>
 
-    <!-- 其他要求 -->
-    <view class="card-section" wx:if="{{workCardData.otherRequirements}}">
-      <text class="section-title">其他要求</text>
-      <text class="other-text">{{workCardData.otherRequirements}}</text>
+    <!-- 更多介绍 -->
+    <view class="card-section">
+      <text class="section-title">更多介绍</text>
+      <text class="other-text">{{workCardData.otherRequirements || '暂无更多介绍'}}</text>
+      <!-- 调试信息 -->
+      <text class="debug-text" style="font-size: 20rpx; color: #999; margin-top: 10rpx;">
+        调试: otherRequirements = "{{workCardData.otherRequirements}}"
+      </text>
     </view>
 
     <!-- 工作卡底部 -->
     <view class="card-footer">
       <text class="footer-text">瞻养乐园 - 专业养老服务平台</text>
-      <text class="create-time">创建时间：{{createTimeText}}</text>
+      <text class="create-time">更新时间：{{createTimeText}}</text>
     </view>
   </view>
 
   <!-- 操作按钮 -->
   <view class="action-buttons" wx:if="{{workCardData}}">
-    <button class="action-btn edit-btn" bindtap="editCard">{{cardType === 'hire' ? '编辑需求' : '编辑工作卡'}}</button>
-    <button class="action-btn share-btn" bindtap="publishCard">{{cardType === 'hire' ? '发布需求' : '发布工作卡'}}</button>
+    <button class="action-btn edit-btn" bindtap="editCard">{{cardType === 'hire' ? '编辑需求' : '编辑'}}</button>
+    <button class="action-btn share-btn" bindtap="publishCard">{{cardType === 'hire' ? '发布需求' : '发布'}}</button>
   </view>
 </view>

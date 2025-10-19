@@ -64,6 +64,11 @@ Page({
         
         if (workCardData) {
           console.log('✅ 设置工作卡数据到页面:', workCardData);
+          console.log('📝 其他要求字段值:', workCardData.otherRequirements);
+          console.log('📝 其他要求字段类型:', typeof workCardData.otherRequirements);
+          console.log('📝 其他要求字段是否为空:', !workCardData.otherRequirements);
+          console.log('📝 其他要求字段长度:', workCardData.otherRequirements ? workCardData.otherRequirements.length : 0);
+          console.log('📝 完整工作卡数据结构:', JSON.stringify(workCardData, null, 2));
           this.setData({
             workCardData: workCardData,
             createTimeText: workCardData.createTime ? this.formatTime(workCardData.createTime) : '刚刚'
