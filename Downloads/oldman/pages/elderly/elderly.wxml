@@ -1,0 +1,220 @@
+<!--pages/elderly/elderly.wxml-->
+<view class="container">
+  <!-- Tab切换 -->
+  <view class="tab-container">
+    <view class="tab-item {{activeTab === 'nurses' ? 'active' : ''}}" 
+          bindtap="onTabChange" data-tab="nurses">
+      <text class="tab-text">护理员</text>
+    </view>
+    <view class="tab-item {{activeTab === 'employers' ? 'active' : ''}}" 
+          bindtap="onTabChange" data-tab="employers">
+      <text class="tab-text">雇主</text>
+    </view>
+    <view class="tab-item {{activeTab === 'orders' ? 'active' : ''}}" 
+          bindtap="onTabChange" data-tab="orders">
+      <text class="tab-text">已匹配</text>
+    </view>
+  </view>
+
+  <!-- 筛选标签 -->
+  <scroll-view scroll-x class="filter-tags">
+    <view wx:for="{{filterOptions}}" wx:key="*this" 
+          class="tag {{item === activeFilter ? 'active' : ''}}" 
+          bindtap="onFilterTag" data-filter="{{item}}">
+      {{item}}
+    </view>
+  </scroll-view>
+
+  <!-- 护理员列表 -->
+  <view class="content-list" wx:if="{{activeTab === 'nurses'}}">
+    <view class="card-wrapper" wx:for="{{filteredNurses}}" wx:key="id" bindtap="onNurseTap" data-nurse="{{item}}">
+      <!-- 复用预览页面的卡片结构 -->
+      <view class="card-container">
+        <!-- 工作卡头部 -->
+        <view class="card-header">
+          <view class="avatar-section">
+            <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" class="avatar-image" binderror="onImageError"></image>
+            <view wx:else class="avatar-placeholder">
+              <text class="avatar-text">{{item.name.charAt(0)}}</text>
+            </view>
+          </view>
+          
+          <view class="info-section">
+            <text class="name">{{item.name}}</text>
+            <text class="phone">{{item.phone}}</text>
+            <view class="badge">专业护理员</view>
+          </view>
+        </view>
+
+        <!-- 证件信息 -->
+        <view class="card-section">
+          <text class="section-title">证件信息</text>
+          <view class="cert-list">
+            <view class="cert-item" wx:if="{{item.certs.idCard}}">
+              <text class="cert-icon">🆔</text>
+              <text class="cert-text">身份证</text>
+            </view>
+            <view class="cert-item" wx:if="{{item.certs.healthCard}}">
+              <text class="cert-icon">🏥</text>
+              <text class="cert-text">健康证</text>
+            </view>
+            <view class="cert-item" wx:if="{{item.certs.nursingCert}}">
+              <text class="cert-icon">📜</text>
+              <text class="cert-text">养老护理员资格证</text>
+            </view>
+            <view class="cert-item" wx:if="{{item.certs.firstAidCert}}">
+              <text class="cert-icon">🚑</text>
+              <text class="cert-text">急救员证书</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 专业技能 -->
+        <view class="card-section">
+          <text class="section-title">专业技能</text>
+          <view class="skill-list">
+            <view class="skill-tag" wx:for="{{item.skills}}" wx:key="*this" wx:for-item="skill">
+              <text>{{skill}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 工作卡底部 -->
+        <view class="card-footer">
+          <text class="footer-text">瞻养乐园 - 专业养老服务平台</text>
+          <text class="create-time">发布时间：{{item.createTime || '刚刚'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 雇主需求列表 -->
+  <view class="content-list" wx:if="{{activeTab === 'employers'}}">
+    <view class="card-wrapper" wx:for="{{filteredEmployers}}" wx:key="id" bindtap="onEmployerTap" data-employer="{{item}}">
+      <!-- 复用预览页面的卡片结构 -->
+      <view class="card-container">
+        <!-- 需求卡头部 -->
+        <view class="card-header">
+          <view class="avatar-section">
+            <image wx:if="{{item.avatar && item.avatar !== '/static/avatar3.jpg'}}" src="{{item.avatar}}" class="avatar-image" binderror="onImageError"></image>
+            <view wx:else class="avatar-placeholder">
+              <text class="avatar-text">{{item.name.charAt(0)}}</text>
+            </view>
+          </view>
+          
+          <view class="info-section">
+            <text class="name">{{item.name}}</text>
+            <text class="phone">{{item.phone}}</text>
+            <view class="badge">养老需求</view>
+          </view>
+        </view>
+
+        <!-- 需求描述 -->
+        <view class="card-section">
+          <text class="section-title">需求描述</text>
+          <text class="requirement-text">{{item.requirements}}</text>
+        </view>
+
+        <!-- 地址信息 -->
+        <view class="card-section" wx:if="{{item.location}}">
+          <text class="section-title">地址</text>
+          <text class="location-text">{{item.location.province}}{{item.location.city}}{{item.location.district}}</text>
+        </view>
+
+        <!-- 需求卡底部 -->
+        <view class="card-footer">
+          <text class="footer-text">瞻养乐园 - 专业养老服务平台</text>
+          <text class="create-time">发布时间：{{item.createTime || '刚刚'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="content-list" wx:if="{{activeTab === 'orders'}}">
+    <view class="card-wrapper" wx:for="{{filteredOrders}}" wx:key="id" bindtap="onOrderTap" data-order="{{item}}">
+      <!-- 订单卡片 -->
+      <view class="card-container">
+        <!-- 订单头部 -->
+        <view class="card-header">
+          <view class="avatar-section">
+            <view class="match-avatars">
+              <view class="avatar-item">
+                <image wx:if="{{item.employer.avatarUrl}}" src="{{item.employer.avatarUrl}}" class="avatar-image"></image>
+                <view wx:else class="avatar-placeholder">
+                  <text class="avatar-text">{{item.employer.name.charAt(0)}}</text>
+                </view>
+                <text class="avatar-label">雇主</text>
+              </view>
+              <view class="match-icon">💕</view>
+              <view class="avatar-item">
+                <image wx:if="{{item.nurse.avatarUrl}}" src="{{item.nurse.avatarUrl}}" class="avatar-image"></image>
+                <view wx:else class="avatar-placeholder">
+                  <text class="avatar-text">{{item.nurse.name.charAt(0)}}</text>
+                </view>
+                <text class="avatar-label">护理员</text>
+              </view>
+            </view>
+          </view>
+          
+          <view class="info-section">
+            <text class="name">订单 #{{item.orderNumber}}</text>
+            <view class="status-badge {{item.status === '进行中' ? 'active' : 'completed'}}">
+              {{item.status}}
+            </view>
+          </view>
+        </view>
+
+        <!-- 订单信息 -->
+        <view class="card-section">
+          <text class="section-title">护理信息</text>
+          <view class="order-info">
+            <view class="info-row">
+              <text class="info-label">护理种类：</text>
+              <text class="info-value">{{item.careType}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">起始日期：</text>
+              <text class="info-value">{{item.startDate}}</text>
+            </view>
+            <view class="info-row" wx:if="{{item.endDate}}">
+              <text class="info-label">结束日期：</text>
+              <text class="info-value">{{item.endDate}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">服务时长：</text>
+              <text class="info-value">{{item.duration}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 联系方式 -->
+        <view class="card-section">
+          <text class="section-title">联系方式</text>
+          <view class="contact-info">
+            <view class="contact-item">
+              <text class="contact-label">雇主：</text>
+              <text class="contact-value">{{item.employer.name}} {{item.employer.phone}}</text>
+            </view>
+            <view class="contact-item">
+              <text class="contact-label">护理员：</text>
+              <text class="contact-value">{{item.nurse.name}} {{item.nurse.phone}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 订单底部 -->
+        <view class="card-footer">
+          <text class="footer-text">瞻养乐园 - 专业养老服务平台</text>
+          <text class="create-time">创建时间：{{item.createTime}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{(activeTab === 'nurses' && filteredNurses.length === 0) || (activeTab === 'employers' && filteredEmployers.length === 0) || (activeTab === 'orders' && filteredOrders.length === 0)}}">
+    <text class="empty-icon">{{activeTab === 'nurses' ? '' : activeTab === 'employers' ? '' : ''}}</text>
+    <text class="empty-text">{{activeTab === 'nurses' ? '数据维护中' : activeTab === 'employers' ? '暂无需求信息' : '暂无订单信息'}}</text>
+  </view>
+</view>

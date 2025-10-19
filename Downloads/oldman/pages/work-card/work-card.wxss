@@ -1,0 +1,258 @@
+/* pages/work-card/work-card.wxss */
+.container {
+  min-height: 100vh;
+  background: #f8f9fa;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 60rpx 40rpx 40rpx;
+  color: white;
+  text-align: center;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  opacity: 0.9;
+  display: block;
+}
+
+.form-container {
+  padding: 40rpx;
+}
+
+.form-section {
+  background: white;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 24rpx;
+  display: block;
+}
+
+/* 头像上传 */
+.avatar-upload {
+  display: flex;
+  justify-content: center;
+  margin: 24rpx 0;
+}
+
+.avatar-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  border: 4rpx solid #e9ecef;
+}
+
+.avatar-placeholder {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-text {
+  font-size: 24rpx;
+  color: #6c757d;
+}
+
+/* 输入框 */
+.input {
+  background: #f8f9fa;
+  border: 2rpx solid #e9ecef;
+  border-radius: 12rpx;
+  padding: 24rpx 32rpx;
+  font-size: 28rpx;
+  margin: 16rpx 0;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80rpx;
+  line-height: 1.4;
+  display: block;
+}
+
+.input:focus {
+  border-color: #667eea;
+  background: white;
+}
+
+/* 证件上传 */
+.cert-section {
+  margin-top: 16rpx;
+}
+
+.cert-item {
+  display: flex;
+  flex-direction: column;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.cert-item:last-child {
+  border-bottom: none;
+}
+
+.cert-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.cert-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cert-upload-area {
+  position: relative;
+  width: 500rpx;
+  height: 300rpx;
+  cursor: pointer;
+}
+
+.cert-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  object-fit: contain;
+  border: 2rpx solid #e9ecef;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  background: #fafafa;
+}
+
+.cert-placeholder {
+  width: 100%;
+  height: 100%;
+  border: 2rpx dashed #d0d0d0;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.placeholder-text {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+}
+
+.update-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12rpx;
+}
+
+.update-btn {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8rpx;
+  padding: 12rpx 12rpx !important;
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  width: 160rpx !important;
+}
+
+/* 技能选择 */
+.skill-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.skill-item {
+  background: #f8f9fa;
+  border: 2rpx solid #e9ecef;
+  border-radius: 50rpx;
+  padding: 16rpx 32rpx;
+  font-size: 26rpx;
+  color: #666;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.skill-selected {
+  background: #F9C1B1;
+  color: white;
+  border-radius: 50rpx;
+  font-weight: bold;
+}
+
+/* 文本域 */
+.textarea {
+  background: #f8f9fa;
+  border: 2rpx solid #e9ecef;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  width: 100%;
+  min-height: 120rpx;
+  box-sizing: border-box;
+  margin-top: 16rpx;
+}
+
+.textarea:focus {
+  border-color: #667eea;
+  background: white;
+}
+
+/* 预览按钮 */
+.preview-btn-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 24rpx 40rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.preview-btn {
+  background: #30C355;
+  color: white;
+  border-radius: 50rpx;
+  padding: 24rpx 0;
+  font-size: 32rpx;
+  font-weight: bold;
+  border: none;
+  width: 100%;
+  box-shadow: 0 8rpx 20rpx rgba(102, 126, 234, 0.3);
+}
+
+.preview-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 10rpx rgba(102, 126, 234, 0.3);
+}
+

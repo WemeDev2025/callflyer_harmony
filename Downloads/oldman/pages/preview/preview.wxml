@@ -1,0 +1,75 @@
+<!--pages/preview/preview.wxml-->
+<view class="container">
+  <!-- 移除加载状态提示 -->
+  
+  <!-- 工作卡内容 -->
+  <view class="card-container" wx:if="{{workCardData}}">
+    <!-- 工作卡头部 -->
+    <view class="card-header">
+      <view class="avatar-section">
+        <image wx:if="{{workCardData.avatarUrl}}" 
+               src="{{workCardData.avatarUrl}}" 
+               class="avatar-image"></image>
+        <view wx:else class="avatar-placeholder">
+          <text class="avatar-text">头像</text>
+        </view>
+      </view>
+      <view class="info-section">
+        <text class="name">{{workCardData.name}}</text>
+        <text class="phone">{{workCardData.phone}}</text>
+        <view class="badge">{{cardType === 'hire' ? '养老需求' : '专业护理员'}}</view>
+      </view>
+    </view>
+
+    <!-- 证件信息 -->
+    <view class="card-section">
+      <text class="section-title">证件信息</text>
+      <view class="cert-list">
+        <view class="cert-item" wx:if="{{workCardData.certs.idCard}}">
+          <text class="cert-icon">🆔</text>
+          <text class="cert-text">身份证</text>
+        </view>
+        <view class="cert-item" wx:if="{{workCardData.certs.healthCard}}">
+          <text class="cert-icon">🏥</text>
+          <text class="cert-text">健康证</text>
+        </view>
+        <view class="cert-item" wx:if="{{workCardData.certs.nursingCert}}">
+          <text class="cert-icon">📜</text>
+          <text class="cert-text">养老护理员资格证书</text>
+        </view>
+        <view class="cert-item" wx:if="{{workCardData.certs.firstAidCert}}">
+          <text class="cert-icon">🚑</text>
+          <text class="cert-text">急救员证书</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 擅长内容/所需服务 -->
+    <view class="card-section">
+      <text class="section-title">{{cardType === 'hire' ? '所需服务' : '擅长内容'}}</text>
+      <view class="skill-list">
+        <view class="skill-tag" wx:for="{{workCardData.skills}}" wx:key="*this">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 其他要求 -->
+    <view class="card-section" wx:if="{{workCardData.otherRequirements}}">
+      <text class="section-title">其他要求</text>
+      <text class="other-text">{{workCardData.otherRequirements}}</text>
+    </view>
+
+    <!-- 工作卡底部 -->
+    <view class="card-footer">
+      <text class="footer-text">瞻养乐园 - 专业养老服务平台</text>
+      <text class="create-time">创建时间：{{createTimeText}}</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons" wx:if="{{workCardData}}">
+    <button class="action-btn edit-btn" bindtap="editCard">{{cardType === 'hire' ? '编辑需求' : '编辑工作卡'}}</button>
+    <button class="action-btn share-btn" bindtap="publishCard">{{cardType === 'hire' ? '发布需求' : '发布工作卡'}}</button>
+  </view>
+</view>

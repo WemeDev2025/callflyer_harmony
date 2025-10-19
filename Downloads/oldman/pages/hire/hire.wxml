@@ -1,0 +1,89 @@
+<!--pages/hire/hire.wxml-->
+<view class="container">
+
+  <view class="form-container">
+    <!-- 性别选择 -->
+    <view class="form-section">
+      <text class="section-title">性别要求</text>
+      <view class="gender-section">
+        <view class="gender-item {{gender === 'male' ? 'gender-selected' : ''}}" 
+              bindtap="onGenderTap" 
+              data-gender="male">
+          <text class="gender-icon">👨</text>
+          <text class="gender-text">男</text>
+        </view>
+        <view class="gender-item {{gender === 'female' ? 'gender-selected' : ''}}" 
+              bindtap="onGenderTap" 
+              data-gender="female">
+          <text class="gender-icon">👩</text>
+          <text class="gender-text">女</text>
+        </view>
+        <view class="gender-item {{gender === 'any' ? 'gender-selected' : ''}}" 
+              bindtap="onGenderTap" 
+              data-gender="any">
+          <text class="gender-icon">👥</text>
+          <text class="gender-text">不限</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 证件要求 -->
+    <view class="form-section">
+      <text class="section-title">证件要求</text>
+      <view class="cert-section">
+        <view class="cert-item">
+          <text class="cert-label">身份证</text>
+          <switch checked="{{certs.idCard}}" bindchange="onCertChange" data-type="idCard" />
+        </view>
+        <view class="cert-item">
+          <text class="cert-label">健康证</text>
+          <switch checked="{{certs.healthCard}}" bindchange="onCertChange" data-type="healthCard" />
+        </view>
+        <view class="cert-item">
+          <text class="cert-label">养老护理员资格证书</text>
+          <switch checked="{{certs.nursingCert}}" bindchange="onCertChange" data-type="nursingCert" />
+        </view>
+        <view class="cert-item">
+          <text class="cert-label">急救员证书</text>
+          <switch checked="{{certs.firstAidCert}}" bindchange="onCertChange" data-type="firstAidCert" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 所需服务 -->
+    <view class="form-section">
+      <text class="section-title">所需服务</text>
+      <view class="service-section">
+        <view class="service-item {{item.selected ? 'service-selected' : ''}}" 
+              wx:for="{{services}}" 
+              wx:key="name"
+              bindtap="onServiceTap" 
+              data-index="{{index}}">
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 其他要求 -->
+    <view class="form-section">
+      <text class="section-title">其他要求</text>
+      <textarea class="textarea" 
+                placeholder="请详细描述您的其他要求，如工作时间、薪资范围、特殊需求等" 
+                value="{{otherRequirements}}" 
+                bindinput="onOtherInput"
+                maxlength="500"></textarea>
+    </view>
+
+    <!-- 联系方式 -->
+    <view class="form-section">
+      <text class="section-title">联系方式</text>
+      <input class="input" placeholder="姓名" value="{{contactName}}" bindinput="onContactNameInput" />
+      <input class="input" placeholder="电话" value="{{contactPhone}}" bindinput="onContactPhoneInput" />
+    </view>
+  </view>
+
+  <!-- 发布按钮 -->
+  <view class="publish-btn-container">
+    <button class="publish-btn" bindtap="publishRequirement">发布需求</button>
+  </view>
+</view>

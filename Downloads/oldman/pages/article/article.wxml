@@ -1,0 +1,76 @@
+<!--pages/article/article.wxml-->
+<view class="container">
+  <!-- 文章头部 -->
+  <view class="article-header">
+    <view class="article-title">妈妈眼中长不大的孩子</view>
+    <view class="article-meta">
+      <text class="publish-time">发布时间：2024年1月15日</text>
+      <text class="read-count">阅读量：10,000+</text>
+    </view>
+  </view>
+
+  <!-- 文章内容 -->
+  <view class="article-content">
+    <view class="content-paragraph">
+      <text class="paragraph-text">1996年冬至的寒风卷着沙砾扑向通州台湖镇，白珍珍攥着病危通知书瘫坐在ICU外的长椅上。</text>
+    </view>
+
+    <view class="content-paragraph">
+      <text class="paragraph-text">门内，25岁的儿子全身躯缠满纱布——车祸碾碎了他的腰椎，医生宣告："胸部以下永久瘫痪，存活率仅2%。"儿媳的哭声穿透走廊，白珍珍颤抖着抹干泪，轻轻抚上儿子肿胀的眼皮："儿子全不怕，有娘在呢...."</text>
+    </view>
+
+    <view class="content-paragraph">
+      <text class="paragraph-text">这一诺，便是29年的晨昏不歇，用妈妈的一份爱，温暖了儿子的半生。</text>
+    </view>
+
+    <view class="content-section">
+      <text class="section-title">29年的守护</text>
+      <view class="content-paragraph">
+        <text class="paragraph-text">每一全早上的微光中，现已76岁的白珍珍，佝偻着背就忙碌起来。先抱起140斤的儿子，再用热毛巾敷软僵硬的关节。褥疮药膏的气味弥漫小屋，她弓腰为儿子擦拭溃烂的创口，指尖因风湿变形却稳如磐石。</text>
+      </view>
+      
+      <view class="content-paragraph">
+        <text class="paragraph-text">"最怕他发烧说胡话啊"，妈妈回忆道。有次儿子高烧抽搐，她就彻夜用酒精棉擦拭降温，窗外大雪封路，她跑三里地推开卫生所的门.....</text>
+      </view>
+    </view>
+
+    <view class="content-section">
+      <text class="section-title">双重责任</text>
+      <view class="content-paragraph">
+        <text class="paragraph-text">早年，孙女稚声问"奶奶，妈妈去哪了？"，白忠珍把娃搂进怀里："妈妈忙去啦，来，奶奶给你扎蝴蝶结！"</text>
+      </view>
+      
+      <view class="content-paragraph">
+        <text class="paragraph-text">她从自负起了养在个没有半身的儿子和一个年幼的孙女。小时给孙女买奶粉，上学时为她踩着缝纫机补校服，下飞针走线的剪影，成了孙女记忆里的灯塔。</text>
+      </view>
+    </view>
+
+    <view class="content-section">
+      <text class="section-title">风雨中的坚强</text>
+      <view class="content-paragraph">
+        <text class="paragraph-text">那年暴雨冲垮院墙，她第一反应是扑向儿子轮椅，瓦砾划破手臂，她却笑着安慰："你看，老天给咱送石头盖新房哩！"</text>
+      </view>
+      
+      <view class="content-paragraph">
+        <text class="paragraph-text">2019年的冬季，白珍珍摔伤右腿，肿胀的膝盖跪在板凳上煮饭。儿子哭着捶打残腿："我是累赘啊，妈......"她却端来热汤，模仿幼时哄他的语调："喝汤，孩子，哪里的话，你是娘的宝贝啊，……"</text>
+      </view>
+    </view>
+
+    <view class="content-section">
+      <text class="section-title">爱的传承</text>
+      <view class="content-paragraph">
+        <text class="paragraph-text">如今，当年的小孙女已成白衣天使，返乡第一件事就是学习专业护理。当困扰父亲二十年的褥疮终于结痂。白珍珍摩挲着光滑的皮肤泪如雨下。</text>
+      </view>
+      
+      <view class="content-paragraph">
+        <text class="paragraph-text">多年的前妻找来，要带走女儿说是给她一个更好的家。但孩子却死死抱住轮椅："我有的你爸爸，我有奶奶，我没有妈....."</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 文章底部 -->
+  <view class="article-footer">
+    <view class="footer-text">母爱如山，29年如一日的守护</view>
+    <view class="footer-subtitle">愿所有母亲都被温柔以待</view>
+  </view>
+</view>
