@@ -5,21 +5,14 @@
   <swiper class="banner-swiper" indicator-dots="true" autoplay="true" interval="3000" duration="500">
     <swiper-item>
       <view class="banner-item" style="background-image: url('https://wemedev.com/static/banners/1570.png'); background-size: cover; background-position: center;" bindtap="onBannerTap">
-        <text class="banner-title">瞻膳乐园</text>
-        <text class="banner-subtitle">专业养老服务平台</text>
-        <text class="banner-tip">点击查看详情</text>
       </view>
     </swiper-item>
     <swiper-item>
       <view class="banner-item" style="background-image: url('https://wemedev.com/static/banners/474251.jpg'); background-size: cover; background-position: center;" bindtap="onBannerTap">
-        <text class="banner-title">贴心服务</text>
-        <text class="banner-subtitle">让养老更安心</text>
       </view>
     </swiper-item>
     <swiper-item>
       <view class="banner-item" style="background-image: url('https://wemedev.com/static/banners/27261876.jpg'); background-size: cover; background-position: center;" bindtap="onBannerTap">
-        <text class="banner-title">专业团队</text>
-        <text class="banner-subtitle">用心呵护每一位老人</text>
       </view>
     </swiper-item>
   </swiper>

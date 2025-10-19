@@ -55,43 +55,87 @@ class HireRequirementAdapter {
    * 本地数据转API数据
    */
   static toAPI(localData) {
-    return {
+    const apiData = {
+      avatarUrl: localData.avatarUrl,
       gender: localData.gender,
-      certificates: {
-        idCard: localData.certs.idCard,
-        healthCard: localData.certs.healthCard,
-        nursingCert: localData.certs.nursingCert,
-        firstAidCert: localData.certs.firstAidCert
-      },
+      cert_id_card: localData.certs.idCard,
+      cert_health_card: localData.certs.healthCard,
+      cert_nursing_cert: localData.certs.nursingCert,
+      cert_first_aid_cert: localData.certs.firstAidCert,
       services: localData.services,
-      otherRequirements: localData.otherRequirements,
+      other_requirements: localData.otherRequirements,
       contactName: localData.contactName,
       contactPhone: localData.contactPhone,
       status: 'draft' // 草稿状态
     };
+    
+    console.log('🔄 HireRequirementAdapter.toAPI 转换数据:');
+    console.log('输入数据:', localData);
+    console.log('输出数据:', apiData);
+    
+    return apiData;
   }
 
   /**
    * API数据转本地数据
    */
   static toLocal(apiData) {
-    return {
+    console.log('🔄 HireRequirementAdapter.toLocal 转换数据:');
+    console.log('输入API数据:', apiData);
+    console.log('🔍 API数据中的avatarUrl字段:', apiData.avatarUrl);
+    console.log('🔍 API数据中的avatar字段:', apiData.avatar);
+    console.log('🔍 API数据完整结构:', JSON.stringify(apiData, null, 2));
+    
+    const localData = {
       id: apiData.id,
+      avatarUrl: apiData.avatarUrl || apiData.avatar || '',
       gender: apiData.gender,
-      certs: {
-        idCard: apiData.certificates?.idCard || false,
-        healthCard: apiData.certificates?.healthCard || false,
-        nursingCert: apiData.certificates?.nursingCert || false,
-        firstAidCert: apiData.certificates?.firstAidCert || false
-      },
+      certs: (() => {
+        // 处理证件要求数据，支持两种格式
+        console.log('🔍 证件要求数据转换:');
+        console.log('- apiData.certificates:', apiData.certificates);
+        console.log('- apiData.certificates类型:', typeof apiData.certificates);
+        
+        if (apiData.certificates) {
+          // 新格式：certificates 对象
+          console.log('🔍 使用certificates对象格式');
+          console.log('- certificates.idCard:', apiData.certificates.idCard);
+          console.log('- certificates.healthCard:', apiData.certificates.healthCard);
+          console.log('- certificates.nursingCert:', apiData.certificates.nursingCert);
+          console.log('- certificates.firstAidCert:', apiData.certificates.firstAidCert);
+          
+          const certs = {
+            idCard: apiData.certificates.idCard || false,
+            healthCard: apiData.certificates.healthCard || false,
+            nursingCert: apiData.certificates.nursingCert || false,
+            firstAidCert: apiData.certificates.firstAidCert || false
+          };
+          
+          console.log('🔍 转换后的certs:', certs);
+          return certs;
+        } else {
+          // 旧格式：单独的 cert_ 字段
+          console.log('🔍 使用单独字段格式');
+          return {
+            idCard: apiData.cert_id_card || false,
+            healthCard: apiData.cert_health_card || false,
+            nursingCert: apiData.cert_nursing_cert || false,
+            firstAidCert: apiData.cert_first_aid_cert || false
+          };
+        }
+      })(),
       services: apiData.services || [],
-      otherRequirements: apiData.otherRequirements || '',
+      otherRequirements: apiData.other_requirements || apiData.otherRequirements || '',
       contactName: apiData.contactName,
       contactPhone: apiData.contactPhone,
-      createTime: apiData.createdAt,
-      updateTime: apiData.updatedAt,
+      createTime: apiData.created_at,
+      updateTime: apiData.updated_at,
       status: apiData.status
     };
+    
+    console.log('输出本地数据:', localData);
+    
+    return localData;
   }
 }
 

@@ -21,33 +21,54 @@ Page({
     filteredOrders: [],
     
     // 数据加载状态
-    dataLoaded: false
+    dataLoaded: false,
+    dataLoading: false, // 防止重复加载
+    
+    // 工作卡显示状态
+    showingMyWorkCard: false
   },
 
   onLoad() {
+    console.log('🔄 我要找活页面加载开始');
     this.loadData();
   },
 
   onShow() {
-    // 每次显示页面时都重新加载数据，确保数据最新
-    // 清除所有相关缓存，强制从服务器获取最新数据
+    // 只有在数据未加载时才重新加载数据，避免重复请求
+    if (!this.data.dataLoaded) {
+      console.log('🔄 上门助老页面显示，数据未加载，开始加载数据...');
+      this.loadData();
+    } else {
+      console.log('🔄 上门助老页面显示，数据已加载，跳过重复加载');
+    }
+  },
+
+  // 手动刷新数据（下拉刷新时调用）
+  onRefreshData() {
+    console.log('🔄 手动刷新数据...');
+    // 清除缓存并重新加载
     dataManager.clearCache('all');
-    
-    // 重置数据加载状态，强制重新加载
     this.setData({
       dataLoaded: false,
-      nurses: [],
-      filteredNurses: [],
-      employers: [],
-      filteredEmployers: []
+      dataLoading: false
     });
-    
-    console.log('🔄 上门助老页面显示，强制刷新数据...');
     this.loadData();
   },
 
   // 加载数据
   loadData() {
+    // 防止重复加载
+    if (this.data.dataLoading) {
+      console.log('🔄 数据正在加载中，跳过重复加载');
+      return;
+    }
+    
+    console.log('🔄 开始加载所有数据...');
+    this.setData({
+      dataLoading: true,
+      dataLoaded: false
+    });
+    
     this.loadNurses();
     this.loadEmployers();
     this.loadOrders();
@@ -57,7 +78,24 @@ Page({
   async loadNurses() {
     try {
       console.log('🔄 开始加载护理员数据...');
-      const result = await dataManager.workCard.getPublished();
+      // 先检查当前用户是否已经发布过工作卡
+      const myWorkCardResult = await dataManager.workCard.getMy();
+      console.log('🔍 检查当前用户工作卡:', myWorkCardResult);
+      
+      let result;
+      if (myWorkCardResult.success && myWorkCardResult.data) {
+        // 如果当前用户有工作卡，优先显示用户自己的工作卡
+        console.log('✅ 当前用户有工作卡，显示用户的工作卡');
+        result = {
+          success: true,
+          data: Array.isArray(myWorkCardResult.data) ? myWorkCardResult.data : [myWorkCardResult.data]
+        };
+      } else {
+        // 如果当前用户没有工作卡，显示所有已发布的工作卡
+        console.log('📋 当前用户没有工作卡，显示所有已发布的工作卡');
+        result = await dataManager.workCard.getPublished();
+      }
+      
       console.log('🔍 护理员数据加载结果:', result);
       
       if (result.success) {
@@ -79,10 +117,29 @@ Page({
           return item;
         });
         
+        console.log('🔍 设置护理员数据到页面:', processedData);
         this.setData({
           nurses: processedData,
           filteredNurses: processedData
         });
+        
+        // 立即检查设置后的数据
+        console.log('🔍 设置后的页面数据:', {
+          nursesLength: this.data.nurses.length,
+          filteredNursesLength: this.data.filteredNurses.length,
+          activeTab: this.data.activeTab
+        });
+        
+        // 验证数据是否设置成功
+        console.log('🔍 验证页面数据设置结果:', {
+          nurses: this.data.nurses.length,
+          filteredNurses: this.data.filteredNurses.length,
+          dataLoaded: this.data.dataLoaded,
+          activeTab: this.data.activeTab
+        });
+        
+        // 立即调用筛选方法确保数据显示正确
+        this.filterNurses();
       } else {
         console.log('❌ 护理员数据失败:', result);
         this.setData({
@@ -98,21 +155,47 @@ Page({
       });
     }
     
-    this.filterNurses();
     this.checkDataLoaded();
   },
 
   // 加载雇主需求数据
   async loadEmployers() {
     try {
+      console.log('🔄 开始加载雇主需求数据...');
       const result = await dataManager.hireRequirement.getPublished();
+      console.log('🔍 雇主需求数据加载结果:', result);
       
       if (result.success) {
+        console.log('✅ 雇主需求数据成功:', result.data);
+        console.log('📊 雇主需求数量:', result.data ? result.data.length : 0);
+        
+        // 处理数据格式，确保前端正确显示
+        const processedData = (result.data || []).map(item => {
+          console.log('🔍 处理雇主需求数据:', {
+            id: item.id,
+            contactName: item.contactName,
+            contactPhone: item.contactPhone,
+            gender: item.gender,
+            services: item.services,
+            otherRequirements: item.otherRequirements,
+            createTime: item.createTime,
+            status: item.status
+          });
+          return item;
+        });
+        
+        console.log('🔍 设置雇主需求数据到页面:', processedData);
         this.setData({
-          employers: result.data || [],
-          filteredEmployers: result.data || []
+          employers: processedData,
+          filteredEmployers: processedData
+        });
+        
+        console.log('🔍 设置后的雇主数据:', {
+          employersLength: this.data.employers.length,
+          filteredEmployersLength: this.data.filteredEmployers.length
         });
       } else {
+        console.log('❌ 雇主需求数据失败:', result);
         this.setData({
           employers: [],
           filteredEmployers: []
@@ -225,11 +308,23 @@ Page({
 
   // 检查数据是否已加载完成
   checkDataLoaded() {
-    // 当护理员和雇主数据都加载完成后，设置dataLoaded为true
-    if (this.data.nurses.length >= 0 && this.data.employers.length >= 0) {
+    // 当护理员数据加载完成后就设置dataLoaded为true，不等待雇主数据
+    console.log('🔍 检查数据加载状态:', {
+      nursesLoaded: Array.isArray(this.data.nurses),
+      employersLoaded: Array.isArray(this.data.employers),
+      nursesLength: this.data.nurses.length,
+      employersLength: this.data.employers.length,
+      currentDataLoaded: this.data.dataLoaded,
+      dataLoading: this.data.dataLoading
+    });
+    
+    // 只要护理员数据数组已经初始化，就认为加载完成
+    if (Array.isArray(this.data.nurses)) {
       this.setData({
-        dataLoaded: true
+        dataLoaded: true,
+        dataLoading: false // 重置加载状态
       });
+      console.log('✅ 护理员数据加载完成，设置dataLoaded为true，重置dataLoading为false');
     }
   },
 
@@ -329,6 +424,7 @@ Page({
     }
 
     console.log('🔍 最终筛选结果:', tempNurses.length, '个护理员');
+    console.log('🔍 筛选后的数据:', tempNurses);
     this.setData({
       filteredNurses: tempNurses
     });

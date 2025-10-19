@@ -2,6 +2,16 @@
 <view class="container">
 
   <view class="form-container">
+    <!-- 头像上传 -->
+    <view class="form-section">
+      <text class="section-title">头像</text>
+      <view class="avatar-upload" bindtap="chooseAvatar">
+        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="avatar-image"></image>
+        <view wx:else class="avatar-placeholder">
+          <text class="avatar-text">上传头像</text>
+        </view>
+      </view>
+    </view>
     <!-- 性别选择 -->
     <view class="form-section">
       <text class="section-title">性别要求</text>
@@ -25,6 +35,13 @@
           <text class="gender-text">不限</text>
         </view>
       </view>
+    </view>
+
+    <!-- 联系方式 -->
+    <view class="form-section">
+      <text class="section-title">联系方式</text>
+      <input class="input" placeholder="姓名" value="{{contactName}}" bindinput="onContactNameInput" />
+      <input class="input" placeholder="电话" value="{{contactPhone}}" bindinput="onContactPhoneInput" />
     </view>
 
     <!-- 证件要求 -->
@@ -74,16 +91,10 @@
                 maxlength="500"></textarea>
     </view>
 
-    <!-- 联系方式 -->
-    <view class="form-section">
-      <text class="section-title">联系方式</text>
-      <input class="input" placeholder="姓名" value="{{contactName}}" bindinput="onContactNameInput" />
-      <input class="input" placeholder="电话" value="{{contactPhone}}" bindinput="onContactPhoneInput" />
-    </view>
   </view>
 
-  <!-- 发布按钮 -->
+  <!-- 预览按钮 -->
   <view class="publish-btn-container">
-    <button class="publish-btn" bindtap="publishRequirement">发布需求</button>
+    <button class="publish-btn" bindtap="previewRequirement">预览需求卡</button>
   </view>
 </view>

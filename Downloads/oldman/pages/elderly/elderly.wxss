@@ -1,5 +1,16 @@
 /* pages/elderly/elderly.wxss */
 
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 100rpx 32rpx;
+}
+
+.empty-text {
+  color: #999;
+  font-size: 28rpx;
+}
+
 /* 页面级别样式 */
 page {
   margin: 0;
@@ -61,6 +72,7 @@ page {
   overflow-y: hidden;
 }
 
+/* 基础tag样式 */
 .tag {
   display: inline-block;
   background: rgb(255, 255, 255);
@@ -69,25 +81,18 @@ page {
   border-radius: 30rpx;
   font-size: 26rpx;
   margin-right: 20rpx;
-  margin-left: 0;
-  margin-top: 0;
-  margin-bottom: 0;
   transition: all 0.2s ease;
   vertical-align: top;
   line-height: 1.2;
 }
 
+/* 选中状态 - 只改变颜色，保持尺寸一致 */
 .tag.active {
-  background: #161616 !important;
-  color: white !important;
+  background: #161616;
+  color: white;
   font-weight: bold;
-  font-size: 26rpx !important;
-  padding: 12rpx 24rpx !important;
-  margin-top: 0;
-  margin-bottom: 0;
-  vertical-align: top;
-  line-height: 1.2;
-  border-radius: 30rpx !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 /* 内容列表 */
@@ -391,6 +396,39 @@ page {
   font-size: 80rpx;
   display: block;
   margin-bottom: 20rpx;
+}
+
+/* 新增样式 - 雇主需求卡片 */
+.badge {
+  background: #3DC0B9;
+  color: white;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  margin-top: 8rpx;
+  display: inline-block;
+}
+
+.gender-display {
+  padding: 20rpx 0;
+}
+
+.gender-text {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.no-certs {
+  padding: 20rpx 0;
+  text-align: center;
+}
+
+.no-certs-text {
+  font-size: 24rpx;
+  color: #999;
+  font-style: italic;
 }
 
 .empty-text {

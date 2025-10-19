@@ -45,6 +45,35 @@
   display: block;
 }
 
+/* 头像上传 */
+.avatar-upload {
+  display: flex;
+  justify-content: center;
+  margin: 24rpx 0;
+}
+
+.avatar-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  border: 4rpx solid #e9ecef;
+}
+
+.avatar-placeholder {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-text {
+  font-size: 24rpx;
+  color: #6c757d;
+}
+
 /* 性别选择 */
 .gender-section {
   display: flex;

@@ -32,6 +32,8 @@ class ApiService {
 
       // 获取用户token
       const token = wx.getStorageSync('userToken');
+      console.log('🔑 当前token状态:', token ? '已获取' : '未获取');
+      console.log('🔑 token值:', token ? token.substring(0, 20) + '...' : 'null');
       
       // 构建请求头
       const header = {
@@ -41,6 +43,9 @@ class ApiService {
       
       if (token) {
         header['Authorization'] = `Bearer ${token}`;
+        console.log('🔑 已添加Authorization头');
+      } else {
+        console.log('⚠️ 未找到token，请求可能失败');
       }
 
       // 构建请求参数
@@ -82,7 +87,22 @@ class ApiService {
             }
           } else {
             console.log('❌ HTTP状态码错误:', res.statusCode);
-            this.handleError(`请求失败 (${res.statusCode})`, reject);
+            console.log('❌ 错误响应数据:', res.data);
+            
+            // 对于422错误，显示详细的验证错误信息
+            if (res.statusCode === 422 && res.data) {
+              let errorMessage = '数据验证失败';
+              if (res.data.detail) {
+                errorMessage = res.data.detail;
+              } else if (res.data.message) {
+                errorMessage = res.data.message;
+              } else if (typeof res.data === 'string') {
+                errorMessage = res.data;
+              }
+              this.handleError(errorMessage, reject);
+            } else {
+              this.handleError(`请求失败 (${res.statusCode})`, reject);
+            }
           }
         },
         fail: (err) => {

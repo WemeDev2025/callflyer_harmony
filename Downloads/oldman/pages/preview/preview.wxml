@@ -17,12 +17,45 @@
       <view class="info-section">
         <text class="name">{{workCardData.name}}</text>
         <text class="phone">{{workCardData.phone}}</text>
-        <view class="badge">{{cardType === 'hire' ? '养老需求' : '专业护理员'}}</view>
       </view>
     </view>
 
-    <!-- 证件信息 -->
-    <view class="card-section">
+    <!-- 性别要求 -->
+    <view class="card-section" wx:if="{{cardType === 'hire'}}">
+      <text class="section-title">性别要求</text>
+      <view class="gender-display">
+        <text class="gender-text">{{workCardData.gender === 'male' ? '男' : workCardData.gender === 'female' ? '女' : '不限'}}</text>
+      </view>
+    </view>
+
+    <!-- 证件要求 -->
+    <view class="card-section" wx:if="{{cardType === 'hire'}}">
+      <text class="section-title">证件要求</text>
+      <view class="cert-list">
+        <view class="cert-item" wx:if="{{workCardData.certs.idCard}}">
+          <text class="cert-icon">🆔</text>
+          <text class="cert-text">身份证</text>
+        </view>
+        <view class="cert-item" wx:if="{{workCardData.certs.healthCard}}">
+          <text class="cert-icon">🏥</text>
+          <text class="cert-text">健康证</text>
+        </view>
+        <view class="cert-item" wx:if="{{workCardData.certs.nursingCert}}">
+          <text class="cert-icon">📜</text>
+          <text class="cert-text">养老护理员资格证书</text>
+        </view>
+        <view class="cert-item" wx:if="{{workCardData.certs.firstAidCert}}">
+          <text class="cert-icon">🚑</text>
+          <text class="cert-text">急救员证书</text>
+        </view>
+        <view wx:if="{{!workCardData.certs.idCard && !workCardData.certs.healthCard && !workCardData.certs.nursingCert && !workCardData.certs.firstAidCert}}" class="no-certs">
+          <text class="no-certs-text">无特殊证件要求</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 证件信息（工作卡专用） -->
+    <view class="card-section" wx:if="{{cardType === 'work'}}">
       <text class="section-title">证件信息</text>
       <view class="cert-list">
         <view class="cert-item" wx:if="{{workCardData.certs.idCard}}">
@@ -58,10 +91,6 @@
     <view class="card-section">
       <text class="section-title">更多介绍</text>
       <text class="other-text">{{workCardData.otherRequirements || '暂无更多介绍'}}</text>
-      <!-- 调试信息 -->
-      <text class="debug-text" style="font-size: 20rpx; color: #999; margin-top: 10rpx;">
-        调试: otherRequirements = "{{workCardData.otherRequirements}}"
-      </text>
     </view>
 
     <!-- 工作卡底部 -->
@@ -73,7 +102,7 @@
 
   <!-- 操作按钮 -->
   <view class="action-buttons" wx:if="{{workCardData}}">
-    <button class="action-btn edit-btn" bindtap="editCard">{{cardType === 'hire' ? '编辑需求' : '编辑'}}</button>
-    <button class="action-btn share-btn" bindtap="publishCard">{{cardType === 'hire' ? '发布需求' : '发布'}}</button>
+    <button class="action-btn edit-btn" bindtap="editCard">{{cardType === 'hire' ? '编辑' : '编辑'}}</button>
+    <button class="action-btn share-btn" bindtap="publishCard">{{cardType === 'hire' ? '发布' : '发布'}}</button>
   </view>
 </view>

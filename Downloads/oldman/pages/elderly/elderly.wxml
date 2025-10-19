@@ -27,6 +27,12 @@
 
   <!-- 护理员列表 -->
   <view class="content-list" wx:if="{{activeTab === 'nurses'}}">
+    <!-- 空状态提示 -->
+    <view wx:if="{{filteredNurses.length === 0 && dataLoaded}}" class="empty-state">
+      <text class="empty-text">暂无已发布的护理员</text>
+    </view>
+    
+    <!-- 护理员卡片列表 -->
     <view class="card-wrapper" wx:for="{{filteredNurses}}" wx:key="id" bindtap="onNurseTap" data-nurse="{{item}}">
       <!-- 复用预览页面的卡片结构 -->
       <view class="card-container">
@@ -97,34 +103,78 @@
 
   <!-- 雇主需求列表 -->
   <view class="content-list" wx:if="{{activeTab === 'employers'}}">
+    <!-- 空状态提示 -->
+    <view wx:if="{{filteredEmployers.length === 0 && dataLoaded}}" class="empty-state">
+      <text class="empty-text">暂无已发布的雇主需求</text>
+    </view>
+    
     <view class="card-wrapper" wx:for="{{filteredEmployers}}" wx:key="id" bindtap="onEmployerTap" data-employer="{{item}}">
-      <!-- 复用预览页面的卡片结构 -->
+      <!-- 雇主需求卡片 -->
       <view class="card-container">
         <!-- 需求卡头部 -->
         <view class="card-header">
           <view class="avatar-section">
             <image wx:if="{{item.avatar && item.avatar !== '/static/avatar3.jpg'}}" src="{{item.avatar}}" class="avatar-image" binderror="onImageError"></image>
             <view wx:else class="avatar-placeholder">
-              <text class="avatar-text">{{item.name.charAt(0)}}</text>
+              <text class="avatar-text">{{item.contactName.charAt(0)}}</text>
             </view>
           </view>
           
           <view class="info-section">
-            <text class="name">{{item.name}}</text>
-            <text class="phone">{{item.phone}}</text>
+            <text class="name">{{item.contactName}}</text>
+            <text class="phone">{{item.contactPhone}}</text>
+            <view class="badge">养老需求</view>
           </view>
         </view>
 
-        <!-- 需求描述 -->
+        <!-- 性别要求 -->
         <view class="card-section">
-          <text class="section-title">需求描述</text>
-          <text class="requirement-text">{{item.requirements}}</text>
+          <text class="section-title">性别要求</text>
+          <view class="gender-display">
+            <text class="gender-text">{{item.gender === 'male' ? '男' : item.gender === 'female' ? '女' : '不限'}}</text>
+          </view>
         </view>
 
-        <!-- 地址信息 -->
-        <view class="card-section" wx:if="{{item.location}}">
-          <text class="section-title">地址</text>
-          <text class="location-text">{{item.location.province}}{{item.location.city}}{{item.location.district}}</text>
+        <!-- 证件要求 -->
+        <view class="card-section">
+          <text class="section-title">证件要求</text>
+          <view class="cert-list">
+            <view class="cert-item" wx:if="{{item.certs.idCard}}">
+              <text class="cert-icon">🆔</text>
+              <text class="cert-text">身份证</text>
+            </view>
+            <view class="cert-item" wx:if="{{item.certs.healthCard}}">
+              <text class="cert-icon">🏥</text>
+              <text class="cert-text">健康证</text>
+            </view>
+            <view class="cert-item" wx:if="{{item.certs.nursingCert}}">
+              <text class="cert-icon">📜</text>
+              <text class="cert-text">养老护理员资格证书</text>
+            </view>
+            <view class="cert-item" wx:if="{{item.certs.firstAidCert}}">
+              <text class="cert-icon">🚑</text>
+              <text class="cert-text">急救员证书</text>
+            </view>
+            <view wx:if="{{!item.certs.idCard && !item.certs.healthCard && !item.certs.nursingCert && !item.certs.firstAidCert}}" class="no-certs">
+              <text class="no-certs-text">无特殊证件要求</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 所需服务 -->
+        <view class="card-section">
+          <text class="section-title">所需服务</text>
+          <view class="skill-list">
+            <view class="skill-tag" wx:for="{{item.services}}" wx:key="*this">
+              <text>{{item}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 其他要求 -->
+        <view class="card-section">
+          <text class="section-title">其他要求</text>
+          <text class="other-text">{{item.otherRequirements || '暂无特殊要求'}}</text>
         </view>
 
         <!-- 需求卡底部 -->

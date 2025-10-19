@@ -1,5 +1,6 @@
 // pages/index/index.js
 const app = getApp();
+const dataManager = require('../../utils/dataManager');
 
 Page({
   data: {
@@ -41,13 +42,13 @@ Page({
           });
           break;
       case 'work':
-        wx.navigateTo({
-          url: '/pages/work-card/work-card'
-        });
+        // 检查是否已有工作卡，如果有则进入编辑模式
+        this.checkWorkCardAndNavigate();
         break;
       case 'hire':
+        // 默认打开编辑需求页面
         wx.navigateTo({
-          url: '/pages/hire/hire'
+          url: '/pages/hire/hire?edit=true'
         });
         break;
       case 'business':
@@ -73,6 +74,46 @@ Page({
     wx.navigateTo({
       url: '/pages/article/article'
     });
+  },
+
+  // 检查工作卡并导航
+  async checkWorkCardAndNavigate() {
+    try {
+      // 显示加载提示
+      wx.showLoading({
+        title: '检查工作卡...',
+        mask: true
+      });
+
+      // 检查是否已有工作卡
+      const result = await dataManager.workCard.getMy();
+      
+      if (result.success && result.data) {
+        // 已有工作卡，进入编辑模式
+        console.log('✅ 检测到已有工作卡，进入编辑模式:', result.data);
+        wx.hideLoading();
+        
+        wx.navigateTo({
+          url: `/pages/work-card/work-card?edit=true&id=${result.data.id}`
+        });
+      } else {
+        // 没有工作卡，进入新建模式
+        console.log('ℹ️ 没有检测到工作卡，进入新建模式');
+        wx.hideLoading();
+        
+        wx.navigateTo({
+          url: '/pages/work-card/work-card'
+        });
+      }
+    } catch (error) {
+      console.error('检查工作卡失败:', error);
+      wx.hideLoading();
+      
+      // 出错时默认进入新建模式
+      wx.navigateTo({
+        url: '/pages/work-card/work-card'
+      });
+    }
   },
 
   // 手动刷新登录状态

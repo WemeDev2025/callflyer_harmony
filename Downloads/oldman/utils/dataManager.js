@@ -100,7 +100,7 @@ class DataManager {
           return { success: true, data: response.data };
         }
         
-        return result;
+        return response;
       } catch (error) {
         console.error('获取工作卡失败:', error);
         // 网络失败时尝试从本地存储获取
@@ -207,19 +207,39 @@ class DataManager {
     },
 
     // 获取我的养老需求
-    async getMy() {
+    async getMy(forceRefresh = false) {
       try {
-        // 先检查缓存
-        const cached = dataManager.getCache('myHireRequirement');
-        if (cached) {
-          return { success: true, data: cached };
+        // 如果强制刷新，清除缓存
+        if (forceRefresh) {
+          dataManager.clearCache('myHireRequirement');
+          console.log('🔄 强制刷新：已清除缓存');
+        }
+        
+        // 先检查缓存（除非强制刷新）
+        if (!forceRefresh) {
+          const cached = dataManager.getCache('myHireRequirement');
+          if (cached) {
+            console.log('📦 使用缓存数据:', cached);
+            return { success: true, data: cached };
+          }
         }
 
+        console.log('🌐 从API获取最新数据...');
         const response = await hireAPI.getMyHireRequirement();
         const result = ResponseAdapter.handleResponse(response);
         
         if (result.success) {
-          const localData = HireRequirementAdapter.toLocal(result.data);
+          // 处理数据格式：如果返回的是数组，取第一个元素
+          const apiData = Array.isArray(result.data) ? result.data[0] : result.data;
+        console.log('🔍 dataManager.getMy 原始API数据:', apiData);
+        console.log('🔍 dataManager.getMy 原始API数据certificates:', apiData.certificates);
+        console.log('🔍 dataManager.getMy 原始API数据certificates类型:', typeof apiData.certificates);
+        
+        const localData = HireRequirementAdapter.toLocal(apiData);
+        console.log('🔍 dataManager.getMy 转换后的本地数据:', localData);
+        console.log('🔍 dataManager.getMy 转换后的本地数据certs:', localData.certs);
+        console.log('🔍 dataManager.getMy 转换后的本地数据certs类型:', typeof localData.certs);
+          
           dataManager.setCache('myHireRequirement', localData);
           return { success: true, data: localData };
         }
@@ -283,7 +303,23 @@ class DataManager {
         const result = ResponseAdapter.handlePageResponse(response);
         
         if (result.success) {
-          dataManager.setCache(cacheKey, result.data);
+          // 对每个雇主需求数据进行格式转换
+          const convertedData = (result.data || []).map(item => {
+            console.log('🔄 转换雇主需求数据:', item);
+            const converted = HireRequirementAdapter.toLocal(item);
+            console.log('✅ 转换后的雇主需求数据:', converted);
+            return converted;
+          });
+          
+          dataManager.setCache(cacheKey, convertedData);
+          return {
+            success: true,
+            data: convertedData,
+            total: result.total,
+            page: result.page,
+            pageSize: result.pageSize,
+            message: result.message
+          };
         }
         
         return result;

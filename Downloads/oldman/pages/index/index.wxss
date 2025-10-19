@@ -101,13 +101,13 @@
 .service-card {
   background: white;
   border-radius: 22rpx;
-  padding: 23.77rpx 18.36rpx;
+  padding: 24rpx 18rpx;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   gap: 20rpx;
-  width: 680rpx;
+  width: 660rpx;
   max-width: 680rpx;
   height: 200rpx;
   margin: 0 auto;
