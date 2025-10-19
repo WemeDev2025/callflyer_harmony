@@ -130,18 +130,97 @@ Page({
     this.checkDataLoaded();
   },
 
-  // 加载订单数据
-  loadOrders() {
-    // 订单数据暂时从本地存储获取，后续可接入真实API
-    const storedOrders = wx.getStorageSync('orders') || [];
-
-    this.setData({
-      orders: storedOrders,
-      filteredOrders: storedOrders
-    });
-
+  // 加载匹配数据
+  async loadOrders() {
+    try {
+      console.log('🔄 开始加载匹配数据...');
+      const result = await dataManager.match.getMatches();
+      console.log('🔍 匹配数据加载结果:', result);
+      
+      if (result.success) {
+        console.log('✅ 匹配数据成功:', result.data);
+        console.log('📊 匹配数量:', result.data ? result.data.length : 0);
+        
+        // 处理匹配数据，将后端数据转换为前端期望的格式
+        const processedData = (result.data || []).map(item => {
+          console.log('🔍 处理匹配数据:', item);
+          
+          // 转换数据格式以匹配WXML期望的结构
+          const transformedItem = {
+            id: item.id,
+            orderNumber: `#${item.id.slice(-8)}`, // 使用ID后8位作为订单号
+            status: item.service_status === '已完成' ? '已完成' : '进行中',
+            careType: '专业护理服务', // 默认护理类型
+            startDate: item.contract_start_date ? new Date(item.contract_start_date).toLocaleDateString() : '待定',
+            endDate: item.contract_end_date ? new Date(item.contract_end_date).toLocaleDateString() : '待定',
+            duration: this.calculateDuration(item.contract_start_date, item.contract_end_date),
+            employer: {
+              id: item.employer_id,
+              name: item.employer_name,
+              avatarUrl: item.employer_avatar,
+              phone: '***-****-****' // 隐私保护
+            },
+            nurse: {
+              id: item.caregiver_id,
+              name: item.caregiver_name,
+              avatarUrl: item.caregiver_avatar,
+              phone: '***-****-****' // 隐私保护
+            },
+            createTime: item.created_at ? new Date(item.created_at).toLocaleDateString() : '刚刚',
+            matchDate: item.match_date ? new Date(item.match_date).toLocaleDateString() : '未知',
+            notes: item.notes || '无备注信息'
+          };
+          
+          console.log('✅ 转换后的数据:', transformedItem);
+          return transformedItem;
+        });
+        
+        this.setData({
+          orders: processedData,
+          filteredOrders: processedData
+        });
+      } else {
+        console.log('❌ 匹配数据失败:', result);
+        this.setData({
+          orders: [],
+          filteredOrders: []
+        });
+      }
+    } catch (error) {
+      console.error('加载匹配数据失败:', error);
+      this.setData({
+        orders: [],
+        filteredOrders: []
+      });
+    }
+    
     this.filterOrders();
     this.checkDataLoaded();
+  },
+
+  // 计算服务时长
+  calculateDuration(startDate, endDate) {
+    if (!startDate || !endDate) return '待定';
+    
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffTime = Math.abs(end - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 30) {
+        return `${diffDays}天`;
+      } else if (diffDays < 365) {
+        const months = Math.floor(diffDays / 30);
+        return `${months}个月`;
+      } else {
+        const years = Math.floor(diffDays / 365);
+        return `${years}年`;
+      }
+    } catch (error) {
+      console.error('计算服务时长失败:', error);
+      return '待定';
+    }
   },
 
   // 检查数据是否已加载完成

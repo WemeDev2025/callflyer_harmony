@@ -34,7 +34,7 @@ page {
   flex: 1;
   padding: 24rpx 32rpx;
   text-align: center;
-  background: #f8f9fa;
+  background: #f3f3f3;
   transition: all 0.3s ease;
 }
 
@@ -45,7 +45,7 @@ page {
 
 .tab-text {
   font-size: 28rpx;
-  font-weight: bold;
+  font-weight: 500;
 }
 
 /* 筛选标签 */
@@ -78,13 +78,16 @@ page {
 }
 
 .tag.active {
-  background: #161616;
-  color: white;
+  background: #161616 !important;
+  color: white !important;
   font-weight: bold;
+  font-size: 26rpx !important;
+  padding: 12rpx 24rpx !important;
   margin-top: 0;
   margin-bottom: 0;
   vertical-align: top;
   line-height: 1.2;
+  border-radius: 30rpx !important;
 }
 
 /* 内容列表 */

@@ -412,10 +412,19 @@ const uploadAPI = {
   }
 };
 
+// 匹配数据API
+const matchAPI = {
+  // 获取匹配数据
+  getMatches() {
+    return apiService.get('/api/matches');
+  }
+};
+
 module.exports = {
   apiService,
   workCardAPI,
   hireAPI,
   userAPI,
-  uploadAPI
+  uploadAPI,
+  matchAPI
 };

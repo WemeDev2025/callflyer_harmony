@@ -1,5 +1,5 @@
 // utils/dataManager.js - 数据管理服务
-const { workCardAPI, hireAPI, userAPI, uploadAPI } = require('./api');
+const { workCardAPI, hireAPI, userAPI, uploadAPI, matchAPI } = require('./api');
 const { WorkCardAdapter, HireRequirementAdapter, UserAdapter, ResponseAdapter } = require('./dataAdapter');
 
 /**
@@ -450,6 +450,39 @@ class DataManager {
           data: null,
           message: '上传失败，请重试'
         };
+      }
+    }
+  };
+
+  // 匹配数据管理
+  match = {
+    // 获取匹配数据
+    async getMatches() {
+      try {
+        console.log('🔄 开始获取匹配数据...');
+        
+        // 检查缓存
+        const cached = dataManager.getCache('matches');
+        if (cached) {
+          console.log('✅ 从缓存获取匹配数据');
+          return { success: true, data: cached };
+        }
+
+        // 调用API获取数据
+        const response = await matchAPI.getMatches();
+        console.log('🔍 匹配数据API响应:', response);
+        
+        if (response.success) {
+          console.log('✅ 匹配数据获取成功:', response.data);
+          dataManager.setCache('matches', response.data);
+          return { success: true, data: response.data };
+        } else {
+          console.log('❌ 匹配数据获取失败:', response);
+          return { success: false, data: [], message: response.message || '获取匹配数据失败' };
+        }
+      } catch (error) {
+        console.error('获取匹配数据失败:', error);
+        return { success: false, data: [], message: '网络错误，请检查网络连接' };
       }
     }
   };

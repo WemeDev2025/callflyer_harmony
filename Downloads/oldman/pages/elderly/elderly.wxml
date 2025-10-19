@@ -112,7 +112,6 @@
           <view class="info-section">
             <text class="name">{{item.name}}</text>
             <text class="phone">{{item.phone}}</text>
-            <view class="badge">养老需求</view>
           </view>
         </view>
 
@@ -219,9 +218,5 @@
     </view>
   </view>
 
-  <!-- 空状态 -->
-  <view class="empty-state" wx:if="{{(activeTab === 'nurses' && filteredNurses.length === 0) || (activeTab === 'employers' && filteredEmployers.length === 0) || (activeTab === 'orders' && filteredOrders.length === 0)}}">
-    <text class="empty-icon">{{activeTab === 'nurses' ? '' : activeTab === 'employers' ? '' : ''}}</text>
-    <text class="empty-text">{{activeTab === 'nurses' ? '数据维护中' : activeTab === 'employers' ? '暂无需求信息' : '暂无订单信息'}}</text>
-  </view>
+
 </view>
