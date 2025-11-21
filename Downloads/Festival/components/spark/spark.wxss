@@ -1,0 +1,7 @@
+.sparkles { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+.spark { width: 8rpx; height: 8rpx; background: rgba(255,255,255,0.95); border-radius: 50%; position: absolute; transform: translate(-50%, -50%); animation-name: floatUp; animation-timing-function: linear; animation-iteration-count: infinite; }
+
+@keyframes floatUp {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 1; }
+  100% { transform: translate(-50%, -160rpx) scale(1.3); opacity: 0; }
+}

@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "春节倒计时",
+    "navigationBarBackgroundColor": "#FF3B30",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#fff"
+  },
+  "lazyCodeLoading": "requiredComponents"
+}

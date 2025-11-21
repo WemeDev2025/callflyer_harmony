@@ -1,0 +1,7 @@
+/* 全局样式 */
+page { background: linear-gradient(180deg,#fff7f0,#fff); box-sizing: border-box; }
+
+/* 微信小程序的 WXSS 在某些基础库版本中对通配符支持有限，避免直接使用 `*` */
+
+/* 字体及通用容器 */
+.container { padding: 24px; font-family: Helvetica, Arial, sans-serif; box-sizing: border-box; }

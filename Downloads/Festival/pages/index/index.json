@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "春节倒计时",
+  "usingComponents": {
+    "spark-component": "../../components/spark/spark"
+  }
+}
+

@@ -1,0 +1,6 @@
+<view class="sparkles">
+  <block wx:for="{{sparks}}" wx:key="index">
+    <view class="spark" style="left:{{item.x}}rpx;top:{{item.y}}rpx;animation-duration:{{item.d}}s;opacity:{{item.o}}"></view>
+  </block>
+  <slot></slot>
+</view>
