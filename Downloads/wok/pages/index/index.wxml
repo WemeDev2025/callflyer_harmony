@@ -1,0 +1,30 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 上半部分：炒锅图片和动画 -->
+  <view class="top-section">
+    <view class="wok-container">
+      <image 
+        class="wok-image {{animationClass}}" 
+        src="https://wemedev.com/wok/data/images/pic_wok.png" 
+        mode="aspectFit"
+      ></image>
+    </view>
+    <view class="welcome">
+      <text class="title">WOK</text>
+      <text class="subtitle">今天吃什么？</text>
+    </view>
+  </view>
+
+  <!-- 下半部分：用户信息和操作 -->
+  <view class="bottom-section">
+    <view class="user-info" wx:if="{{userInfo}}">
+      <image class="user-avatar" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
+      <text class="user-nickname">{{userInfo.nickname || '未设置昵称'}}</text>
+    </view>
+
+    <view class="actions">
+      <button class="action-btn" bindtap="goToProfile">个人资料</button>
+    </view>
+  </view>
+</view>
+

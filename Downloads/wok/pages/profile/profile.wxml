@@ -1,0 +1,33 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <view class="profile-header">
+    <view class="avatar-section">
+      <image 
+        class="avatar" 
+        src="{{userInfo.avatar_url || ''}}" 
+        mode="aspectFill"
+        bindtap="chooseAvatar"
+      ></image>
+      <view class="avatar-tip">点击更换头像</view>
+    </view>
+  </view>
+
+  <view class="form-section">
+    <view class="form-item">
+      <text class="label">昵称</text>
+      <input 
+        class="input" 
+        type="text" 
+        placeholder="请输入昵称" 
+        value="{{userInfo.nickname || ''}}"
+        bindinput="onNicknameInput"
+        maxlength="20"
+      />
+    </view>
+
+    <button class="save-btn" bindtap="saveProfile" loading="{{saving}}">
+      {{saving ? '保存中...' : '保存'}}
+    </button>
+  </view>
+</view>
+
