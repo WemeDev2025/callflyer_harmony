@@ -22,8 +22,14 @@ App({
           const profile = await getProfile()
           if (profile) {
             console.log('已登录，用户信息:', profile)
+            // 统一字段名：支持 avatarUrl（驼峰）和 avatar_url（下划线）
+            if (profile.avatarUrl && !profile.avatar_url) {
+              profile.avatar_url = profile.avatarUrl
+            }
             this.globalData.userInfo = profile
             this.globalData.isLoggedIn = true
+            // 通知所有页面用户信息已更新
+            this.notifyUserInfoUpdate()
             return
           } else {
             // profile 为 null 表示用户资料不存在（新用户），设置默认值
@@ -72,8 +78,14 @@ App({
         try {
           const profile = await getProfile()
           if (profile) {
+            // 统一字段名：支持 avatarUrl（驼峰）和 avatar_url（下划线）
+            if (profile.avatarUrl && !profile.avatar_url) {
+              profile.avatar_url = profile.avatarUrl
+            }
             this.globalData.userInfo = profile
             console.log('登录成功，用户信息:', profile)
+            // 通知所有页面用户信息已更新
+            this.notifyUserInfoUpdate()
           } else {
             // profile 为 null 表示用户资料不存在（新用户首次登录），设置默认值
             console.log('新用户首次登录，用户资料待创建')
@@ -103,6 +115,20 @@ App({
     } catch (error) {
       console.error('静默登录失败:', error)
     }
+  },
+
+  /**
+   * 通知所有页面用户信息已更新
+   */
+  notifyUserInfoUpdate() {
+    // 获取所有页面实例
+    const pages = getCurrentPages()
+    pages.forEach(page => {
+      // 如果页面有 loadUserInfo 方法，调用它
+      if (page && typeof page.loadUserInfo === 'function') {
+        page.loadUserInfo()
+      }
+    })
   },
 
   globalData: {

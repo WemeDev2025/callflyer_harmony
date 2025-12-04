@@ -8,22 +8,41 @@
         src="https://wemedev.com/wok/data/images/pic_wok.png" 
         mode="aspectFit"
       ></image>
+      <!-- 参与者头像在铁锅中翻炒 -->
+      <view class="avatars-in-wok" wx:if="{{activeParticipants.length > 0}}">
+        <image 
+          class="avatar-particle" 
+          wx:for="{{activeParticipants}}" 
+          wx:key="index"
+          wx:for-item="participant"
+          style="animation-delay: {{participant.delay}}s; left: {{participant.x}}%; top: {{participant.y}}%;"
+          src="{{participant.avatar_url || participant.avatarUrl || ''}}" 
+          mode="aspectFill"
+        ></image>
+      </view>
+      <!-- 没有任务时显示文字动画 -->
+      <view class="text-particles" wx:else>
+        <text class="text-particle" style="animation-delay: 0s; left: 35%; top: 40%;">吃</text>
+        <text class="text-particle" style="animation-delay: 0.3s; left: 50%; top: 45%;">点</text>
+        <text class="text-particle" style="animation-delay: 0.6s; left: 45%; top: 55%;">啥</text>
+      </view>
     </view>
-    <view class="welcome">
+    <!-- <view class="welcome">
       <text class="title">WOK</text>
       <text class="subtitle">今天吃什么？</text>
-    </view>
+    </view> -->
   </view>
 
   <!-- 下半部分：用户信息和操作 -->
   <view class="bottom-section">
     <view class="user-info" wx:if="{{userInfo}}">
-      <image class="user-avatar" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
+      <image class="user-avatar" src="{{userInfo.avatar_url}}" mode="aspectFill" bindtap="goToProfile"></image>
       <text class="user-nickname">{{userInfo.nickname || '未设置昵称'}}</text>
     </view>
 
     <view class="actions">
-      <button class="action-btn" bindtap="goToProfile">个人资料</button>
+      <button class="action-btn primary-btn" bindtap="createTask">我想吃</button>
+      <button class="action-btn" bindtap="goToTasksList">大家在吃啥</button>
     </view>
   </view>
 </view>

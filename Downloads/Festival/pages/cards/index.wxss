@@ -1,0 +1,611 @@
+/* ========== 页面基础样式 ========== */
+.page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  padding: 0;
+  box-sizing: border-box;
+  background: #161616;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========== 点赞动画 ========== */
+.like-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.like-animation.show {
+  animation: likePopOut 1.2s ease-out forwards;
+}
+
+.like-animation-img {
+  width: 114rpx;
+  height: 114rpx;
+}
+
+@keyframes likePopOut {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* ========== 长按动画 ========== */
+.long-press-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 10001;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.long-press-animation.show {
+  animation: longPressScale 1s ease-out forwards;
+}
+
+.long-press-icon {
+  width: 77rpx;
+  height: 77rpx;
+}
+
+@keyframes longPressScale {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 1;
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(5);
+    opacity: 1;
+  }
+}
+
+/* ========== 爆炸粒子 ========== */
+.explosion-particle-outer {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  animation: particleFallY 2s ease-out forwards;
+}
+
+.explosion-particle-inner {
+  animation: particleFallTransform 2s ease-out forwards;
+}
+
+.particle-img {
+  width: 77rpx;
+  height: 77rpx;
+}
+
+@keyframes particleFallY {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes particleFallTransform {
+  0% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ========== 自定义导航栏 ========== */
+.custom-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.navbar-content {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.navbar-back {
+  position: absolute;
+  left: 20px;
+  font-size: 32px;
+  font-weight: 300;
+  color: #fff;
+  cursor: pointer;
+}
+
+.navbar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ========== 筛选区域 ========== */
+.filter-container {
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+/* 搜索框 */
+.search-box {
+  margin-bottom: 16rpx;
+  padding: 0;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 72rpx;
+  background: #202020;
+  border-radius: 36rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+}
+
+.search-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.search-clear {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #999;
+  margin-right: 8rpx;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.search-input {
+  flex: 1;
+  height: 100%;
+  font-size: 28rpx;
+  color: #e0e0e0;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #666;
+}
+
+.filter-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* 隐藏滚动条 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
+}
+
+/* 隐藏 WebKit 浏览器的滚动条 */
+.filter-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+.filter-tags {
+  display: flex;
+  gap: 16rpx;
+  padding: 10px 0;
+}
+
+.filter-tag {
+  padding: 8rpx 24rpx;
+  background: #202020;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: #e0e0e0;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  flex-shrink: 0; /* 防止标签被压缩 */
+  /* 移除 max-width、overflow 和 text-overflow，让文字完整显示 */
+}
+
+.filter-tag.active {
+  background: linear-gradient(180deg, #FF2D55 0%, #991B33 100%);
+  color: #fff;
+  border: 2rpx solid rgba(255, 45, 85, 0.8);
+  box-shadow: 0 0 12rpx rgba(153, 27, 51, 0.6);
+}
+
+.filter-tag.clear-filter {
+  background: rgba(255, 100, 100, 0.3);
+  color: #ff6464;
+}
+
+/* ========== 卡片列表 ========== */
+.cards-scroll {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 隐藏滚动条 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* 隐藏 WebKit 浏览器的滚动条 */
+.cards-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+/* 底部触发元素（用于 IntersectionObserver） */
+.load-more-trigger {
+  height: 1px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.cards-container {
+  padding: 0 20px 20px;
+  box-sizing: border-box;
+}
+
+/* ========== 复用主页面的卡片样式 ========== */
+.info-card-container {
+  padding: 0;
+  margin-bottom: 24rpx;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(20rpx);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.info-card-container.card-enter {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.info-card.card-item {
+  position: relative;
+  width: 730rpx;
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: #202020;
+  box-shadow: 0px 4rpx 16rpx rgba(0, 0, 0, 0.3);
+  border-radius: 44rpx;
+  overflow: hidden;
+}
+
+/* 点赞按钮 - 复用主页面的按钮样式 */
+.like-btn {
+  margin-left: auto;
+  padding: 16rpx 27rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 66rpx;
+  height: 66rpx;
+  min-width: 80rpx;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.like-btn::after {
+  border: none;
+}
+
+.like-btn:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.like-icon {
+  width: 44rpx;
+  height: 44rpx;
+  flex-shrink: 0;
+}
+
+.like-number {
+  font-size: 24rpx;
+  color: #e0e0e0;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.card-item .info-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 48rpx 44rpx;
+  gap: 48rpx;
+  width: 650rpx;
+  box-sizing: border-box;
+}
+
+.card-item .info-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 42rpx;
+  width: 100%;
+  height: 112rpx;
+}
+
+.card-item .avatar {
+  width: 112rpx;
+  height: 112rpx;
+  background: #4a4a5a;
+  border-radius: 50%;
+  display: block;
+}
+
+.card-item .nickname {
+  width: 242rpx;
+  height: 82rpx;
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 700;
+  font-size: 48rpx;
+  line-height: 170%;
+  color: #ffffff;
+}
+
+.card-item .info-text {
+  width: 100%;
+  min-height: auto;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  font-size: 32rpx;
+  line-height: 170%;
+  color: #e0e0e0;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+.card-item .info-divider {
+  width: 100%;
+  height: 4rpx;
+  border-top: 4rpx dashed #000000;
+  margin: 0;
+}
+
+.card-item .info-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22rpx;
+  width: 100%;
+  min-height: 48rpx;
+}
+
+.card-item .info-btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.card-item .btn-green {
+  width: 132rpx;
+  height: 66rpx;
+  background: #6aeb6e;
+}
+
+.card-item .btn-orange {
+  width: 132rpx;
+  height: 66rpx;
+  background: #FBC34C;
+}
+
+.card-item .btn-blue {
+  width: 142rpx;
+  height: 66rpx;
+  background: #5faaff;
+}
+
+.card-item .btn-purple {
+  min-width: 132rpx;
+  height: 66rpx;
+  padding: 0 16rpx;
+  background: #3cd8d0;
+}
+
+.card-item .btn-pink {
+  min-width: 188rpx;
+  height: 66rpx;
+  padding: 0 16rpx;
+  background: #ff5fba;
+}
+
+.card-item .btn-cyan {
+  min-width: 188rpx;
+  height: 66rpx;
+  padding: 0 16rpx;
+  background: #ae68ff; /* 青色背景 */
+}
+
+.card-item .btn-text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 700;
+  font-size: 24rpx;
+  line-height: 170%;
+  color: #000000;
+}
+
+/* ========== 加载状态 ========== */
+.no-more,
+.empty-state {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* ========== 筛选选择器 ========== */
+.filter-picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.filter-picker-mask.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.filter-picker {
+  width: 600rpx;
+  max-height: 60vh;
+  background: #2a2a3a;
+  border-radius: 24rpx;
+  overflow: hidden;
+  transform: scale(0.8) translateY(50rpx);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.filter-picker-mask.show .filter-picker {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.filter-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 2rpx solid #3a3a4a;
+}
+
+.filter-picker-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.filter-picker-close {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+}
+
+.filter-picker-content {
+  max-height: 50vh;
+}
+
+.filter-picker-scroll {
+  max-height: 50vh;
+}
+
+.filter-picker-item {
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #3a3a4a;
+  font-size: 28rpx;
+  color: #e0e0e0;
+  cursor: pointer;
+}
+
+.filter-picker-item:last-child {
+  border-bottom: none;
+}
+
+.filter-picker-item.selected {
+  background: rgba(200, 80, 192, 0.2);
+}
+
+.filter-picker-item.selected text {
+  color: #c850c0;
+  font-weight: 600;
+}
+

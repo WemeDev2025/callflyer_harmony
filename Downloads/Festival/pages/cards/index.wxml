@@ -1,0 +1,125 @@
+<view class="page dark-theme">
+  <!-- 点赞动画 - 支持叠加 -->
+  <block wx:for="{{likeAnimationList}}" wx:key="id" wx:for-item="item">
+    <view class="like-animation show" style="animation-delay: {{item.delay}}s;">
+      <image class="like-animation-img" src="/images/icon_like2.png" mode="aspectFit"></image>
+    </view>
+  </block>
+  
+  <!-- 长按爆炸动画 -->
+  <view class="long-press-animation {{showLongPressAnimation ? 'show' : ''}}">
+    <image class="long-press-icon" src="/images/icon_like2.png" mode="aspectFit"></image>
+  </view>
+  
+  <!-- 爆炸掉落粒子 -->
+  <block wx:for="{{explosionParticles}}" wx:key="id" wx:for-item="particle">
+    <view class="explosion-particle-outer" style="left:{{particle.leftPercent}};top:{{particle.topPercent}};animation-delay:{{particle.delay}}s">
+      <view class="explosion-particle-inner" style="transform:{{particle.initialTransform}}">
+        <image class="particle-img" src="/images/icon_like2.png" mode="aspectFit"></image>
+      </view>
+    </view>
+  </block>
+  
+  <!-- 自定义导航栏 -->
+  <view class="custom-navbar" style="height: {{navBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+    <view class="navbar-content">
+      <text class="navbar-back" bindtap="goBack">‹</text>
+      <text class="navbar-title">还有谁</text>
+    </view>
+  </view>
+
+  <!-- 筛选标签区域 -->
+  <view class="filter-container" style="padding-top: {{navBarHeight + 10}}px;">
+    <!-- 搜索框 -->
+    <view class="search-box">
+      <view class="search-input-wrapper">
+        <text class="search-icon" wx:if="{{!searchKeyword}}">🔍</text>
+        <text class="search-clear" bindtap="clearSearch" wx:if="{{searchKeyword}}">×</text>
+        <input 
+          class="search-input" 
+          type="text" 
+          placeholder="搜索昵称或标签" 
+          value="{{searchKeyword}}" 
+          bindinput="onSearchInput"
+          bindconfirm="onSearchConfirm"
+          confirm-type="search"
+        />
+      </view>
+    </view>
+    <view class="filter-scroll">
+      <view class="filter-tags">
+        <view class="filter-tag {{activeFilters.whenDate ? 'active' : ''}}" bindtap="toggleFilter" data-type="whenDate">
+          <text>日期</text>
+        </view>
+        <view class="filter-tag {{activeFilters.whoText ? 'active' : ''}}" bindtap="toggleFilter" data-type="whoText">
+          <text>和谁</text>
+        </view>
+        <view class="filter-tag {{activeFilters.howText ? 'active' : ''}}" bindtap="toggleFilter" data-type="howText">
+          <text>怎么回</text>
+        </view>
+        <view class="filter-tag {{activeFilters.whereText ? 'active' : ''}}" bindtap="toggleFilter" data-type="whereText">
+          <text>回哪里</text>
+        </view>
+        <view class="filter-tag {{activeFilters.mustDoText ? 'active' : ''}}" bindtap="toggleFilter" data-type="mustDoText">
+          <text>做什么</text>
+        </view>
+        <view class="filter-tag {{activeFilters.availableTime ? 'active' : ''}}" bindtap="toggleFilter" data-type="availableTime">
+          <text>几号有空</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 卡片列表 -->
+  <view class="cards-scroll" style="padding-top: 10px; height: {{scrollViewHeight}}px;">
+    <view class="cards-container">
+      <block wx:for="{{cards}}" wx:key="index" wx:for-index="index" wx:for-item="item">
+        <view class="info-card-container {{cardsAnimated ? 'card-enter' : ''}}" style="animation-delay: {{index * 0.05}}s;" wx:if="{{item && item.openid}}">
+          <view class="info-card card-item">
+            <view class="info-content">
+              <view class="info-header">
+                <image class="avatar" src="{{item.avatarUrl}}" mode="aspectFill" wx:if="{{item.avatarUrl}}"></image>
+                <view class="avatar" wx:else></view>
+                <text class="nickname">{{item.nickname || '匿名'}}</text>
+                <!-- 点赞按钮 -->
+                <button class="like-btn" bindtap="onLikeTap" bindlongpress="onLikeLongPress" longpress-time="350" data-openid="{{item.openid}}">
+                  <image class="like-icon" src="/images/icon_like.png" mode="aspectFit"></image>
+                  <text class="like-number" wx:if="{{item.likeCount > 0}}">{{item.likeCount}}</text>
+                </button>
+              </view>
+              <text class="info-text">{{item.infoText || '关于春节说点啥～'}}</text>
+              <view class="info-divider"></view>
+              <view class="info-buttons">
+                <view class="info-btn btn-green" wx:if="{{item.whenText && item.whenText !== '哪天回'}}">
+                  <text class="btn-text">{{item.whenText}}</text>
+                </view>
+                <view class="info-btn btn-orange" wx:if="{{item.whoText && item.whoText !== '和谁'}}">
+                  <text class="btn-text">{{item.whoText}}</text>
+                </view>
+                <view class="info-btn btn-blue" wx:if="{{item.howText && item.howText !== '怎么回'}}">
+                  <text class="btn-text">{{item.howText}}</text>
+                </view>
+                <view class="info-btn btn-purple" wx:if="{{item.whereText && item.whereText !== '回哪里'}}">
+                  <text class="btn-text">{{item.whereText}}</text>
+                </view>
+                <view class="info-btn btn-pink" wx:if="{{item.mustDoText && item.mustDoText !== '过节必须干件事'}}">
+                  <text class="btn-text">{{item.mustDoText}}</text>
+                </view>
+                <view class="info-btn btn-cyan" wx:if="{{item.availableTimeText && item.availableTimeText !== '几号有空'}}">
+                  <text class="btn-text">{{item.availableTimeText}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+      
+      <view class="no-more" wx:if="{{!loading && !hasMore && cards.length > 0}}">
+        <text>转发摇人～</text>
+      </view>
+      <!-- 底部检测元素（用于触发加载更多） -->
+      <view class="load-more-trigger" id="loadMoreTrigger" wx:if="{{hasMore}}"></view>
+    </view>
+  </view>
+</view>
+

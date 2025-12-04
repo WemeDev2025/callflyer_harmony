@@ -117,7 +117,12 @@ export function getProfile() {
       success: (res) => {
         if (res.statusCode === 200) {
           console.log('[API] 获取用户资料成功')
-          resolve(res.data)
+          // 统一字段名：后端可能返回 avatarUrl（驼峰）或 avatar_url（下划线）
+          const data = res.data
+          if (data && data.avatarUrl && !data.avatar_url) {
+            data.avatar_url = data.avatarUrl
+          }
+          resolve(data)
         } else if (res.statusCode === 404) {
           // 用户资料不存在，这是正常的（新用户首次登录），返回 null
           console.log('[API] 用户资料不存在（新用户），返回默认值')
@@ -156,6 +161,48 @@ export function updateProfile(data) {
 }
 
 /**
+ * 创建任务
+ */
+export function createTask(data) {
+  return request('/tasks', 'POST', data)
+}
+
+/**
+ * 获取任务列表
+ */
+export function getTasks(skip = 0, limit = 20) {
+  return request(`/tasks?skip=${skip}&limit=${limit}`, 'GET')
+}
+
+/**
+ * 获取任务详情
+ */
+export function getTaskDetail(taskId) {
+  return request(`/tasks/${taskId}`, 'GET')
+}
+
+/**
+ * 通过分享码获取任务
+ */
+export function getTaskByShareCode(shareCode) {
+  return request(`/tasks/share/${shareCode}`, 'GET')
+}
+
+/**
+ * 参与任务（提交菜品）
+ */
+export function participateTask(taskId, dishes) {
+  return request(`/tasks/${taskId}/participate`, 'POST', { dishes })
+}
+
+/**
+ * 随机选择菜品（仅创建者可操作）
+ */
+export function randomSelectDish(taskId) {
+  return request(`/tasks/${taskId}/random`, 'POST')
+}
+
+/**
  * 上传头像
  * 注意：文件字段名必须是 'file'，与后端接口定义一致
  */
@@ -183,9 +230,24 @@ export function uploadAvatar(filePath) {
         
         try {
           const data = JSON.parse(res.data)
+          console.log('[API] 解析后的数据:', data)
           if (res.statusCode === 200) {
-            console.log('[API] 上传头像成功:', data.avatar_url)
-            resolve(data)
+            // 后端返回的是 url 字段，统一转换为 avatar_url
+            const avatarUrl = data.avatar_url || data.url
+            console.log('[API] 上传头像成功，avatarUrl:', avatarUrl, 'data:', data)
+            if (!avatarUrl) {
+              console.error('[API] 错误：未找到头像URL，返回数据:', data)
+              reject(new Error('上传成功但未获取到图片地址'))
+              return
+            }
+            // 统一返回格式，确保有 avatar_url 字段
+            const result = {
+              avatar_url: avatarUrl,
+              url: avatarUrl,
+              ...data
+            }
+            console.log('[API] 返回结果:', result)
+            resolve(result)
           } else if (res.statusCode === 401) {
             // token 过期
             console.log('[API] Token 已过期')

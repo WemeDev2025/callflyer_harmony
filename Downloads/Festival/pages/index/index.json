@@ -1,5 +1,6 @@
 {
-  "navigationBarTitleText": "春节倒计时",
+  "navigationStyle": "custom",
+  "disableScroll": true,
   "usingComponents": {
     "spark-component": "../../components/spark/spark"
   }

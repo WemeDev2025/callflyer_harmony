@@ -1,0 +1,50 @@
+<!--pages/task/create/create.wxml-->
+<view class="container">
+
+  <view class="form-section">
+    <view class="form-item">
+      <text class="label">纠结啊</text>
+      <input 
+        class="input title-input" 
+        type="text" 
+        placeholder="今天吃什么？" 
+        value="{{title}}"
+        bindinput="onTitleInput"
+        maxlength="50"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="label">我想吃</text>
+      <view class="dishes-input">
+        <input 
+          class="input" 
+          type="text" 
+          placeholder="店名或者菜品" 
+          value="{{currentDish}}"
+          bindinput="onDishInput"
+          bindconfirm="addDish"
+          confirm-type="done"
+        />
+        <button class="add-btn" bindtap="addDish">添加</button>
+      </view>
+    </view>
+
+    <view class="dishes-list" wx:if="{{dishes.length > 0}}">
+      <view class="dishes-title">已添加的菜品：</view>
+      <view class="dish-tags">
+        <view class="dish-tag" wx:for="{{dishes}}" wx:key="index">
+          <text class="dish-name">{{item}}</text>
+          <text class="dish-remove" bindtap="removeDish" data-index="{{index}}">×</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="common-btn create-btn" bindtap="createTask" loading="{{creating}}">
+      {{creating ? '创建中...' : '创建'}}
+    </button>
+  </view>
+</view>
+

@@ -1,0 +1,259 @@
+/* pages/task/detail/detail.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #FFE6A8;
+  padding: 40rpx 40rpx 0 40rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40rpx;
+  padding-top: 40rpx;
+}
+
+.title {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 20rpx;
+}
+
+.share-code {
+  display: block;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 10rpx 20rpx;
+  border-radius: 20rpx;
+  margin: 0 auto;
+  width: fit-content;
+}
+
+.content {
+  width: 82%;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 38rpx;
+  padding: 66rpx;
+  flex: 1;
+  margin-bottom: 40rpx;
+}
+
+.status-section {
+  margin-bottom: 40rpx;
+}
+
+.result-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15rpx;
+  padding: 40rpx;
+  text-align: center;
+}
+
+.result-label {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 20rpx;
+}
+
+.result-dish {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+.participants-section {
+  margin-bottom: 40rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+.participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  gap: 40rpx;
+}
+
+.participant-avatar {
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+}
+
+.participant-info {
+  flex: 1;
+}
+
+.participant-name {
+  display: block;
+  font-size: 46rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.participant-dishes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.dish-item {
+  font-size: 24rpx;
+  color: #666;
+  background-color: #f0f0f0;
+  padding: 5rpx 26rpx;
+  border-radius: 15rpx;
+}
+
+.add-dish-section {
+  margin-bottom: 40rpx;
+  padding-top: 40rpx;
+  border-top: 1rpx solid #e0e0e0;
+}
+
+.dishes-input {
+  display: flex;
+  gap: 20rpx;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.input {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 20rpx;
+  background-color: #f5f5f5;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.add-btn {
+  width: 120rpx !important;
+  min-width: 120rpx;
+  max-width: 120rpx;
+  height: 80rpx;
+  background-color: #07c160;
+  color: #fff;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.add-btn::after {
+  border: none;
+}
+
+.my-dishes {
+  margin-top: 30rpx;
+}
+
+.my-dishes-title {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.dish-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.participants-avatars {
+  display: flex;
+  align-items: center;
+  gap: -10rpx;
+  flex-wrap: wrap;
+  margin-top: 20rpx;
+}
+
+.participant-avatar-small {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 2rpx solid #fff;
+  background-color: #f0f0f0;
+  margin-left: -10rpx;
+}
+
+.participant-avatar-small:first-child {
+  margin-left: 0;
+}
+
+.dish-tag {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border-radius: 30rpx;
+  padding: 10rpx 20rpx;
+  font-size: 26rpx;
+}
+
+.dish-name {
+  color: #333;
+  margin-right: 10rpx;
+}
+
+.dish-remove {
+  color: #999;
+  font-size: 32rpx;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 40rpx;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 22rpx;
+}
+
+/* 详情页按钮使用共用样式 common-btn，可以覆盖背景色 */
+.share-btn {
+  background-color: #07c160;
+}
+
+.random-btn {
+  background-color: #353535;
+}
+
+.finished-tip {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 28rpx;
+  background-color: #f5f5f5;
+  border-radius: 10rpx;
+  margin-top: 40rpx;
+}
+

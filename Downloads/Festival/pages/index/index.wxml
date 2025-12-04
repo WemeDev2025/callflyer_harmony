@@ -1,7 +1,32 @@
-<view class="page">
+<view class="page dark-theme">
+  <!-- 广告图遮罩 -->
+  <view class="ad-image-mask {{adImageAnimating ? 'show' : ''}}" bindtap="closeAdImage" wx:if="{{showAdImage && adImagePath}}">
+    <view class="ad-image-container" catchtap="stopPropagation">
+      <image class="ad-image {{adClickType !== 'none' ? 'ad-image-clickable' : ''}}" src="{{adImagePath}}" mode="aspectFit" binderror="onAdImageError" bindload="onAdImageLoad" bindtap="onAdImageClick" style="{{adImageWidth ? 'width: ' + adImageWidth + 'rpx;' : ''}}{{adImageHeight ? 'height: ' + adImageHeight + 'rpx;' : ''}}"></image>
+    </view>
+  </view>
+  
+  <!-- 自定义导航栏 -->
+  <view class="custom-navbar" style="height: {{navBarHeight}}px; padding-top: {{statusBarHeight}}px;">
+    <view class="navbar-content">
+      <text class="navbar-title" wx:if="{{!currentLyricText}}">一年之计</text>
+      <text class="navbar-title navbar-lyric" wx:if="{{currentLyricText}}">{{currentLyricText}}</text>
+    </view>
+  </view>
+
+  <!-- 可滚动内容容器 -->
+  <view class="page-scroll" style="height: calc(100vh - {{navBarHeight}}px);">
   <!-- 卡片容器，应用呼吸效果 -->
-  <view class="card-container pulse">
-    <view class="card">
+  <view class="card-container pulse" style="padding-top: {{navBarHeight + 20}}px;">
+    <!-- 粒子动画放在卡片外面，从底部外面100rpx开始穿过卡片 -->
+    <!-- 支持多个粒子实例同时播放 -->
+    <block wx:for="{{sparkInstances}}" wx:key="*this">
+      <spark-component start-top="{{sparkStartTop}}" class="card-sparks"></spark-component>
+    </block>
+    
+    <view class="card {{isCountdownEnded ? 'no-background' : ''}}" bindtap="triggerSparks" bindlongpress="onCardLongPress">
+      <!-- 倒计时未结束时显示倒计时内容 -->
+      <block wx:if="{{!isCountdownEnded}}">
       <view class="header">
         <text class="title">春节倒计时</text>
         <text class="sub">2026 • 丙午年 • 正月初一</text>
@@ -32,9 +57,183 @@
       <view class="footer">
         <text class="greet typewriter">{{typewriterText}}<text class="cursor">|</text></text>
       </view>
+      </block>
+      
+      <!-- 倒计时结束后显示拜年图片（使用相同的容器） -->
+      <block wx:else>
+        <view class="newyear-image-container" bindtap="onNewYearImageTap" catchlongpress="onNewYearImageLongPress">
+          <image class="newyear-image" src="{{newYearImageUrl}}" mode="aspectFill" binderror="onNewYearImageError" bindload="onNewYearImageLoad"></image>
+        </view>
+      </block>
     </view>
   </view>
 
-  <!-- 使用按需注入的 spark 组件 -->
-  <spark-component wx:if="{{showSparks}}"></spark-component>
+
+  <view class="title-profile">
+    <text>我的</text>
+    <!-- 激活解锁码按钮 -->
+    <button class="title-unlock-btn {{isVip ? 'vip-active' : ''}}" bindtap="onUnlockCodeTap">
+      <text class="unlock-icon">VIP</text>
+    </button>
+  </view>
+
+  <!-- 新增卡片 -->
+  <view class="info-card-container" style="padding-top: 20px;">
+    <view class="info-card">
+      <view class="info-content">
+        <view class="info-header">
+          <view class="avatar-btn" bindtap="onChooseAvatarTap">
+            <image class="avatar {{isMusicPlaying ? 'avatar-rotating' : ''}}" src="{{avatarUrl || '/images/icon_avatar.png'}}" mode="aspectFill"></image>
+          </view>
+          <input class="nickname" type="text" value="{{nickname}}" placeholder="昵称" bindblur="onNicknameInput" />
+          <!-- 按钮组 -->
+          <view class="card-actions">
+            <!-- 点赞数显示（可点击查看点赞列表） -->
+            <view class="card-action-btn like-count" bindtap="onLikeCountTap">
+              <image class="like-icon" src="/images/icon_like.png" mode="aspectFit"></image>
+              <text class="like-number">{{likeCount}}</text>
+            </view>
+            <!-- 喊人按钮 -->
+            <button class="card-action-btn share-btn" open-type="share" bindtap="onShareTap">
+              <text class="share-icon">喊人</text>
+          </button>
+          </view>
+        </view>
+        <text class="info-text" bindtap="onInfoTextTap">{{infoText}}</text>
+        <view class="info-divider"></view>
+        <view class="info-buttons">
+          <picker mode="date" value="{{whenDate}}" bindchange="onWhenDateChange">
+            <view class="info-btn btn-green">
+              <text class="btn-text">{{whenText}}</text>
+            </view>
+          </picker>
+          <picker mode="selector" range="{{whoOptions}}" value="{{whoIndex}}" bindchange="onWhoPickerChange">
+            <view class="info-btn btn-orange">
+              <text class="btn-text">{{whoText}}</text>
+            </view>
+          </picker>
+          <picker mode="selector" range="{{howOptions}}" value="{{howIndex}}" bindchange="onHowPickerChange">
+            <view class="info-btn btn-blue">
+              <text class="btn-text">{{howText}}</text>
+            </view>
+          </picker>
+          <view class="info-btn btn-purple" bindtap="onWhereBtnTap">
+            <text class="btn-text">{{whereText}}</text>
+          </view>
+          <view class="info-btn btn-pink" bindtap="onMustDoBtnTap">
+            <text class="btn-text">{{mustDoText}}</text>
+          </view>
+          <picker mode="multiSelector" range="{{availableDateOptions}}" value="{{availableDateIndex}}" bindchange="onAvailableDateChange">
+            <view class="info-btn btn-cyan">
+              <text class="btn-text">{{availableTimeText}}</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 输入卡片遮罩和卡片 -->
+  <view class="input-mask {{showInputCard ? 'show' : ''}}" bindtap="closeInputCard" wx:if="{{showInputCard}}">
+    <view class="input-card {{inputCardShow ? 'show' : ''}}" catchtap="stopPropagation">
+      <view class="input-card-header">
+        <text class="input-card-title">过节必须干件事</text>
+        <text class="input-card-close" bindtap="closeInputCard">×</text>
+      </view>
+      <view class="input-card-body">
+        <textarea class="input-card-textarea" id="mustDoInput" value="{{inputValue}}" placeholder="请输入..." bindinput="onInputChange" bindconfirm="onInputConfirm" confirm-type="done" focus="{{inputFocus}}" maxlength="50" show-confirm-bar="{{false}}"></textarea>
+      </view>
+      <view class="input-card-footer">
+        <button class="input-card-btn" bindtap="confirmInput" loading="{{false}}">确认</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- "回哪里"输入卡片遮罩和卡片 -->
+  <view class="input-mask {{showWhereInputCard ? 'show' : ''}}" bindtap="closeWhereInputCard" wx:if="{{showWhereInputCard}}">
+    <view class="input-card {{whereInputCardShow ? 'show' : ''}}" catchtap="stopPropagation">
+      <view class="input-card-header">
+        <text class="input-card-title">回哪里</text>
+        <text class="input-card-close" bindtap="closeWhereInputCard">×</text>
+      </view>
+      <view class="input-card-body">
+        <textarea class="input-card-textarea" id="whereInput" value="{{whereInputValue}}" placeholder="请输入..." bindinput="onWhereInputChange" bindconfirm="onWhereInputConfirm" confirm-type="done" focus="{{whereInputFocus}}" maxlength="50" show-confirm-bar="{{false}}"></textarea>
+      </view>
+      <view class="input-card-footer">
+        <button class="input-card-btn" bindtap="confirmWhereInput" loading="{{false}}">确认</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- "关于春节说点啥"输入卡片遮罩和卡片 -->
+  <view class="input-mask {{showInfoTextInputCard ? 'show' : ''}}" bindtap="closeInfoTextInputCard" wx:if="{{showInfoTextInputCard}}">
+    <view class="input-card {{infoTextInputCardShow ? 'show' : ''}}" catchtap="stopPropagation">
+      <view class="input-card-header">
+        <text class="input-card-title">关于春节说点啥</text>
+        <text class="input-card-close" bindtap="closeInfoTextInputCard">×</text>
+      </view>
+      <view class="input-card-body">
+        <textarea class="input-card-textarea" id="infoTextInput" value="{{infoTextInputValue}}" placeholder="请输入..." bindinput="onInfoTextInputChange" bindconfirm="onInfoTextInputConfirm" confirm-type="done" focus="{{infoTextInputFocus}}" maxlength="100" show-confirm-bar="{{false}}"></textarea>
+      </view>
+      <view class="input-card-footer">
+        <button class="input-card-btn" bindtap="confirmInfoTextInput" loading="{{false}}">确认</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- "激活解锁码"输入卡片遮罩和卡片 -->
+  <view class="input-mask {{showUnlockCodeCard ? 'show' : ''}}" bindtap="closeUnlockCodeCard" wx:if="{{showUnlockCodeCard}}">
+    <view class="input-card {{unlockCodeCardShow ? 'show' : ''}}" catchtap="stopPropagation">
+      <view class="input-card-header">
+        <text class="input-card-title">激活解锁码</text>
+        <text class="input-card-close" bindtap="closeUnlockCodeCard">×</text>
+      </view>
+      <view class="input-card-body">
+        <input class="input-card-textarea" type="text" value="{{unlockCodeValue}}" placeholder="请输入解锁码" bindinput="onUnlockCodeInputChange" bindconfirm="confirmUnlockCode" confirm-type="done" focus="{{unlockCodeFocus}}" maxlength="50" />
+      </view>
+      <view class="input-card-footer">
+        <button class="input-card-btn" bindtap="confirmUnlockCode" loading="{{isActivating}}" disabled="{{isActivating}}">确认激活</button>
+      </view>
+    </view>
+  </view>
+
+
+    <!-- 按钮容器：还有谁 & 拜年卡片 -->
+    <view class="action-buttons-container">
+      <button class="more-people-btn" bindtap="navigateToCards">
+        <text class="more-people-text">还有谁</text>
+      </button>
+      <button class="more-people-btn" bindtap="navigateToNewYear" wx:if="{{showNewYearButton}}">
+        <text class="more-people-text">去拜年🧨</text>
+      </button>
+    </view>
+  </view>
+  
+  <!-- 点赞列表弹窗 -->
+  <view class="likes-list-mask {{showLikesList ? 'show' : ''}}" bindtap="closeLikesList" wx:if="{{showLikesList}}">
+    <view class="likes-list-container" catchtap="stopPropagation">
+      <view class="likes-list-header">
+        <text class="likes-list-title">点赞列表 ({{likeCount}})</text>
+        <view class="likes-list-close" bindtap="closeLikesList">×</view>
+      </view>
+      <scroll-view class="likes-list-content" scroll-y>
+        <block wx:if="{{likesListLoading}}">
+          <view class="likes-list-loading">加载中...</view>
+        </block>
+        <block wx:elif="{{likesList.length === 0}}">
+          <view class="likes-list-empty">暂无点赞记录</view>
+        </block>
+        <block wx:else>
+          <view class="likes-list-item" wx:for="{{likesList}}" wx:key="likerOpenid">
+            <image class="likes-list-avatar" src="{{item.likerAvatarUrl || '/images/icon_avatar.png'}}" mode="aspectFill"></image>
+            <text class="likes-list-nickname">{{item.likerNickname || '匿名'}}</text>
+            <text class="likes-list-time">{{item.createdAt}}</text>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
 </view>
+
+
+

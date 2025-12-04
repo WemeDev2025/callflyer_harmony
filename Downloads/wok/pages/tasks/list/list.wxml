@@ -1,0 +1,65 @@
+<!--pages/tasks/list/list.wxml-->
+<view class="container">
+  <view class="task-list">
+    <view class="task-item" wx:for="{{tasks}}" wx:key="taskId" bindtap="goToTaskDetail" data-taskid="{{item.taskId}}" data-sharecode="{{item.shareCode}}">
+      <view class="task-header">
+        <view class="creator-info">
+          <image class="creator-avatar" src="{{item.creator_profile.avatar_url || item.creator_profile.avatarUrl || ''}}" mode="aspectFill"></image>
+          <view class="creator-details">
+            <text class="creator-name">{{item.creator_profile.nickname || '未设置昵称'}}</text>
+            <text class="task-time">{{item.createdAt}}</text>
+          </view>
+        </view>
+        <view class="task-status-wrapper">
+          <view class="task-status {{item.status}}">
+            <text>{{item.status === 'finished' ? '已结束' : '进行中'}}</text>
+          </view>
+          <text class="task-duration" wx:if="{{item.status === 'finished' && item.durationText}}">纠结时长 {{item.durationText}}
+          </text>
+        </view>
+      </view>
+
+      <view class="task-content">
+        <text class="task-title">{{item.title || '今天吃什么？'}}</text>
+        <view class="task-stats">
+          <view class="participants-avatars" wx:if="{{item.participants && item.participants.length > 0}}">
+            <image 
+              class="participant-avatar-small" 
+              wx:for="{{item.participants}}" 
+              wx:key="openid"
+              wx:for-item="participant"
+              src="{{participant.avatar_url || participant.avatarUrl || ''}}" 
+              mode="aspectFill"
+            ></image>
+            <view class="participant-count" wx:if="{{item.participantCount > item.participants.length}}">
+              <text>+{{item.participantCount - item.participants.length}}</text>
+            </view>
+          </view>
+          <view class="participants-avatars" wx:else>
+            <view class="participant-count-placeholder">
+              <text>{{item.participantCount || 0}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="task-result" wx:if="{{item.selectedDish}}">
+        <text class="result-label">最终选择：</text>
+        <text class="result-dish">{{item.selectedDish}}</text>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{tasks.length === 0 && !loading}}">
+      <text>暂无任务</text>
+    </view>
+
+    <view class="loading-more" wx:if="{{loadingMore}}">
+      <text>加载中...</text>
+    </view>
+
+    <view class="no-more" wx:if="{{!hasMore && tasks.length > 0}}">
+      <text>没有更多了</text>
+    </view>
+  </view>
+</view>
+
