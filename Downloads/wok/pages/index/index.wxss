@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: center;
   padding: 40rpx;
-  margin-bottom: 200rpx;
+  margin-top: 180rpx;
 }
 
 
@@ -384,6 +384,7 @@
   justify-content: center;
   min-height: 120rpx;
   box-sizing: border-box;
+  margin-top: 120rpx;
 }
 
 .slogan-text {
