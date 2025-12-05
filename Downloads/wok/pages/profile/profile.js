@@ -22,7 +22,7 @@ Page({
       const profile = await getProfile()
       // getProfile 在用户资料不存在时会返回 null，不会抛出错误
       // 统一处理字段名：支持 avatarUrl（驼峰）和 avatar_url（下划线）
-      const avatarUrl = profile?.avatar_url || profile?.avatarUrl || ''
+      const avatarUrl = (profile && profile.avatar_url) || (profile && profile.avatarUrl) || ''
       this.setData({
         userInfo: profile ? {
           nickname: profile.nickname || '',
@@ -72,7 +72,7 @@ Page({
         try {
           const result = await uploadAvatar(tempFilePath)
           // 支持 url 和 avatar_url 两种字段名
-          const avatarUrl = result?.avatar_url || result?.url
+          const avatarUrl = (result && result.avatar_url) || (result && result.url) || ''
           if (result && avatarUrl) {
             console.log('[Profile] 上传成功，设置头像URL:', avatarUrl)
             this.setData({
@@ -87,6 +87,7 @@ Page({
             const app = getApp()
             if (app.globalData && app.globalData.userInfo) {
               app.globalData.userInfo.avatar_url = avatarUrl
+              app.globalData.userInfo.avatarUrl = avatarUrl
             }
           } else {
             wx.showToast({
@@ -95,11 +96,29 @@ Page({
             })
           }
         } catch (error) {
-          wx.showToast({
-            title: error.message || '上传失败',
-            icon: 'none'
-          })
-          console.error('上传头像失败:', error)
+          console.error('[Profile] 上传头像失败:', error)
+          
+          // 处理 token 过期的情况
+          if (error.message && (error.message.includes('过期') || error.message.includes('401'))) {
+            wx.showModal({
+              title: '提示',
+              content: '登录已过期，请重新登录',
+              showCancel: false,
+              success: () => {
+                // 重新登录
+                const app = getApp()
+                if (app && app.silentLogin) {
+                  app.silentLogin()
+                }
+              }
+            })
+          } else {
+            wx.showToast({
+              title: error.message || '上传失败',
+              icon: 'none',
+              duration: 2000
+            })
+          }
         } finally {
           wx.hideLoading()
         }
@@ -123,7 +142,7 @@ Page({
    * 头像加载失败处理
    */
   onAvatarError(e) {
-    const errorMsg = e.detail?.errMsg || '图片加载失败'
+    const errorMsg = (e.detail && e.detail.errMsg) || '图片加载失败'
     console.error('[Profile] 头像加载失败:', errorMsg)
     // 头像加载失败时，静默处理，不显示错误提示
   },
@@ -132,7 +151,7 @@ Page({
    * 保存资料
    */
   async saveProfile() {
-    const { nickname } = this.data.userInfo
+    const { nickname, avatar_url } = this.data.userInfo
     
     if (!nickname || nickname.trim() === '') {
       wx.showToast({
@@ -147,9 +166,19 @@ Page({
     })
 
     try {
-      await updateProfile({
+      // 构建更新数据，使用驼峰命名（avatarUrl）与后端接口一致
+      const updateData = {
         nickname: nickname.trim()
-      })
+      }
+      
+      // 如果用户上传了头像，也一起更新
+      if (avatar_url && avatar_url.trim()) {
+        updateData.avatarUrl = avatar_url.trim()
+      }
+      
+      console.log('[Profile] 更新资料数据:', updateData)
+      
+      await updateProfile(updateData)
       
       wx.showToast({
         title: '保存成功',
@@ -158,15 +187,40 @@ Page({
 
       // 更新全局数据
       const app = getApp()
-      if (app.globalData) {
-        app.globalData.userInfo = this.data.userInfo
+      if (app.globalData && app.globalData.userInfo) {
+        app.globalData.userInfo.nickname = nickname.trim()
+        if (avatar_url) {
+          app.globalData.userInfo.avatar_url = avatar_url
+          app.globalData.userInfo.avatarUrl = avatar_url
+        }
       }
     } catch (error) {
-      wx.showToast({
-        title: error.message || '保存失败',
-        icon: 'none'
-      })
-      console.error('保存资料失败:', error)
+      console.error('[Profile] 保存资料失败:', error)
+      
+      // 处理 token 过期的情况
+      if (error.message && (error.message.includes('过期') || error.message.includes('401'))) {
+        wx.showModal({
+          title: '提示',
+          content: '登录已过期，请重新登录',
+          showCancel: false,
+          success: () => {
+            // 重新登录
+            const app = getApp()
+            if (app && app.silentLogin) {
+              app.silentLogin().then(() => {
+                // 登录成功后重试保存
+                this.saveProfile()
+              })
+            }
+          }
+        })
+      } else {
+        wx.showToast({
+          title: error.message || '保存失败',
+          icon: 'none',
+          duration: 2000
+        })
+      }
     } finally {
       this.setData({
         saving: false

@@ -21,6 +21,16 @@
 
       <view class="task-content">
         <text class="task-title">{{item.title || '今天吃什么？'}}</text>
+        
+        <!-- 菜品列表 -->
+        <view class="task-dishes" wx:if="{{item.allDishes && item.allDishes.length > 0}}">
+          <view class="dish-tags">
+            <view class="dish-tag" wx:for="{{item.allDishes}}" wx:key="*this">
+              <text class="dish-name">{{item}}</text>
+            </view>
+          </view>
+        </view>
+        
         <view class="task-stats">
           <view class="participants-avatars" wx:if="{{item.participants && item.participants.length > 0}}">
             <image 

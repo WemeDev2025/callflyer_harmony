@@ -3,7 +3,7 @@
 
   <view class="form-section">
     <view class="form-item">
-      <text class="label">纠结啊</text>
+      <text class="label">纠结啥</text>
       <input 
         class="input title-input" 
         type="text" 
@@ -15,12 +15,12 @@
     </view>
 
     <view class="form-item">
-      <text class="label">我想吃</text>
+      <text class="label">我想啊</text>
       <view class="dishes-input">
         <input 
           class="input" 
           type="text" 
-          placeholder="店名或者菜品" 
+          placeholder="你的建议是？" 
           value="{{currentDish}}"
           bindinput="onDishInput"
           bindconfirm="addDish"

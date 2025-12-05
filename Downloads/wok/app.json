@@ -2,7 +2,6 @@
   "pages": [
     "pages/index/index",
     "pages/profile/profile",
-    "pages/task/create/create",
     "pages/task/detail/detail",
     "pages/tasks/list/list"
   ],

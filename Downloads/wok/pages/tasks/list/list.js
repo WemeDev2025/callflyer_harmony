@@ -1,5 +1,5 @@
 // pages/tasks/list/list.js
-import { getTasks } from '../../../utils/api.js'
+import { getTasks, getTaskDetail } from '../../../utils/api.js'
 
 Page({
   data: {
@@ -53,17 +53,67 @@ Page({
       const skip = refresh ? 0 : this.data.page * this.data.pageSize
       const result = await getTasks(skip, this.data.pageSize)
       
+      // 调试：打印原始数据
+      if (result && result.items) {
+        console.log('[List] 原始任务数据:', JSON.stringify(result.items, null, 2))
+      }
+      
       if (result && result.items) {
         // 统一字段名处理
-        const tasks = result.items.map(task => {
+        const tasks = await Promise.all(result.items.map(async (task) => {
           if (task.creator_profile) {
             if (task.creator_profile.avatarUrl && !task.creator_profile.avatar_url) {
               task.creator_profile.avatar_url = task.creator_profile.avatarUrl
             }
           }
-          // 处理参与者头像（过滤掉创建者）
+          // 收集所有菜品（包括创建者和参与者）
+          // 如果列表接口没有返回 dishes，需要调用详情接口获取
+          let allDishes = []
+          let hasDishesInList = false
+          
           if (task.participants && Array.isArray(task.participants)) {
-            // 过滤掉创建者，只保留其他参与者
+            // 检查是否有任何参与者有 dishes 字段
+            hasDishesInList = task.participants.some(p => p.dishes && Array.isArray(p.dishes) && p.dishes.length > 0)
+            
+            if (hasDishesInList) {
+              // 列表接口有 dishes 数据，直接收集
+              task.participants.forEach(p => {
+                if (p.dishes && Array.isArray(p.dishes) && p.dishes.length > 0) {
+                  p.dishes.forEach(dish => {
+                    const dishStr = dish && typeof dish === 'string' ? dish.trim() : String(dish).trim()
+                    if (dishStr && !allDishes.includes(dishStr)) {
+                      allDishes.push(dishStr)
+                    }
+                  })
+                }
+              })
+            } else {
+              // 列表接口没有 dishes 数据，调用详情接口获取
+              try {
+                const detailResult = await getTaskDetail(task.taskId)
+                if (detailResult && detailResult.participants && Array.isArray(detailResult.participants)) {
+                  detailResult.participants.forEach(p => {
+                    if (p.dishes && Array.isArray(p.dishes) && p.dishes.length > 0) {
+                      p.dishes.forEach(dish => {
+                        const dishStr = dish && typeof dish === 'string' ? dish.trim() : String(dish).trim()
+                        if (dishStr && !allDishes.includes(dishStr)) {
+                          allDishes.push(dishStr)
+                        }
+                      })
+                    }
+                  })
+                }
+              } catch (error) {
+                console.error('[List] 获取任务详情失败:', task.taskId, error)
+              }
+            }
+          }
+          
+          task.allDishes = allDishes
+          
+          // 处理参与者头像（过滤掉创建者，用于头像显示）
+          if (task.participants && Array.isArray(task.participants)) {
+            // 过滤掉创建者，只保留其他参与者（用于头像显示）
             task.participants = task.participants
               .filter(p => p.openid !== task.creatorOpenid)
               .map(p => {
@@ -84,7 +134,7 @@ Page({
             task.durationText = null
           }
           return task
-        })
+        }))
 
         if (refresh) {
           this.setData({

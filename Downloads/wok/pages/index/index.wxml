@@ -1,48 +1,68 @@
 <!--pages/index/index.wxml-->
 <view class="container">
-  <!-- 上半部分：炒锅图片和动画 -->
-  <view class="top-section">
-    <view class="wok-container">
-      <image 
-        class="wok-image {{animationClass}}" 
-        src="https://wemedev.com/wok/data/images/pic_wok.png" 
-        mode="aspectFit"
-      ></image>
-      <!-- 参与者头像在铁锅中翻炒 -->
-      <view class="avatars-in-wok" wx:if="{{activeParticipants.length > 0}}">
-        <image 
-          class="avatar-particle" 
-          wx:for="{{activeParticipants}}" 
-          wx:key="index"
-          wx:for-item="participant"
-          style="animation-delay: {{participant.delay}}s; left: {{participant.x}}%; top: {{participant.y}}%;"
-          src="{{participant.avatar_url || participant.avatarUrl || ''}}" 
-          mode="aspectFill"
-        ></image>
-      </view>
-      <!-- 没有任务时显示文字动画 -->
-      <view class="text-particles" wx:else>
-        <text class="text-particle" style="animation-delay: 0s; left: 35%; top: 40%;">吃</text>
-        <text class="text-particle" style="animation-delay: 0.3s; left: 50%; top: 45%;">点</text>
-        <text class="text-particle" style="animation-delay: 0.6s; left: 45%; top: 55%;">啥</text>
-      </view>
+  <!-- 用户信息 - 页面左上角 -->
+  <view class="user-info" wx:if="{{userInfo}}">
+    <view class="user-avatar" bindtap="goToProfile">
+      <image wx:if="{{userInfo.avatar_url}}" class="avatar-image" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
+      <text wx:else class="avatar-text">饿</text>
     </view>
-    <!-- <view class="welcome">
-      <text class="title">WOK</text>
-      <text class="subtitle">今天吃什么？</text>
-    </view> -->
+    <text class="user-nickname">{{userInfo.nickname || '怎么称呼'}}</text>
   </view>
 
-  <!-- 下半部分：用户信息和操作 -->
-  <view class="bottom-section">
-    <view class="user-info" wx:if="{{userInfo}}">
-      <image class="user-avatar" src="{{userInfo.avatar_url}}" mode="aspectFill" bindtap="goToProfile"></image>
-      <text class="user-nickname">{{userInfo.nickname || '未设置昵称'}}</text>
+  <!-- 上半部分：炒锅图片和动画 -->
+  <view class="top-section">
+    <view class="wok-card">
+      <view class="wok-container">
+        <image 
+          class="wok-image {{animationClass}}" 
+          src="https://wemedev.com/wok/data/images/pic_wok.png" 
+          mode="aspectFit"
+        ></image>
+        <!-- 参与者头像在铁锅中翻炒 -->
+        <view class="avatars-in-wok" wx:if="{{activeParticipants.length > 0}}">
+          <image 
+            class="avatar-particle" 
+            wx:for="{{activeParticipants}}" 
+            wx:key="index"
+            wx:for-item="participant"
+            style="{{participant.style}}"
+            src="{{participant.avatar_url || participant.avatarUrl || ''}}" 
+            mode="aspectFill"
+          ></image>
+        </view>
+        <!-- 没有任务时显示文字动画 -->
+        <view class="text-particles" wx:else>
+          <text class="text-particle" style="animation-delay: 0s; left: 35%; top: 40%;">吃</text>
+          <text class="text-particle" style="animation-delay: 0.3s; left: 50%; top: 45%;">点</text>
+          <text class="text-particle" style="animation-delay: 0.6s; left: 45%; top: 55%;">啥</text>
+        </view>
+      </view>
+      
+      <!-- 随机选择图标 -->
+      <!-- <view 
+        class="random-icon-wrapper {{randoming ? 'randoming' : ''}} {{tapPressed ? 'pressed' : ''}}" 
+        wx:if="{{activeTask && activeTask.isCreator && !activeTask.selectedDish}}" 
+        bindtap="randomSelect"
+        bindtouchstart="onRandomTouchStart"
+        bindtouchend="onRandomTouchEnd"
+      >
+        <image class="icon-image" src="/images/icon_tap.png" mode="aspectFit"></image>
+      </view> -->
     </view>
+  </view>
 
+  <!-- 轮播文案卡片 -->
+  <view class="slogan-card">
+    <view class="slogan-text {{sloganVisible ? 'fade-in' : 'fade-out'}}">
+      {{sloganText}}
+    </view>
+  </view>
+
+  <!-- 下半部分：操作按钮 -->
+  <view class="bottom-section">
     <view class="actions">
-      <button class="action-btn primary-btn" bindtap="createTask">我想吃</button>
-      <button class="action-btn" bindtap="goToTasksList">大家在吃啥</button>
+      <button class="action-btn primary-btn" bindtap="createTask">当前铁锅</button>
+      <button class="action-btn" bindtap="goToTasksList">查看更多</button>
     </view>
   </view>
 </view>

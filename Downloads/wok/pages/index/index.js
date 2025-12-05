@@ -1,11 +1,32 @@
 // pages/index/index.js
-import { getTasks } from '../../utils/api.js'
+import { getTasks, getTaskResult, randomSelectDish } from '../../utils/api.js'
 
 Page({
   data: {
     userInfo: null,
     animationClass: 'cooking',  // 动画类名：'cooking' 表示炒菜动画
-    activeParticipants: []  // 进行中任务的参与者头像
+    activeParticipants: [],  // 进行中任务的参与者头像
+    activeTaskIds: [],  // 进行中任务的ID列表（用于轮询）
+    pollingTimer: null,  // 轮询定时器
+    activeTask: null,  // 当前进行中的任务信息（用于显示 random-btn）
+    randoming: false,  // 随机选择中状态
+    tapPressed: false,  // 图标按下状态
+    // 轮播文案
+    slogans: [
+      '这个不错 这锅不错～',
+      '选好了 就要认哈～',
+      '团建 聚会 年夜饭 咋选～',
+      '每个人都有选择的机会～',
+      '选择困难症的福音～',
+      '铁锅出马 纷争不怕！',
+      '选项堆成山，铁锅来把关！',
+      '铁锅用的好，纷争自然少～',
+      '这锅不错 下次还用～'
+    ],
+    sloganIndex: 0,  // 当前文案索引
+    sloganText: '炒来炒去 铁锅定主意～',  // 当前显示的文案
+    sloganVisible: true,  // 渐显动画状态
+    sloganTimer: null  // 轮播定时器
   },
 
   onLoad() {
@@ -14,6 +35,8 @@ Page({
     this.startAnimation()
     // 加载进行中的任务参与者
     this.loadActiveParticipants()
+    // 开始轮询任务状态
+    this.startPolling()
   },
 
   onShow() {
@@ -23,11 +46,24 @@ Page({
     this.startAnimation()
     // 刷新进行中的任务参与者
     this.loadActiveParticipants()
+    // 重新开始轮询
+    this.startPolling()
+    // 重新启动轮播文案
+    this.startSloganCarousel()
   },
 
   onHide() {
-    // 页面隐藏时停止动画（可选）
-    // this.stopAnimation()
+    // 页面隐藏时停止轮询
+    this.stopPolling()
+    // 停止轮播
+    this.stopSloganCarousel()
+  },
+
+  onUnload() {
+    // 页面卸载时停止轮询
+    this.stopPolling()
+    // 停止轮播
+    this.stopSloganCarousel()
   },
 
   /**
@@ -80,49 +116,56 @@ Page({
   async createTask() {
     try {
       const app = getApp()
-      const currentOpenid = app.globalData?.userInfo?.openid
+      const currentOpenid = (app.globalData && app.globalData.userInfo && app.globalData.userInfo.openid) || null
       
       if (!currentOpenid) {
-        // 如果用户未登录，直接跳转到创建页
+        // 如果用户未登录，直接跳转到详情页（创建模式）
         wx.navigateTo({
-          url: '/pages/task/create/create'
+          url: '/pages/task/detail/detail'
         })
         return
       }
 
-      // 查找用户参与或创建的进行中任务
+      // 查找用户参与或创建的进行中任务（使用与 loadActiveParticipants 相同的逻辑）
       const result = await getTasks(0, 50)
+      
       if (result && result.items) {
-        const activeTask = result.items.find(task => {
+        // 找出用户参与或创建的进行中任务（与 loadActiveParticipants 逻辑一致）
+        const activeTasks = result.items.filter(task => {
           if (task.status !== 'active') return false
           // 检查是否是创建者或参与者
           if (task.creatorOpenid === currentOpenid) return true
-          if (task.participants && task.participants.some(p => p.openid === currentOpenid)) return true
+          if (task.participants && Array.isArray(task.participants)) {
+            return task.participants.some(p => p.openid === currentOpenid)
+          }
           return false
         })
 
-        if (activeTask) {
+        // 取第一个进行中的任务（如果有多个，优先显示最新的）
+        const activeTask = activeTasks.length > 0 ? activeTasks[0] : null
+
+        if (activeTask && activeTask.taskId) {
           // 有进行中的任务，跳转到详情页
           wx.navigateTo({
             url: `/pages/task/detail/detail?taskId=${activeTask.taskId}&shareCode=${activeTask.shareCode || ''}`
           })
         } else {
-          // 没有进行中的任务，跳转到创建页
+          // 没有进行中的任务，跳转到详情页（创建模式）
           wx.navigateTo({
-            url: '/pages/task/create/create'
+            url: '/pages/task/detail/detail'
           })
         }
       } else {
-        // 获取任务列表失败，默认跳转到创建页
+        // 获取任务列表失败，默认跳转到详情页（创建模式）
         wx.navigateTo({
-          url: '/pages/task/create/create'
+          url: '/pages/task/detail/detail'
         })
       }
     } catch (error) {
       console.error('检查任务失败:', error)
-      // 出错时默认跳转到创建页
+      // 出错时默认跳转到详情页（创建模式）
       wx.navigateTo({
-        url: '/pages/task/create/create'
+        url: '/pages/task/detail/detail'
       })
     }
   },
@@ -146,6 +189,100 @@ Page({
   },
 
   /**
+   * 跳转到任务详情页（用于随机选择按钮）
+   */
+  goToTaskDetail() {
+    if (this.data.activeTask && this.data.activeTask.taskId) {
+      wx.navigateTo({
+        url: `/pages/task/detail/detail?taskId=${this.data.activeTask.taskId}&shareCode=${this.data.activeTask.shareCode || ''}`
+      })
+    }
+  },
+
+  /**
+   * 随机选择图标按下
+   */
+  onRandomTouchStart() {
+    this.setData({
+      tapPressed: true
+    })
+  },
+
+  /**
+   * 随机选择图标释放
+   */
+  onRandomTouchEnd() {
+    this.setData({
+      tapPressed: false
+    })
+  },
+
+  /**
+   * 随机选择菜品（主页按钮）
+   */
+  async randomSelect() {
+    if (!this.data.activeTask || !this.data.activeTask.taskId) {
+      wx.showToast({
+        title: '任务不存在',
+        icon: 'none'
+      })
+      return
+    }
+
+    if (!this.data.activeTask.isCreator) {
+      wx.showToast({
+        title: '只有创建者可以随机选择',
+        icon: 'none'
+      })
+      return
+    }
+
+    // 震动反馈
+    wx.vibrateShort({
+      type: 'medium'
+    })
+
+    // 按下动画
+    this.setData({
+      tapPressed: true,
+      randoming: true
+    })
+
+    // 延迟释放按下状态，让动画可见
+    setTimeout(() => {
+      this.setData({
+        tapPressed: false
+      })
+    }, 150)
+
+    try {
+      const result = await randomSelectDish(this.data.activeTask.taskId)
+      if (result) {
+        const selectedDish = result.selectedDish
+        wx.showToast({
+          title: selectedDish ? `已选择：${selectedDish}` : '选择成功',
+          icon: 'success',
+          duration: 2000
+        })
+        // 刷新任务状态和参与者列表
+        setTimeout(() => {
+          this.loadActiveParticipants()
+        }, 500)
+      }
+    } catch (error) {
+      console.error('[Index] 随机选择失败:', error)
+      wx.showToast({
+        title: error.message || '选择失败',
+        icon: 'none'
+      })
+    } finally {
+      this.setData({
+        randoming: false
+      })
+    }
+  },
+
+  /**
    * 加载进行中任务的参与者头像
    */
   async loadActiveParticipants() {
@@ -153,7 +290,7 @@ Page({
       const result = await getTasks(0, 50) // 获取前50个任务
       if (result && result.items) {
         const app = getApp()
-        const currentOpenid = app.globalData?.userInfo?.openid
+        const currentOpenid = (app.globalData && app.globalData.userInfo && app.globalData.userInfo.openid) || null
         
         // 找出用户参与或创建的进行中任务
         const activeTasks = result.items.filter(task => {
@@ -162,6 +299,23 @@ Page({
           if (task.creatorOpenid === currentOpenid) return true
           if (task.participants && task.participants.some(p => p.openid === currentOpenid)) return true
           return false
+        })
+
+        // 保存进行中任务的ID列表，用于轮询
+        const activeTaskIds = activeTasks.map(task => task.taskId)
+        
+        // 保存第一个进行中的任务信息（用于显示 random-btn）
+        const activeTask = activeTasks.length > 0 ? activeTasks[0] : null
+        const isCreator = activeTask && activeTask.creatorOpenid === currentOpenid
+        
+        this.setData({
+          activeTaskIds: activeTaskIds,
+          activeTask: activeTask ? {
+            taskId: activeTask.taskId,
+            shareCode: activeTask.shareCode,
+            selectedDish: activeTask.selectedDish,
+            isCreator: isCreator
+          } : null
         })
 
         // 收集所有参与者头像（去重）
@@ -190,24 +344,30 @@ Page({
             x = 50 - (40 / 350) * 100 // 约38.6%，往左移动40rpx
             y = 50 // 垂直居中
           } else {
-            // 多个头像时，从中心往外侧分布
+            // 多个头像时，随机分布（增加随机性）
             // 容器是350rpx，头像50rpx，有效半径约150rpx（350/2 - 50/2）
-            const angle = (Math.PI * 2 * index) / participants.length + Math.random() * 0.2
-            // 从中心往外分布：第一个在中心附近，最后一个在外侧
-            const radiusRatio = (index + 1) / participants.length // 0.2 到 1.0
-            const minRadius = 20 // 最小半径（中心附近）
-            const maxRadius = 100 // 最大半径（外侧）
-            const radius = minRadius + (maxRadius - minRadius) * radiusRatio
+            // 完全随机角度和半径
+            const angle = Math.random() * Math.PI * 2 // 0 到 2π 的随机角度
+            const minRadius = 15 // 最小半径（中心附近）
+            const maxRadius = 120 // 最大半径（外侧）
+            const radius = minRadius + Math.random() * (maxRadius - minRadius) // 随机半径
             x = 50 + (Math.cos(angle) * radius / 175) * 50 // 转换为百分比，175是容器半径
             y = 50 + (Math.sin(angle) * radius / 175) * 50 // 转换为百分比
           }
           
+          const finalX = Math.max(20, Math.min(80, x)) // 限制在 20-80% 范围内
+          const finalY = Math.max(20, Math.min(80, y)) // 限制在 20-80% 范围内
+          const finalDelay = Math.random() * 3 // 0-3秒的随机延迟（增加随机范围）
+          const finalDuration = 4 + Math.random() * 2 // 4-6秒的随机动画时长（每个头像不同）
+          
           return {
             avatar_url: p.avatar_url || p.avatarUrl || '',
             openid: p.openid,
-            x: Math.max(20, Math.min(80, x)), // 限制在 20-80% 范围内
-            y: Math.max(20, Math.min(80, y)), // 限制在 20-80% 范围内
-            delay: Math.random() * 2 // 0-2秒的随机延迟
+            x: finalX,
+            y: finalY,
+            delay: finalDelay,
+            duration: finalDuration,
+            style: `animation-delay: ${finalDelay}s; animation-duration: ${finalDuration}s; left: ${finalX}%; top: ${finalY}%;`
           }
         })
 
@@ -219,6 +379,142 @@ Page({
       console.error('加载参与者失败:', error)
       // 静默失败，不影响页面显示
     }
+  },
+
+  /**
+   * 开始轮询任务状态
+   */
+  startPolling() {
+    // 清除之前的定时器
+    this.stopPolling()
+    
+    // 如果没有进行中的任务，不需要轮询
+    if (!this.data.activeTaskIds || this.data.activeTaskIds.length === 0) {
+      return
+    }
+
+    // 每5秒轮询一次任务状态
+    const timer = setInterval(() => {
+      this.checkTaskStatus()
+    }, 5000)
+
+    this.setData({
+      pollingTimer: timer
+    })
+  },
+
+  /**
+   * 停止轮询
+   */
+  stopPolling() {
+    if (this.data.pollingTimer) {
+      clearInterval(this.data.pollingTimer)
+      this.setData({
+        pollingTimer: null
+      })
+    }
+  },
+
+  /**
+   * 检查任务状态（轮询）
+   */
+  async checkTaskStatus() {
+    try {
+      const activeTaskIds = this.data.activeTaskIds
+      if (!activeTaskIds || activeTaskIds.length === 0) {
+        return
+      }
+
+      // 检查所有进行中的任务状态
+      const checkPromises = activeTaskIds.map(taskId => 
+        getTaskResult(taskId).catch(err => {
+          // 静默处理错误，不影响其他任务
+          console.log(`[Index] 查询任务 ${taskId} 状态失败:`, err.message || err)
+          return null
+        })
+      )
+
+      const results = await Promise.all(checkPromises)
+      
+      // 检查是否有任务已完成
+      let hasFinishedTask = false
+      const stillActiveTaskIds = []
+      
+      results.forEach((result, index) => {
+        if (result && result.status === 'finished') {
+          hasFinishedTask = true
+          console.log(`[Index] 任务 ${activeTaskIds[index]} 已完成，选择结果:`, result.selectedDish)
+        } else if (result && result.status === 'active') {
+          stillActiveTaskIds.push(activeTaskIds[index])
+        }
+      })
+
+      // 如果有任务已完成，刷新参与者列表（会过滤掉已完成的任务）
+      if (hasFinishedTask) {
+        this.loadActiveParticipants()
+      } else if (stillActiveTaskIds.length !== activeTaskIds.length) {
+        // 更新进行中的任务ID列表
+        this.setData({
+          activeTaskIds: stillActiveTaskIds
+        })
+        // 如果所有任务都已完成，停止轮询
+        if (stillActiveTaskIds.length === 0) {
+          this.stopPolling()
+        }
+      }
+    } catch (error) {
+      console.error('[Index] 检查任务状态失败:', error)
+      // 静默失败，不影响页面显示
+    }
+  },
+
+  /**
+   * 启动轮播文案
+   */
+  startSloganCarousel() {
+    // 如果已有定时器，先清除
+    if (this.data.sloganTimer) {
+      clearInterval(this.data.sloganTimer)
+    }
+    // 每3秒切换一次文案
+    const timer = setInterval(() => {
+      this.switchSlogan()
+    }, 3000)
+    this.setData({
+      sloganTimer: timer
+    })
+  },
+
+  /**
+   * 停止轮播文案
+   */
+  stopSloganCarousel() {
+    if (this.data.sloganTimer) {
+      clearInterval(this.data.sloganTimer)
+      this.setData({
+        sloganTimer: null
+      })
+    }
+  },
+
+  /**
+   * 切换文案（带渐显动画）
+   */
+  switchSlogan() {
+    // 先渐隐
+    this.setData({
+      sloganVisible: false
+    })
+
+    // 等待渐隐动画完成后切换文案并渐显
+    setTimeout(() => {
+      const nextIndex = (this.data.sloganIndex + 1) % this.data.slogans.length
+      this.setData({
+        sloganIndex: nextIndex,
+        sloganText: this.data.slogans[nextIndex],
+        sloganVisible: true
+      })
+    }, 300)  // 等待渐隐动画完成（动画时长的一半）
   }
 })
 

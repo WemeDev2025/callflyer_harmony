@@ -1,57 +1,91 @@
 <!--pages/task/detail/detail.wxml-->
 <view class="container">
 
+  <!-- 统一的卡片内容 -->
   <view class="content">
-    <!-- 任务状态 -->
-    <view class="status-section" wx:if="{{taskInfo.selectedDish}}">
-      <view class="result-card">
-        <text class="result-label">最终选择</text>
-        <text class="result-dish">{{taskInfo.selectedDish}}</text>
-      </view>
-    </view>
-
-    <!-- 参与者列表 - 只显示创建者 -->
+    <!-- 参与者列表 - 显示创建者（创建模式显示当前用户，详情模式显示任务创建者） -->
     <view class="participants-section">
       <view class="participants-list">
-        <view class="participant-item" wx:for="{{taskInfo.creatorOnly}}" wx:key="openid">
-          <image class="participant-avatar" src="{{item.avatar_url || item.avatarUrl || ''}}" mode="aspectFill"></image>
+        <!-- 创建模式：显示当前用户 -->
+        <view class="participant-item" wx:if="{{mode === 'create' && currentUserInfo}}">
+          <image class="participant-avatar" src="{{currentUserInfo.avatar_url || ''}}" mode="aspectFill"></image>
           <view class="participant-info">
-            <text class="participant-name">{{item.nickname || '未设置昵称'}}</text>
+            <text class="participant-name">{{currentUserInfo.nickname || '未设置昵称'}}</text>
+            <text class="participant-role">发起者</text>
+          </view>
+        </view>
+        <!-- 详情模式：显示任务创建者（只显示第一个，确保只有一个） -->
+        <view class="participant-item" wx:elif="{{mode === 'detail' && taskInfo.creatorOnly && taskInfo.creatorOnly.length > 0}}">
+          <image class="participant-avatar" src="{{taskInfo.creatorOnly[0].avatar_url || taskInfo.creatorOnly[0].avatarUrl || ''}}" mode="aspectFill"></image>
+          <view class="participant-info">
+            <text class="participant-name">{{taskInfo.creatorOnly[0].nickname || '未设置昵称'}}</text>
+            <text class="participant-role">发起者</text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 添加菜品 -->
-    <view class="add-dish-section" wx:if="{{taskInfo.status !== 'finished'}}">
+    <!-- 任务标题 -->
+    <view class="form-item">
+      <text class="label">纠结啥</text>
+      <!-- 统一的输入框，通过属性控制行为 -->
+      <input 
+        class="input title-input" 
+        type="text" 
+        placeholder="{{mode === 'create' ? placeholders[placeholderIndex] : ''}}" 
+        value="{{mode === 'create' ? title : taskInfo.title}}"
+        bindinput="onTitleInput"
+        disabled="{{mode === 'detail'}}"
+        maxlength="50"
+      />
+    </view>
+
+    <!-- 添加菜品区域 -->
+    <view class="add-dish-section" wx:if="{{mode === 'create' || (mode === 'detail' && taskInfo.status !== 'finished' && !taskInfo.selectedDish && !selectedDishResult)}}">
       <view class="section-title">
-        <text>我想吃</text>
+        <text>备选项</text>
       </view>
-      <view class="dishes-input">
+      <!-- 创建模式显示输入框，或者详情模式中非创建者且任务进行中时显示 -->
+      <view class="dishes-input" wx:if="{{mode === 'create' || (mode === 'detail' && !isCreator && taskInfo.status !== 'finished' && !taskInfo.selectedDish)}}">
         <input 
           class="input" 
           type="text" 
-          placeholder="输入想吃的菜品" 
+          placeholder="{{mode === 'create' ? dishPlaceholders[dishPlaceholderIndex] : '输入想吃的菜品'}}" 
           value="{{currentDish}}"
           bindinput="onDishInput"
           bindconfirm="addDish"
           confirm-type="done"
-          disabled="{{taskInfo.status === 'finished'}}"
         />
-        <button class="add-btn" bindtap="addDish" disabled="{{taskInfo.status === 'finished'}}">添加</button>
+        <button class="add-btn" bindtap="addDish">添加</button>
       </view>
-      <view class="my-dishes" wx:if="{{myDishes.length > 0}}">
+      <!-- 创建模式：显示已添加的菜品 -->
+      <view class="my-dishes" wx:show="{{mode === 'create' && dishes.length > 0}}">
         <view class="dish-tags">
-          <view class="dish-tag" wx:for="{{myDishes}}" wx:key="*this">
+          <view class="dish-tag" wx:for="{{dishes}}" wx:key="index">
             <text class="dish-name">{{item}}</text>
-            <text class="dish-remove" bindtap="removeDish" data-dish="{{item}}" wx:if="{{taskInfo.status !== 'finished'}}">×</text>
+            <text class="dish-remove" bindtap="removeDish" data-index="{{index}}">×</text>
           </view>
         </view>
-        <view class="section-title">
-        <text>参与者</text>
       </view>
-        <!-- 参与者头像（不包含创建者） -->
-        <view class="participants-avatars" wx:if="{{taskInfo.otherParticipants && taskInfo.otherParticipants.length > 0}}">
+      <!-- 详情模式：显示所有参与者的菜品（合并显示） -->
+      <view class="my-dishes" wx:show="{{mode === 'detail' && allDishes && allDishes.length > 0}}">
+        <view class="dish-tags">
+          <view class="dish-tag" wx:for="{{allDishes}}" wx:key="*this">
+            <text class="dish-name">{{item}}</text>
+            <text class="dish-remove" bindtap="removeDish" data-dish="{{item}}" wx:if="{{taskInfo.status !== 'finished' && myDishes.includes(item)}}">×</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 详情模式特有内容 -->
+    <block wx:show="{{mode === 'detail'}}">
+      <!-- 参与者头像（不包含创建者） -->
+      <view class="participants-avatars-section" wx:if="{{taskInfo.otherParticipants && taskInfo.otherParticipants.length > 0}}">
+        <view class="section-title">
+          <text>参与者</text>
+        </view>
+        <view class="participants-avatars">
           <image 
             class="participant-avatar-small" 
             wx:for="{{taskInfo.otherParticipants}}" 
@@ -62,21 +96,73 @@
           ></image>
         </view>
       </view>
-    </view>
 
-    <!-- 任务已结束提示 -->
-    <view class="finished-tip" wx:if="{{taskInfo.status === 'finished'}}">
-      <text>任务已结束，不能再添加或修改菜品</text>
+      <!-- 选中结果展示区域 -->
+      <view class="result-section" wx:if="{{taskInfo.selectedDish || selectedDishResult}}">
+        <view class="result-section-header">
+          <image class="result-section-icon" src="/images/icon_great.png" mode="aspectFit"></image>
+          <text class="result-section-title">天选答案</text>
+        </view>
+        <view class="result-section-content">
+          <text class="result-section-dish">{{taskInfo.selectedDish || selectedDishResult}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- Tips 提示 -->
+  <view class="tips-section {{showTipsAnimation ? 'animate-in' : ''}}" wx:if="{{mode === 'detail' && isCreator === true && taskInfo.status !== 'finished' && !taskInfo.selectedDish}}">
+    <view class="tips-content">
+      <image class="tips-icon" src="/images/icon_tips.png" mode="aspectFit"></image>
+      <text class="tips-text">等你的吃货队伍人员到齐 就可以按下 "出锅" 按钮 随机选中天选答案啦～</text>
     </view>
   </view>
 
   <!-- 操作按钮 - 放在页面底部 -->
-  <view class="actions">
-    <button class="common-btn share-btn" open-type="share" wx:if="{{taskInfo.shareCode}}">召集吃货天团
+  <view class="actions {{showActionsAnimation ? 'animate-in' : ''}}">
+    <!-- 创建模式按钮 -->
+    <button wx:if="{{mode === 'create'}}" class="common-btn create-btn" bindtap="createTask" loading="{{creating}}">
+      {{creating ? '创建中...' : '炒起来'}}
     </button>
-    <button class="common-btn random-btn" bindtap="randomSelect" wx:if="{{isCreator && !taskInfo.selectedDish}}" loading="{{randoming}}">
-      {{randoming ? '随机选择中...' : '随机选择'}}
-    </button>
+    
+    <!-- 详情模式按钮 -->
+    <block wx:else>
+      <!-- 任务未结束时显示分享按钮 -->
+      <button 
+        class="icon-wrapper {{sharePressed ? 'pressed' : ''}}" 
+        open-type="share" 
+        wx:if="{{taskInfo.shareCode && taskInfo.status !== 'finished' && !taskInfo.selectedDish}}"
+        bindtouchstart="onShareTouchStart"
+        bindtouchend="onShareTouchEnd"
+      >
+        <image class="icon-image" src="/images/icon_share.png" mode="aspectFit"></image>
+      </button>
+      <!-- 创建者显示图标：任务未结束时执行随机选择，任务已结束时查看结果 -->
+      <view 
+        class="icon-wrapper {{randoming ? 'randoming' : ''}} {{tapPressed ? 'pressed' : ''}}" 
+        wx:if="{{isCreator === true && taskInfo.status !== 'finished' && !taskInfo.selectedDish}}" 
+        bindtap="randomSelect"
+        bindtouchstart="onRandomTouchStart"
+        bindtouchend="onRandomTouchEnd"
+      >
+        <image class="icon-image" src="/images/icon_tap.png" mode="aspectFit"></image>
+      </view>
+    </block>
+  </view>
+
+  <!-- 随机选择结果遮罩和卡片 -->
+  <view class="result-mask {{showResultMask ? 'show' : ''}}" wx:if="{{showResultMask}}" bindtap="closeResultMask">
+    <view class="result-card-animated" catchtap="stopPropagation">
+      <view class="result-card-header">
+        <image class="result-card-title-icon" src="/images/icon_great.png" mode="aspectFit"></image>
+      </view>
+      <view class="result-card-content">
+        <text class="result-card-dish">{{selectedDishResult}}</text>
+      </view>
+      <view class="result-card-footer">
+        <text class="result-card-tip">点击任意处关闭</text>
+      </view>
+    </view>
   </view>
 </view>
 

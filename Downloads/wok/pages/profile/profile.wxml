@@ -1,20 +1,14 @@
 <!--pages/profile/profile.wxml-->
 <view class="container">
-  <view class="profile-header">
+  <view class="form-section">
     <view class="avatar-section">
-      <image 
-        class="avatar" 
-        src="{{userInfo.avatar_url || ''}}" 
-        mode="aspectFill"
-        bindtap="chooseAvatar"
-        binderror="onAvatarError"
-        lazy-load="{{false}}"
-      ></image>
+      <view class="avatar" bindtap="chooseAvatar">
+        <image wx:if="{{userInfo.avatar_url}}" class="avatar-image" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
+        <text wx:else class="avatar-text">饿</text>
+      </view>
       <view class="avatar-tip">点击更换头像</view>
     </view>
-  </view>
 
-  <view class="form-section">
     <view class="form-item">
       <text class="label">昵称</text>
       <input 
@@ -27,7 +21,7 @@
       />
     </view>
 
-    <button class="save-btn" bindtap="saveProfile" loading="{{saving}}">
+    <button class="common-btn save-btn" bindtap="saveProfile" loading="{{saving}}">
       {{saving ? '保存中...' : '保存'}}
     </button>
   </view>

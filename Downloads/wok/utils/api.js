@@ -40,7 +40,17 @@ function request(url, method = 'GET', data = {}) {
         } else if (res.statusCode === 422) {
           // 参数验证失败（如缺少 Authorization header）
           console.log('[API] 参数验证失败 (422):', res.data)
-          const errorMsg = res.data?.detail || res.data?.message || '参数验证失败'
+          // 422 错误可能返回数组格式的 errors
+          let errorMsg = '参数验证失败'
+          if (Array.isArray(res.data?.detail)) {
+            // FastAPI 422 错误通常返回 [{loc: [...], msg: "...", type: "..."}]
+            const errors = res.data.detail.map(e => e.msg || e.message).filter(Boolean)
+            errorMsg = errors.length > 0 ? errors.join('; ') : errorMsg
+          } else if (res.data?.detail) {
+            errorMsg = typeof res.data.detail === 'string' ? res.data.detail : (res.data.detail.message || errorMsg)
+          } else if (res.data?.message) {
+            errorMsg = res.data.message
+          }
           reject(new Error(errorMsg))
         } else {
           // 其他错误
@@ -136,7 +146,17 @@ export function getProfile() {
         } else if (res.statusCode === 422) {
           // 参数验证失败（如缺少 Authorization header）
           console.log('[API] 参数验证失败 (422):', res.data)
-          const errorMsg = res.data?.detail || res.data?.message || '参数验证失败'
+          // 422 错误可能返回数组格式的 errors
+          let errorMsg = '参数验证失败'
+          if (Array.isArray(res.data?.detail)) {
+            // FastAPI 422 错误通常返回 [{loc: [...], msg: "...", type: "..."}]
+            const errors = res.data.detail.map(e => e.msg || e.message).filter(Boolean)
+            errorMsg = errors.length > 0 ? errors.join('; ') : errorMsg
+          } else if (res.data?.detail) {
+            errorMsg = typeof res.data.detail === 'string' ? res.data.detail : (res.data.detail.message || errorMsg)
+          } else if (res.data?.message) {
+            errorMsg = res.data.message
+          }
           reject(new Error(errorMsg))
         } else {
           // 其他错误
@@ -203,6 +223,13 @@ export function randomSelectDish(taskId) {
 }
 
 /**
+ * 查询任务结果（轻量级，用于轮询）
+ */
+export function getTaskResult(taskId) {
+  return request(`/tasks/${taskId}/result`, 'GET')
+}
+
+/**
  * 上传头像
  * 注意：文件字段名必须是 'file'，与后端接口定义一致
  */
@@ -259,9 +286,19 @@ export function uploadAvatar(filePath) {
           } else if (res.statusCode === 422) {
             // 参数验证失败（如缺少 file 字段）
             console.error('[API] 参数验证失败 (422):', data)
-            const errorMsg = data?.detail || data?.message || '参数验证失败'
+            // 422 错误可能返回数组格式的 errors
+            let errorMsg = '参数验证失败'
+            if (Array.isArray(data?.detail)) {
+              // FastAPI 422 错误通常返回 [{loc: [...], msg: "...", type: "..."}]
+              const errors = data.detail.map(e => e.msg || e.message).filter(Boolean)
+              errorMsg = errors.length > 0 ? errors.join('; ') : errorMsg
+            } else if (data?.detail) {
+              errorMsg = typeof data.detail === 'string' ? data.detail : (data.detail.message || errorMsg)
+            } else if (data?.message) {
+              errorMsg = data.message
+            }
             // 如果错误信息包含 file 字段，提供更友好的提示
-            if (errorMsg.includes('file')) {
+            if (errorMsg.includes('file') || errorMsg.includes('File')) {
               reject(new Error('上传失败：请选择图片文件'))
             } else {
               reject(new Error(errorMsg))
