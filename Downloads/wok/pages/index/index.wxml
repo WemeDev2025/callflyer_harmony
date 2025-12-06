@@ -18,8 +18,18 @@
           src="https://wemedev.com/wok/data/images/pic_wok.png" 
           mode="aspectFit"
         ></image>
+        <!-- 有结果文字时优先显示结果文字动画 -->
+        <view class="text-particles" wx:if="{{resultTextChars && resultTextChars.length > 0}}">
+          <text 
+            class="text-particle" 
+            wx:for="{{resultTextChars}}" 
+            wx:key="index"
+            wx:for-item="item"
+            style="animation-delay: {{item.delay}}s; left: {{item.left}}%; top: {{item.top}}%;"
+          >{{item.char}}</text>
+        </view>
         <!-- 参与者头像在铁锅中翻炒 -->
-        <view class="avatars-in-wok" wx:if="{{activeParticipants.length > 0}}">
+        <view class="avatars-in-wok" wx:elif="{{activeParticipants.length > 0}}">
           <image 
             class="avatar-particle" 
             wx:for="{{activeParticipants}}" 
@@ -30,11 +40,11 @@
             mode="aspectFill"
           ></image>
         </view>
-        <!-- 没有任务时显示文字动画 -->
+        <!-- 没有任务时显示默认文字动画 -->
         <view class="text-particles" wx:else>
-          <text class="text-particle" style="animation-delay: 0s; left: 35%; top: 40%;">吃</text>
-          <text class="text-particle" style="animation-delay: 0.3s; left: 50%; top: 45%;">点</text>
-          <text class="text-particle" style="animation-delay: 0.6s; left: 45%; top: 55%;">啥</text>
+          <text class="text-particle" style="animation-delay: 0s; left: 35%; top: 34.3%;">吃</text>
+          <text class="text-particle" style="animation-delay: 0.3s; left: 50%; top: 39.3%;">点</text>
+          <text class="text-particle" style="animation-delay: 0.6s; left: 45%; top: 49.3%;">啥</text>
         </view>
       </view>
       

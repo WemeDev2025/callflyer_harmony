@@ -33,20 +33,27 @@ Page({
     dishPlaceholderIndex: 0,  // 当前菜品 placeholder 索引
     dishPlaceholderTimer: null,  // 菜品 Placeholder 切换定时器
     allDishes: [],  // 所有参与者的菜品列表
-    refreshTimer: null  // 数据刷新定时器
+    refreshTimer: null,  // 数据刷新定时器
+    fromShare: false,  // 是否通过分享码进入
+    hasParticipated: false  // 用户是否已参与任务
   },
 
   onLoad(options) {
     const { taskId, shareCode } = options
     if (shareCode) {
-      // 通过分享码进入详情模式
-      this.setData({ mode: 'detail' })
-      this.loadTaskByShareCode(shareCode)
-    } else if (taskId) {
-      // 直接通过任务ID进入详情模式
+      // 通过分享码进入详情模式（从分享页进入）
       this.setData({ 
         mode: 'detail',
-        taskId 
+        fromShare: true,
+        shareCode
+      })
+      this.loadTaskByShareCode(shareCode)
+    } else if (taskId) {
+      // 直接通过任务ID进入详情模式（从列表页进入）
+      this.setData({ 
+        mode: 'detail',
+        taskId,
+        fromShare: false  // 从列表页进入，不是分享
       })
       this.loadTaskDetail()
     } else {
@@ -322,7 +329,8 @@ Page({
           myDishes: processed.myDishes,
           shareCode: result.shareCode || this.data.shareCode,
           selectedDishResult: processed.selectedDishResult,
-          allDishes: processed.allDishes || []
+          allDishes: processed.allDishes || [],
+          hasParticipated: processed.hasParticipated || false
         })
         
         console.log('[loadTaskDetail] setData 完成')
@@ -423,7 +431,8 @@ Page({
       await participateTask(this.data.taskId, newDishes)
       this.setData({
         myDishes: newDishes,
-        currentDish: ''
+        currentDish: '',
+        hasParticipated: true  // 添加菜品后，用户已参与任务
       })
       wx.showToast({
         title: '添加成功',
@@ -486,117 +495,6 @@ Page({
         icon: 'none'
       })
     }
-  },
-
-  /**
-   * 处理任务数据（用于 createTask 和 loadTaskDetail）
-   */
-  processTaskData(result) {
-    if (!result) return null
-
-    // 检查是否是创建者
-    const app = getApp()
-    const currentOpenid = (app.globalData && app.globalData.userInfo && app.globalData.userInfo.openid) || null
-    const isCreator = result.creatorOpenid === currentOpenid
-
-    // 获取当前用户的菜品
-    const myParticipant = (result.participants && Array.isArray(result.participants)) 
-      ? result.participants.find(p => p.openid === currentOpenid) 
-      : null
-    const myDishes = (myParticipant && myParticipant.dishes) || []
-
-    // 确保创建者也在参与者列表中显示
-    if (result.participants && Array.isArray(result.participants)) {
-      // 检查创建者是否已经在参与者列表中
-      const creatorInParticipants = result.participants.some(p => p.openid === result.creatorOpenid)
-      
-      // 如果创建者不在参与者列表中，且存在 creator_profile，则添加创建者
-      if (!creatorInParticipants && result.creator_profile) {
-        // 查找创建者的菜品（可能在 participants 中，但 openid 匹配）
-        const existingCreator = result.participants.find(p => p.openid === result.creatorOpenid)
-        const creatorDishes = (existingCreator && existingCreator.dishes) || []
-        
-        const creatorParticipant = {
-          openid: result.creatorOpenid,
-          nickname: result.creator_profile.nickname || '未设置昵称',
-          avatar_url: result.creator_profile.avatar_url || result.creator_profile.avatarUrl || '',
-          dishes: creatorDishes
-        }
-        result.participants.unshift(creatorParticipant) // 添加到列表开头
-      }
-      
-      // 统一字段名处理
-      result.participants = result.participants.map(p => {
-        if (p.avatarUrl && !p.avatar_url) {
-          p.avatar_url = p.avatarUrl
-        }
-        return p
-      })
-      
-      // 创建过滤后的参与者列表（用于底部头像显示，不包含创建者）
-      result.otherParticipants = result.participants.filter(p => p.openid !== result.creatorOpenid)
-      
-      // 创建只包含创建者的列表（用于 participants-list 显示）
-      result.creatorOnly = result.participants.filter(p => p.openid === result.creatorOpenid)
-      // 如果创建者不在 participants 中，从 creator_profile 创建
-      if (result.creatorOnly.length === 0 && result.creator_profile) {
-        result.creatorOnly = [{
-          openid: result.creatorOpenid,
-          nickname: result.creator_profile.nickname || '未设置昵称',
-          avatar_url: result.creator_profile.avatar_url || result.creator_profile.avatarUrl || '',
-          dishes: []
-        }]
-      }
-      // 如果创建者在 participants 中，但数据不完整，用 creator_profile 补充
-      if (result.creatorOnly.length > 0 && result.creator_profile) {
-        const creator = result.creatorOnly[0]
-        // 如果缺少头像或昵称，从 creator_profile 补充
-        if (!creator.avatar_url && !creator.avatarUrl) {
-          creator.avatar_url = result.creator_profile.avatar_url || result.creator_profile.avatarUrl || ''
-        }
-        if (!creator.nickname || creator.nickname === '未设置昵称') {
-          creator.nickname = result.creator_profile.nickname || '未设置昵称'
-        }
-        // 确保 avatar_url 字段存在
-        if (creator.avatarUrl && !creator.avatar_url) {
-          creator.avatar_url = creator.avatarUrl
-        }
-      }
-      // 确保 creatorOnly 只包含一个元素（取第一个，避免重复）
-      if (result.creatorOnly.length > 1) {
-        result.creatorOnly = [result.creatorOnly[0]]
-      }
-      
-      // 收集所有参与者的菜品（去重）
-      const allDishesSet = new Set()
-      result.participants.forEach(p => {
-        if (p.dishes && Array.isArray(p.dishes)) {
-          p.dishes.forEach(dish => {
-            if (dish && dish.trim()) {
-              allDishesSet.add(dish.trim())
-            }
-          })
-        }
-      })
-      result.allDishes = Array.from(allDishesSet)
-      console.log('[processTaskData] 收集到的所有菜品:', result.allDishes)
-      console.log('[processTaskData] 参与者数量:', result.participants.length)
-      result.participants.forEach((p, index) => {
-        console.log(`[processTaskData] 参与者 ${index}:`, p.nickname, '菜品:', p.dishes)
-      })
-    } else {
-      result.allDishes = []
-    }
-
-    const returnData = {
-      taskInfo: result,
-      isCreator: isCreator,
-      myDishes: myDishes,
-      selectedDishResult: result.selectedDish || '',
-      allDishes: result.allDishes || []
-    }
-    console.log('[processTaskData] 返回数据中的 allDishes:', returnData.allDishes)
-    return returnData
   },
 
   /**
@@ -672,6 +570,9 @@ Page({
           isCreator: processed.isCreator,
           myDishes: processed.myDishes,
           selectedDishResult: processed.selectedDishResult,
+          allDishes: processed.allDishes || [],  // 设置所有参与者的菜品列表
+          hasParticipated: processed.hasParticipated || true,  // 创建者自动参与
+          fromShare: false,  // 创建任务不是从分享进入
           dishes: [],  // 清空创建模式的菜品列表
           currentDish: ''
         })
@@ -860,6 +761,13 @@ Page({
         // 使用路径更新方式，确保视图立即响应
         // 同时更新 selectedDishResult 作为备用判断条件
         const dishValue = selectedDish || ''
+        
+        // 将结果保存到全局数据，供主页显示
+        const app = getApp()
+        if (app.globalData) {
+          app.globalData.selectedResultText = dishValue
+        }
+        
         this.setData({
           'taskInfo.selectedDish': dishValue,
           'taskInfo.status': 'finished',

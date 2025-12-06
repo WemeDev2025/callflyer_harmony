@@ -11,6 +11,8 @@ Page({
     activeTask: null,  // 当前进行中的任务信息（用于显示 random-btn）
     randoming: false,  // 随机选择中状态
     tapPressed: false,  // 图标按下状态
+    selectedResultText: null,  // 选中的结果文字
+    resultTextChars: [],  // 结果文字拆分后的字符数组（用于动画显示）
     // 轮播文案
     slogans: [
       '这个不错 这锅不错～',
@@ -37,6 +39,8 @@ Page({
     this.loadActiveParticipants()
     // 开始轮询任务状态
     this.startPolling()
+    // 检查是否有选中的结果文字
+    this.loadSelectedResult()
   },
 
   onShow() {
@@ -50,6 +54,8 @@ Page({
     this.startPolling()
     // 重新启动轮播文案
     this.startSloganCarousel()
+    // 检查是否有选中的结果文字
+    this.loadSelectedResult()
   },
 
   onHide() {
@@ -515,6 +521,66 @@ Page({
         sloganVisible: true
       })
     }, 300)  // 等待渐隐动画完成（动画时长的一半）
+  },
+
+  /**
+   * 加载选中的结果文字
+   */
+  loadSelectedResult() {
+    const app = getApp()
+    if (app.globalData && app.globalData.selectedResultText) {
+      const resultText = app.globalData.selectedResultText
+      // 将结果文字拆分成字符数组，并计算每个字符的位置
+      const chars = resultText.split('')
+      const resultTextChars = chars.map((char, index) => {
+        // 计算字符位置（类似"吃点啥"的布局，但根据字符数量动态调整）
+        const totalChars = chars.length
+        let left, top
+        
+        if (totalChars === 1) {
+          // 单个字符居中
+          left = 50
+          top = 45
+        } else if (totalChars === 2) {
+          // 两个字符左右分布
+          left = index === 0 ? 40 : 60
+          top = 45
+        } else if (totalChars === 3) {
+          // 三个字符（类似"吃点啥"）
+          const positions = [
+            { left: 35, top: 34.3 },
+            { left: 50, top: 39.3 },
+            { left: 45, top: 49.3 }
+          ]
+          left = positions[index].left
+          top = positions[index].top
+        } else {
+          // 多个字符：圆形分布
+          const angle = (index / totalChars) * 2 * Math.PI - Math.PI / 2  // 从顶部开始
+          const radius = 20  // 半径（百分比）
+          left = 50 + radius * Math.cos(angle)
+          top = 45 + radius * Math.sin(angle)
+        }
+        
+        return {
+          char: char,
+          left: left,
+          top: top,
+          delay: index * 0.2  // 每个字符的动画延迟
+        }
+      })
+      
+      this.setData({
+        selectedResultText: resultText,
+        resultTextChars: resultTextChars
+      })
+    } else {
+      // 没有结果文字，清空
+      this.setData({
+        selectedResultText: null,
+        resultTextChars: []
+      })
+    }
   }
 })
 

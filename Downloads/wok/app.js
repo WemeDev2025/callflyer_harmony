@@ -133,7 +133,8 @@ App({
 
   globalData: {
     userInfo: null,
-    isLoggedIn: false
+    isLoggedIn: false,
+    selectedResultText: null  // 选中的结果文字（用于主页显示）
   }
 })
 

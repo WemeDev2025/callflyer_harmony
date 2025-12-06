@@ -45,8 +45,10 @@
       <view class="section-title">
         <text>备选项</text>
       </view>
-      <!-- 创建模式显示输入框，或者详情模式中非创建者且任务进行中时显示 -->
-      <view class="dishes-input" wx:if="{{mode === 'create' || (mode === 'detail' && !isCreator && taskInfo.status !== 'finished' && !taskInfo.selectedDish)}}">
+      <!-- 创建模式显示输入框，或者详情模式中：
+           1. 从分享页进入（fromShare=true）且任务进行中
+           2. 已参与任务（hasParticipated=true）且任务进行中 -->
+      <view class="dishes-input" wx:if="{{mode === 'create' || (mode === 'detail' && taskInfo.status !== 'finished' && !taskInfo.selectedDish && (fromShare || hasParticipated))}}">
         <input 
           class="input" 
           type="text" 
@@ -127,11 +129,13 @@
     
     <!-- 详情模式按钮 -->
     <block wx:else>
-      <!-- 任务未结束时显示分享按钮 -->
+      <!-- 任务未结束时显示分享按钮：
+           1. 创建者总是显示
+           2. 非创建者：从分享页进入或已参与任务时显示 -->
       <button 
         class="icon-wrapper {{sharePressed ? 'pressed' : ''}}" 
         open-type="share" 
-        wx:if="{{taskInfo.shareCode && taskInfo.status !== 'finished' && !taskInfo.selectedDish}}"
+        wx:if="{{taskInfo.shareCode && taskInfo.status !== 'finished' && !taskInfo.selectedDish && (isCreator === true || fromShare || hasParticipated)}}"
         bindtouchstart="onShareTouchStart"
         bindtouchend="onShareTouchEnd"
       >
