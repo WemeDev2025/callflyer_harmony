@@ -406,8 +406,48 @@ Page({
    * 菜品输入
    */
   onDishInput(e) {
+    let value = e.detail.value
+    
+    // 限制最大长度为50个字符
+    if (value.length > 50) {
+      value = value.substring(0, 50)
+      wx.showToast({
+        title: '最多输入50个字符',
+        icon: 'none',
+        duration: 1500
+      })
+    }
+    
+    // 检测特殊字符模式：连续的相同字符超过10个
+    const consecutivePattern = /(.)\1{9,}/g
+    if (consecutivePattern.test(value)) {
+      // 移除连续的相同字符（保留前10个）
+      value = value.replace(/(.)\1{9,}/g, (match, char) => {
+        return char.repeat(10)
+      })
+      wx.showToast({
+        title: '不能输入过多相同字符',
+        icon: 'none',
+        duration: 1500
+      })
+    }
+    
+    // 检测超长数字字符串：连续数字超过20个
+    const longNumberPattern = /\d{21,}/g
+    if (longNumberPattern.test(value)) {
+      // 截断超长数字字符串
+      value = value.replace(/\d{21,}/g, (match) => {
+        return match.substring(0, 20)
+      })
+      wx.showToast({
+        title: '数字不能超过20位',
+        icon: 'none',
+        duration: 1500
+      })
+    }
+    
     this.setData({
-      currentDish: e.detail.value
+      currentDish: value
     })
   },
 
@@ -866,6 +906,13 @@ Page({
         showResultMask: true
       })
     }
+  },
+
+  /**
+   * 阻止事件冒泡（用于结果卡片）
+   */
+  stopPropagation() {
+    // 空方法，仅用于阻止事件冒泡
   },
 
   /**

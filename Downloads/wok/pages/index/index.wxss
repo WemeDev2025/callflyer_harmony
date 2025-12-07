@@ -80,6 +80,14 @@
   transform-origin: center center;
 }
 
+
+/* 如果混合模式不行，尝试使用滤镜去除黑色 */
+.fire-gif.show {
+  opacity: 1;
+  /* 使用 CSS 滤镜去除黑色背景（如果 GIF 本身有黑色背景） */
+  filter: brightness(1.2) contrast(1.1);
+}
+
 /* 炒菜动画：模拟真实的旋绕运动轨迹 */
 .wok-image.cooking {
   animation: wokCooking 2s cubic-bezier(0.42, 0, 0.58, 1) infinite;

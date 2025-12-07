@@ -57,6 +57,7 @@
           bindinput="onDishInput"
           bindconfirm="addDish"
           confirm-type="done"
+          maxlength="50"
         />
         <button class="add-btn" bindtap="addDish">添加</button>
       </view>
@@ -164,7 +165,7 @@
         <text class="result-card-dish">{{selectedDishResult}}</text>
       </view>
       <view class="result-card-footer">
-        <text class="result-card-tip">点击任意处关闭</text>
+        <text class="result-card-tip" catchtap="closeResultMask">点击任意处关闭</text>
       </view>
     </view>
   </view>

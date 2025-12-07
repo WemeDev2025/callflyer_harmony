@@ -189,6 +189,9 @@
 
 .my-dishes {
   margin-top: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .all-dishes-section {
@@ -208,6 +211,8 @@
   flex-wrap: wrap;
   gap: 20rpx;
   margin-bottom: 20rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .participants-avatars-section {
@@ -239,16 +244,39 @@
 
 .dish-tag {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   background-color: #f0f0f0;
   border-radius: 30rpx;
   padding: 10rpx 20rpx;
   font-size: 26rpx;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  word-break: break-all;
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+  margin-bottom: 10rpx;
+  /* 强制处理特殊字符换行 */
+  overflow-wrap: anywhere;
+  line-break: anywhere;
 }
 
 .dish-name {
   color: #333;
   margin-right: 10rpx;
+  word-break: break-all;
+  word-wrap: break-word;
+  overflow-wrap: anywhere; /* 更激进的换行策略，可以在任意位置换行 */
+  white-space: normal;
+  max-width: 100%;
+  overflow: hidden;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: block;
+  /* 强制换行，即使是特殊字符 */
+  line-break: anywhere;
+  hyphens: auto;
 }
 
 .dish-remove {
@@ -373,6 +401,9 @@ button.icon-wrapper {
   background: linear-gradient(135deg, #fff9e6 0%, #fff5d6 100%);
   border-radius: 20rpx;
   border: 2rpx solid #ffd700;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .result-section-header {
@@ -397,9 +428,11 @@ button.icon-wrapper {
 
 .result-section-content {
   text-align: center;
-  padding: 30rpx 0;
+  padding: 30rpx 20rpx;
   border-top: 2rpx solid rgba(255, 215, 0, 0.3);
   border-bottom: 2rpx solid rgba(255, 215, 0, 0.3);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .result-section-dish {
@@ -409,6 +442,17 @@ button.icon-wrapper {
   display: block;
   text-shadow: 0 2rpx 8rpx rgba(212, 175, 55, 0.3);
   animation: dishPulse 2s ease-in-out infinite;
+  word-break: break-all;
+  word-wrap: break-word;
+  overflow-wrap: anywhere; /* 更激进的换行策略，可以在任意位置换行 */
+  white-space: normal;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+  /* 强制换行，即使是特殊字符 */
+  line-break: anywhere;
+  hyphens: auto;
 }
 
 /* 随机选择结果遮罩和卡片 */
