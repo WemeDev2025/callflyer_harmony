@@ -76,6 +76,9 @@ Page({
         menus: ['shareAppMessage', 'shareTimeline']
       })
     }
+
+    // 初始化音频
+    this.initAudio()
   },
 
   /**
@@ -323,6 +326,21 @@ Page({
         console.log('[loadTaskDetail] processed.allDishes:', processed.allDishes)
         console.log('[loadTaskDetail] mergedTaskInfo.allDishes:', mergedTaskInfo.allDishes)
         
+        // 检查是否是第一次收到结果（从进行中变为已完成）
+        const previousSelectedDish = this.data.taskInfo.selectedDish
+        const previousStatus = this.data.taskInfo.status
+        const newSelectedDish = mergedTaskInfo.selectedDish
+        const newStatus = mergedTaskInfo.status
+        
+        // 如果之前没有结果，现在有结果了，说明是第一次收到结果
+        const isFirstTimeResult = !previousSelectedDish && newSelectedDish && 
+                                  (previousStatus !== 'finished' || !previousStatus) && 
+                                  newStatus === 'finished'
+        
+        console.log('[loadTaskDetail] 是否首次收到结果:', isFirstTimeResult)
+        console.log('[loadTaskDetail] 之前结果:', previousSelectedDish, '之前状态:', previousStatus)
+        console.log('[loadTaskDetail] 现在结果:', newSelectedDish, '现在状态:', newStatus)
+        
         this.setData({
           taskInfo: mergedTaskInfo,
           isCreator: processed.isCreator,
@@ -331,6 +349,23 @@ Page({
           selectedDishResult: processed.selectedDishResult,
           allDishes: processed.allDishes || [],
           hasParticipated: processed.hasParticipated || false
+        }, () => {
+          // 如果是第一次收到结果，播放音频并显示结果遮罩
+          if (isFirstTimeResult) {
+            console.log('[loadTaskDetail] 首次收到结果，播放音频并显示遮罩')
+            // 将结果保存到全局数据，供主页显示
+            const app = getApp()
+            if (app.globalData && newSelectedDish) {
+              app.globalData.selectedResultText = newSelectedDish
+            }
+            // 显示结果遮罩
+            this.setData({
+              showResultMask: true
+            }, () => {
+              // 播放音频
+              this.playResultAudio()
+            })
+          }
         })
         
         console.log('[loadTaskDetail] setData 完成')
@@ -774,6 +809,8 @@ Page({
           selectedDishResult: dishValue,
           showResultMask: true
         }, () => {
+          // 播放音频
+          this.playResultAudio()
           // setData 回调，确保数据已更新到视图层
           console.log('[randomSelect] setData 回调执行，检查显示条件:')
           console.log('[randomSelect] 当前 taskInfo.selectedDish:', this.data.taskInfo.selectedDish)
@@ -922,12 +959,116 @@ Page({
   },
 
   /**
+   * 初始化音频
+   */
+  initAudio() {
+    try {
+      const audioContext = wx.createInnerAudioContext()
+      audioContext.src = 'https://wemedev.com/wok/data/images/audio_done.MP3' // 尝试使用网络路径
+      audioContext.volume = 1.0
+      this.audioReady = false // 初始化为未准备好
+      
+      audioContext.onPlay(() => {
+        console.log('[Audio] 开始播放')
+      })
+      
+      audioContext.onCanplay(() => {
+        console.log('[Audio] 音频可以播放')
+        this.audioReady = true // 音频准备好
+      })
+      
+      audioContext.onWaiting(() => {
+        console.log('[Audio] 音频加载中...')
+      })
+      
+      audioContext.onEnded(() => {
+        console.log('[Audio] 播放结束')
+      })
+      
+      audioContext.onError((res) => {
+        console.error('[Audio] 播放失败:', res)
+        console.error('[Audio] 错误详情:', JSON.stringify(res))
+        // 如果网络路径失败，尝试回退到本地路径
+        if (audioContext.src === 'https://wemedev.com/wok/data/images/audio_done.MP3') {
+          console.warn('[Audio] 网络音频加载失败，尝试使用本地路径')
+          audioContext.src = '/images/audio_done.MP3'
+          audioContext.play() // 尝试播放本地音频
+        }
+      })
+      
+      this.audioContext = audioContext
+      console.log('[Audio] 音频上下文初始化成功，src:', audioContext.src)
+    } catch (error) {
+      console.error('[Audio] 初始化失败:', error)
+    }
+  },
+
+  /**
+   * 播放结果音频
+   */
+  playResultAudio() {
+    console.log('[Audio] 尝试播放音频')
+    if (this.audioContext) {
+      console.log('[Audio] 音频状态 - src:', this.audioContext.src)
+      console.log('[Audio] 音频状态 - volume:', this.audioContext.volume)
+      
+      if (this.audioReady) {
+        try {
+          this.audioContext.stop() // 播放前先停止，确保从头开始
+          this.audioContext.seek(0)
+          this.audioContext.play()
+          console.log('[Audio] 播放命令已发送')
+        } catch (error) {
+          console.error('[Audio] 播放异常:', error)
+        }
+      } else {
+        console.warn('[Audio] 音频未准备好，等待 onCanplay 后播放')
+        // 设置一个超时，如果5秒内没有 onCanplay，则强制播放
+        const timeout = setTimeout(() => {
+          if (!this.audioReady) {
+            console.warn('[Audio] 音频加载超时，强制播放')
+            try {
+              this.audioContext.stop()
+              this.audioContext.seek(0)
+              this.audioContext.play()
+            } catch (error) {
+              console.error('[Audio] 强制播放异常:', error)
+            }
+          }
+        }, 5000)
+        
+        this.audioContext.onCanplay(() => {
+          clearTimeout(timeout) // 清除超时
+          if (!this.audioContext.paused) { // 避免重复播放
+            this.audioContext.stop()
+          }
+          this.audioContext.seek(0)
+          this.audioContext.play()
+          console.log('[Audio] onCanplay 触发，开始播放')
+        })
+      }
+    } else {
+      console.warn('[Audio] 音频上下文不存在，尝试重新初始化')
+      this.initAudio()
+      setTimeout(() => {
+        this.playResultAudio() // 延迟播放，等待初始化完成
+      }, 500)
+    }
+  },
+
+  /**
    * 页面卸载
    */
   onUnload() {
     // 清理定时器
     this.stopPlaceholderCarousel()
     this.stopRefreshTimer()
+    // 销毁音频上下文
+    if (this.audioContext) {
+      this.audioContext.destroy()
+      this.audioContext = null
+      console.log('[Audio] 音频上下文已销毁')
+    }
   }
 })
 

@@ -249,6 +249,9 @@
   animation: textFloat 5s ease-in-out infinite;
   will-change: transform;
   transform-origin: center center;
+  /* 支持 emoji 显示 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  line-height: 1.2;
 }
 
 /* 文字浮动动画 - 模拟在锅中大乱翻炒 */

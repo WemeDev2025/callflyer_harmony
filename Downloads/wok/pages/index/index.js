@@ -530,8 +530,8 @@ Page({
     const app = getApp()
     if (app.globalData && app.globalData.selectedResultText) {
       const resultText = app.globalData.selectedResultText
-      // 将结果文字拆分成字符数组，并计算每个字符的位置
-      const chars = resultText.split('')
+      // 将结果文字拆分成字符数组，使用 Array.from() 正确处理 Unicode 字符（包括 emoji）
+      const chars = Array.from(resultText)
       const resultTextChars = chars.map((char, index) => {
         // 计算字符位置（类似"吃点啥"的布局，但根据字符数量动态调整）
         const totalChars = chars.length
