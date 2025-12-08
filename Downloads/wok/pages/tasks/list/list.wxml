@@ -4,9 +4,9 @@
     <view class="task-item" wx:for="{{tasks}}" wx:key="taskId" bindtap="goToTaskDetail" data-taskid="{{item.taskId}}" data-sharecode="{{item.shareCode}}">
       <view class="task-header">
         <view class="creator-info">
-          <image class="creator-avatar" src="{{item.creator_profile.avatar_url || item.creator_profile.avatarUrl || ''}}" mode="aspectFill"></image>
+          <image class="creator-avatar" src="{{item.creator_profile.avatar_url || item.creator_profile.avatarUrl || (item.creatorProfile && (item.creatorProfile.avatar_url || item.creatorProfile.avatarUrl)) || ''}}" mode="aspectFill"></image>
           <view class="creator-details">
-            <text class="creator-name">{{item.creator_profile.nickname || '未设置昵称'}}</text>
+            <text class="creator-name">{{item.creator_profile.nickname || (item.creatorProfile && item.creatorProfile.nickname) || '未设置昵称'}}</text>
             <text class="task-time">{{item.createdAt}}</text>
           </view>
         </view>

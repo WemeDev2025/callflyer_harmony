@@ -61,10 +61,24 @@ Page({
       if (result && result.items) {
         // 统一字段名处理
         const tasks = await Promise.all(result.items.map(async (task) => {
-          if (task.creator_profile) {
-            if (task.creator_profile.avatarUrl && !task.creator_profile.avatar_url) {
-              task.creator_profile.avatar_url = task.creator_profile.avatarUrl
+          // 处理创建者信息：统一转换为 creator_profile（下划线格式）以便模板使用
+          // 后端可能返回 creatorProfile（驼峰）或 creator_profile（下划线）
+          const creatorProfile = task.creatorProfile || task.creator_profile
+          if (creatorProfile) {
+            // 统一使用 creator_profile 字段名
+            task.creator_profile = {
+              openid: creatorProfile.openid,
+              nickname: creatorProfile.nickname,
+              avatarUrl: creatorProfile.avatarUrl || creatorProfile.avatar_url,
+              avatar_url: creatorProfile.avatar_url || creatorProfile.avatarUrl
             }
+            console.log('[List] 处理创建者信息:', task.taskId, {
+              nickname: task.creator_profile.nickname,
+              avatarUrl: task.creator_profile.avatarUrl,
+              avatar_url: task.creator_profile.avatar_url
+            })
+          } else {
+            console.warn('[List] 任务缺少创建者信息:', task.taskId)
           }
           // 收集所有菜品（包括创建者和参与者）
           // 如果列表接口没有返回 dishes，需要调用详情接口获取
