@@ -230,6 +230,41 @@ export function getTaskResult(taskId) {
 }
 
 /**
+ * 获取广告图列表（公开接口，无需登录）
+ */
+export function getBanners() {
+  return new Promise((resolve, reject) => {
+    const fullUrl = `${BASE_URL}/banners`
+    
+    console.log(`[API] GET ${fullUrl} (公开接口)`)
+    
+    wx.request({
+      url: fullUrl,
+      method: 'GET',
+      header: {
+        'Content-Type': 'application/json'
+      },
+      success: (res) => {
+        console.log(`[API] 响应 ${res.statusCode}:`, res.data)
+        
+        if (res.statusCode === 200) {
+          // 返回 items 数组，只包含 enabled: true 的广告图
+          const items = res.data.items || []
+          resolve(items)
+        } else {
+          console.warn('[API] 获取广告图失败，返回空数组', res.statusCode)
+          resolve([]) // 失败时返回空数组，不阻塞应用
+        }
+      },
+      fail: (err) => {
+        console.error('[API] 获取广告图请求失败，返回空数组', err)
+        resolve([]) // 失败时返回空数组，不阻塞应用
+      }
+    })
+  })
+}
+
+/**
  * 上传头像
  * 注意：文件字段名必须是 'file'，与后端接口定义一致
  */

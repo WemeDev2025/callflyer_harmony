@@ -1,5 +1,6 @@
 // pages/index/index.js
-import { getTasks, getTaskResult, randomSelectDish } from '../../utils/api.js'
+import { getTasks, getTaskResult, randomSelectDish, getBanners } from '../../utils/api.js'
+const imageCache = require('../../utils/imageCache.js')
 
 Page({
   data: {
@@ -28,7 +29,15 @@ Page({
     sloganIndex: 0,  // 当前文案索引
     sloganText: '炒来炒去 铁锅定主意～',  // 当前显示的文案
     sloganVisible: true,  // 渐显动画状态
-    sloganTimer: null  // 轮播定时器
+    sloganTimer: null,  // 轮播定时器
+    // 广告图相关
+    showAdImage: false,  // 是否显示广告图
+    adImagePath: '',  // 广告图本地路径
+    adImageAnimating: false,  // 广告图动画状态
+    adImageWidth: null,  // 广告图宽度（rpx，自动适配）
+    adImageHeight: null,  // 广告图高度（rpx，自动适配）
+    adClickType: 'none',  // 广告点击类型：none, page, url, miniprogram
+    adClickData: null  // 广告点击数据（包含 path, url, appId 等）
   },
 
   onLoad() {
@@ -41,6 +50,8 @@ Page({
     this.startPolling()
     // 检查是否有选中的结果文字
     this.loadSelectedResult()
+    // 加载广告配置
+    this.loadAdConfig()
   },
 
   onShow() {
@@ -564,8 +575,8 @@ Page({
         
         return {
           char: char,
-          left: left,
-          top: top,
+          left: left + '%',  // 直接包含 % 符号，避免 WXML 解析问题
+          top: top + '%',    // 直接包含 % 符号，避免 WXML 解析问题
           delay: index * 0.2  // 每个字符的动画延迟
         }
       })
@@ -581,6 +592,435 @@ Page({
         resultTextChars: []
       })
     }
+  },
+
+  /**
+   * 加载广告图列表
+   */
+  async loadAdConfig() {
+    try {
+      const banners = await getBanners()
+      console.log('[广告图] 获取广告图列表成功', banners)
+      
+      // 只处理 enabled: true 的广告图，按 order 排序
+      const enabledBanners = banners
+        .filter(banner => banner.enabled === true)
+        .sort((a, b) => {
+          // 先按 order 升序，相同 order 按创建时间倒序
+          if (a.order !== b.order) {
+            return a.order - b.order
+          }
+          const aTime = new Date(a.createdAt || 0).getTime()
+          const bTime = new Date(b.createdAt || 0).getTime()
+          return bTime - aTime
+        })
+      
+      this.setData({
+        banners: enabledBanners
+      })
+      
+      // 如果有广告图，加载第一个
+      if (enabledBanners.length > 0) {
+        const firstBanner = enabledBanners[0]
+        this.processBanner(firstBanner)
+      } else {
+        console.log('[广告图] 没有启用的广告图')
+      }
+    } catch (error) {
+      console.error('[广告图] 加载广告图列表失败', error)
+      // 失败时不显示广告，不阻塞应用
+    }
+  },
+
+  /**
+   * 处理单个广告图
+   */
+  processBanner(banner) {
+    console.log('[广告图] 处理广告图', banner)
+    
+    if (!banner || !banner.url) {
+      console.warn('[广告图] 广告图数据无效', banner)
+      return
+    }
+    
+    // 更新广告点击配置
+    this.setData({
+      currentBanner: banner,
+      adClickType: banner.clickType || 'none',
+      adClickData: banner.clickData || null
+    })
+    
+    // 加载广告图
+    this.loadAdImage(banner.url)
+  },
+
+  /**
+   * 加载广告图（参考 Festival 的逻辑：第一次下载，下次启动才显示）
+   */
+  loadAdImage(imageUrl) {
+    if (!imageUrl) {
+      console.warn('[广告图] URL为空')
+      return
+    }
+
+    console.log('[广告图] 开始加载', imageUrl)
+
+    // 先检查本地缓存
+    imageCache.getCachedImagePath(imageUrl).then(cachedPath => {
+      console.log('[广告图] 缓存检查结果:', cachedPath)
+      if (cachedPath) {
+        // 有缓存，直接显示
+        console.log('[广告图] 使用缓存的广告图', cachedPath)
+        this.showAdImage(cachedPath)
+      } else {
+        // 无缓存，后台静默下载，不显示（参考 Festival 的逻辑）
+        console.log('[广告图] 无缓存，后台静默下载，不显示', imageUrl)
+        
+        // 后台下载并缓存（不显示）
+        imageCache.downloadAndCacheImage(imageUrl).then(localPath => {
+          console.log('[广告图] 下载并缓存成功，下次启动时会显示', localPath)
+          // 不显示，只在后台下载
+        }).catch(err => {
+          console.error('[广告图] 下载失败', err)
+        })
+      }
+    }).catch(err => {
+      console.error('[广告图] 检查缓存失败', err)
+      // 出错时不显示，尝试后台下载
+      imageCache.downloadAndCacheImage(imageUrl).then(localPath => {
+        console.log('[广告图] 下载并缓存成功（重试），下次启动时会显示', localPath)
+        // 不显示，只在后台下载
+      }).catch(downloadErr => {
+        console.error('[广告图] 下载失败（重试）', downloadErr)
+      })
+    })
+  },
+
+  /**
+   * 显示广告图
+   */
+  showAdImage(imagePath) {
+    console.log('[广告图] 准备显示', imagePath)
+    if (!imagePath) {
+      console.warn('[广告图] 路径为空')
+      return
+    }
+    
+    // 验证本地文件路径是否存在（如果是本地路径）
+    if (imagePath.startsWith('http://store/') || imagePath.startsWith('wxfile://') || !imagePath.startsWith('http')) {
+      const fs = wx.getFileSystemManager()
+      try {
+        // 尝试访问文件，验证路径是否有效
+        fs.accessSync(imagePath)
+        console.log('[广告图] 本地文件路径有效', imagePath)
+      } catch (e) {
+        console.warn('[广告图] 本地文件路径无效，尝试使用网络URL', imagePath, e)
+        // 如果本地路径无效，尝试从当前广告图数据中获取原始网络URL
+        const { currentBanner } = this.data
+        if (currentBanner && currentBanner.url) {
+          console.log('[广告图] 使用网络URL作为备用', currentBanner.url)
+          imagePath = currentBanner.url
+        }
+        this.doShowAdImage(imagePath)
+        return
+      }
+    }
+    
+    this.doShowAdImage(imagePath)
+  },
+
+  /**
+   * 执行显示广告图
+   */
+  doShowAdImage(imagePath) {
+    console.log('[广告图] 执行显示，设置数据', {
+      adImagePath: imagePath,
+      showAdImage: true,
+      adImageAnimating: false
+    })
+    
+    // 先设置图片路径和显示状态，同时立即设置动画状态
+    this.setData({
+      adImagePath: imagePath,
+      showAdImage: true,
+      adImageAnimating: false // 先设置为false
+    }, () => {
+      console.log('[广告图] setData回调执行，当前状态:', {
+        adImagePath: this.data.adImagePath,
+        showAdImage: this.data.showAdImage,
+        adImageAnimating: this.data.adImageAnimating
+      })
+      
+      // DOM渲染完成后立即触发动画
+      setTimeout(() => {
+        this.setData({
+          adImageAnimating: true
+        })
+        console.log('[广告图] 动画已触发，最终状态:', {
+          adImagePath: this.data.adImagePath,
+          showAdImage: this.data.showAdImage,
+          adImageAnimating: this.data.adImageAnimating
+        })
+      }, 50) // 减少延迟，快速显示
+    })
+  },
+
+  /**
+   * 关闭广告图
+   */
+  closeAdImage() {
+    this.setData({
+      adImageAnimating: false
+    })
+    
+    // 动画结束后隐藏
+    setTimeout(() => {
+      this.setData({
+        showAdImage: false,
+        adImagePath: '',
+        adImageWidth: null, // 清除尺寸
+        adImageHeight: null // 清除尺寸
+      })
+    }, 300)
+  },
+
+  /**
+   * 广告图加载成功
+   */
+  onAdImageLoad(e) {
+    const detail = e.detail || {}
+    const imageWidth = detail.width || 0
+    const imageHeight = detail.height || 0
+    
+    console.log('[广告图] 图片加载成功', {
+      detail: detail,
+      width: imageWidth,
+      height: imageHeight
+    })
+    
+    // 自动适配图片尺寸
+    if (imageWidth > 0 && imageHeight > 0) {
+      this.adaptImageSize(imageWidth, imageHeight)
+    }
+  },
+
+  /**
+   * 自动适配图片尺寸
+   */
+  adaptImageSize(imageWidth, imageHeight) {
+    const systemInfo = wx.getSystemInfoSync()
+    const screenWidth = systemInfo.windowWidth // px
+    const screenHeight = systemInfo.windowHeight // px
+    
+    // 计算可用显示区域（留出边距）
+    const maxDisplayWidth = screenWidth * 0.9 // 90% 屏幕宽度
+    const maxDisplayHeight = screenHeight * 0.8 // 80% 屏幕高度
+    
+    // 计算缩放比例，保持宽高比
+    const scaleX = maxDisplayWidth / imageWidth
+    const scaleY = maxDisplayHeight / imageHeight
+    const scale = Math.min(scaleX, scaleY, 1) // 不放大，只缩小
+    
+    // 计算适配后的尺寸（转换为 rpx：1px = 2rpx）
+    const adaptedWidth = Math.round(imageWidth * scale * 2)
+    const adaptedHeight = Math.round(imageHeight * scale * 2)
+    
+    console.log('[广告图] 自动适配尺寸', {
+      原始尺寸: `${imageWidth}x${imageHeight}`,
+      屏幕尺寸: `${screenWidth}x${screenHeight}`,
+      最大显示区域: `${maxDisplayWidth}x${maxDisplayHeight}`,
+      缩放比例: scale,
+      适配后尺寸: `${adaptedWidth}rpx x ${adaptedHeight}rpx`
+    })
+    
+    // 动态设置图片尺寸
+    this.setData({
+      adImageWidth: adaptedWidth,
+      adImageHeight: adaptedHeight
+    })
+  },
+
+  /**
+   * 广告图加载失败
+   */
+  onAdImageError(e) {
+    console.error('[广告图] 图片加载失败', {
+      error: e,
+      path: this.data.adImagePath
+    })
+    
+    // 如果本地路径加载失败，尝试使用网络URL
+    const currentPath = this.data.adImagePath
+    if (currentPath && (currentPath.startsWith('http://store/') || currentPath.startsWith('wxfile://') || !currentPath.startsWith('http'))) {
+      // 如果是本地路径但加载失败，使用网络URL作为备用
+      console.log('[广告图] 本地图片加载失败，尝试使用网络URL')
+      // 如果本地路径无效，尝试使用网络URL
+      const { currentBanner } = this.data
+      if (currentBanner && currentBanner.url) {
+        console.log('[广告图] 图片加载失败，尝试使用网络URL', currentBanner.url)
+        this.setData({
+          adImagePath: currentBanner.url
+        })
+      } else {
+        console.warn('[广告图] 图片加载失败且无备用URL')
+      }
+    }
+  },
+
+  /**
+   * 广告图点击事件
+   */
+  onAdImageClick(e) {
+    const { adClickType, adClickData, currentBanner } = this.data
+    
+    console.log('[广告图] 点击事件', {
+      adClickType,
+      adClickData,
+      currentBanner
+    })
+    
+    // 先关闭广告图
+    this.closeAdImage()
+    
+    // 根据点击类型执行不同操作
+    switch (adClickType) {
+      case 'none':
+        // 无跳转，只关闭广告图
+        console.log('[广告图] 点击类型：无跳转')
+        break
+        
+      case 'page':
+        // 跳转到小程序页面
+        if (adClickData && adClickData.path) {
+          const pagePath = adClickData.path
+          console.log('[广告图] 跳转到小程序页面:', pagePath)
+          setTimeout(() => {
+            wx.navigateTo({
+              url: pagePath.startsWith('/') ? pagePath : `/${pagePath}`,
+              fail: (err) => {
+                console.error('[广告图] 页面跳转失败', err)
+                // 尝试使用 reLaunch
+                wx.reLaunch({
+                  url: pagePath.startsWith('/') ? pagePath : `/${pagePath}`,
+                  fail: (reLaunchErr) => {
+                    console.error('[广告图] reLaunch 跳转失败', reLaunchErr)
+                  }
+                })
+              }
+            })
+          }, 300) // 等待关闭动画完成
+        } else {
+          console.warn('[广告图] 页面路径为空')
+        }
+        break
+        
+      case 'url':
+        // 跳转到网页
+        if (adClickData && adClickData.url) {
+          const targetUrl = adClickData.url
+          console.log('[广告图] 跳转到网页:', targetUrl)
+          setTimeout(() => {
+            // 检查URL格式
+            let finalUrl = targetUrl
+            if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+              finalUrl = 'https://' + finalUrl
+            }
+            
+            // 小程序中打开网页需要使用 web-view 组件
+            // 这里先复制链接到剪贴板，提示用户
+            wx.setClipboardData({
+              data: targetUrl,
+              success: () => {
+                wx.showModal({
+                  title: '提示',
+                  content: '链接已复制到剪贴板，请在浏览器中打开',
+                  showCancel: false
+                })
+              },
+              fail: () => {
+                wx.showToast({
+                  title: '复制失败',
+                  icon: 'none'
+                })
+              }
+            })
+          }, 300)
+        } else {
+          console.warn('[广告图] 网页URL为空')
+        }
+        break
+        
+      case 'miniprogram':
+        // 跳转到其他小程序
+        if (adClickMiniprogram) {
+          try {
+            let miniprogramConfig
+            // 如果是字符串，尝试解析为 JSON
+            if (typeof adClickMiniprogram === 'string') {
+              try {
+                // 先尝试解析为 JSON
+                miniprogramConfig = JSON.parse(adClickMiniprogram)
+              } catch (parseError) {
+                // 如果解析失败，说明是简单的 appId 字符串
+                console.log('[广告图] 检测到简单 appId 格式:', adClickMiniprogram)
+                miniprogramConfig = {
+                  appId: adClickMiniprogram,
+                  path: '',
+                  extraData: {}
+                }
+              }
+            } else {
+              miniprogramConfig = adClickMiniprogram
+            }
+            
+            const { appId, path = '', extraData = {} } = miniprogramConfig
+            
+            if (appId) {
+              console.log('[广告图] 跳转到其他小程序:', { appId, path, extraData })
+              setTimeout(() => {
+                wx.navigateToMiniProgram({
+                  appId: appId,
+                  path: path || '',
+                  extraData: extraData || {},
+                  envVersion: 'release', // release, trial, develop
+                  success: (res) => {
+                    console.log('[广告图] 跳转小程序成功', res)
+                  },
+                  fail: (err) => {
+                    console.error('[广告图] 跳转小程序失败', err)
+                    wx.showToast({
+                      title: '跳转失败',
+                      icon: 'none'
+                    })
+                  }
+                })
+              }, 300)
+            } else {
+              console.warn('[广告图] 小程序 appId 为空')
+            }
+          } catch (e) {
+            console.error('[广告图] 解析小程序配置失败', e, adClickMiniprogram)
+            wx.showToast({
+              title: '配置错误',
+              icon: 'none'
+            })
+          }
+        } else {
+          console.warn('[广告图] 小程序配置为空')
+        }
+        break
+        
+      default:
+        console.warn('[广告图] 未知的点击类型:', adClickType)
+        break
+    }
+  },
+
+  /**
+   * 阻止事件冒泡
+   */
+  stopPropagation() {
+    // 空函数，用于阻止事件冒泡
   }
 })
 

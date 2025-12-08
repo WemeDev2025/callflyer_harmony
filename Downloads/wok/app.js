@@ -131,6 +131,7 @@ App({
     })
   },
 
+
   globalData: {
     userInfo: null,
     isLoggedIn: false,

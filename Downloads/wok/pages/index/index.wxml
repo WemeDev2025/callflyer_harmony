@@ -1,5 +1,20 @@
 <!--pages/index/index.wxml-->
 <view class="container">
+  <!-- 广告图遮罩 -->
+  <view class="ad-image-mask {{adImageAnimating ? 'show' : ''}}" bindtap="closeAdImage" wx:if="{{showAdImage && adImagePath}}">
+    <view class="ad-image-container" catchtap="stopPropagation">
+      <image 
+        class="ad-image {{adClickType !== 'none' ? 'ad-image-clickable' : ''}}" 
+        src="{{adImagePath}}" 
+        mode="aspectFit" 
+        binderror="onAdImageError" 
+        bindload="onAdImageLoad" 
+        bindtap="onAdImageClick" 
+        style="{{adImageWidth ? 'width: ' + adImageWidth + 'rpx;' : ''}}{{adImageHeight ? 'height: ' + adImageHeight + 'rpx;' : ''}}"
+      ></image>
+    </view>
+  </view>
+
   <!-- 用户信息 - 页面左上角 -->
   <view class="user-info" wx:if="{{userInfo}}">
     <view class="user-avatar" bindtap="goToProfile">
@@ -25,7 +40,7 @@
             wx:for="{{resultTextChars}}" 
             wx:key="index"
             wx:for-item="item"
-            style="animation-delay: {{item.delay}}s; left: {{item.left}}%; top: {{item.top}}%;"
+            style="animation-delay: {{item.delay}}s; left: {{item.left}}; top: {{item.top}};"
           >{{item.char}}</text>
         </view>
         <!-- 参与者头像在铁锅中翻炒 -->
