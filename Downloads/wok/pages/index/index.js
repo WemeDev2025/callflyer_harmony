@@ -31,6 +31,8 @@ Page({
     sloganVisible: true,  // 渐显动画状态
     sloganTimer: null,  // 轮播定时器
     // 广告图相关
+    banners: [],  // 广告图列表
+    currentBanner: null,  // 当前显示的广告图
     showAdImage: false,  // 是否显示广告图
     adImagePath: '',  // 广告图本地路径
     adImageAnimating: false,  // 广告图动画状态
@@ -926,21 +928,20 @@ Page({
               finalUrl = 'https://' + finalUrl
             }
             
-            // 小程序中打开网页需要使用 web-view 组件
-            // 这里先复制链接到剪贴板，提示用户
-            wx.setClipboardData({
-              data: targetUrl,
-              success: () => {
-                wx.showModal({
-                  title: '提示',
-                  content: '链接已复制到剪贴板，请在浏览器中打开',
-                  showCancel: false
-                })
-              },
-              fail: () => {
-                wx.showToast({
-                  title: '复制失败',
-                  icon: 'none'
+            // 跳转到 webview 页面
+            wx.navigateTo({
+              url: `/pages/webview/webview?url=${encodeURIComponent(finalUrl)}`,
+              fail: (err) => {
+                console.error('[广告图] 跳转webview失败', err)
+                // 如果webview页面不存在，尝试复制链接到剪贴板
+                wx.setClipboardData({
+                  data: finalUrl,
+                  success: () => {
+                    wx.showToast({
+                      title: '链接已复制',
+                      icon: 'success'
+                    })
+                  }
                 })
               }
             })
@@ -952,61 +953,27 @@ Page({
         
       case 'miniprogram':
         // 跳转到其他小程序
-        if (adClickMiniprogram) {
-          try {
-            let miniprogramConfig
-            // 如果是字符串，尝试解析为 JSON
-            if (typeof adClickMiniprogram === 'string') {
-              try {
-                // 先尝试解析为 JSON
-                miniprogramConfig = JSON.parse(adClickMiniprogram)
-              } catch (parseError) {
-                // 如果解析失败，说明是简单的 appId 字符串
-                console.log('[广告图] 检测到简单 appId 格式:', adClickMiniprogram)
-                miniprogramConfig = {
-                  appId: adClickMiniprogram,
-                  path: '',
-                  extraData: {}
-                }
-              }
-            } else {
-              miniprogramConfig = adClickMiniprogram
-            }
-            
-            const { appId, path = '', extraData = {} } = miniprogramConfig
-            
-            if (appId) {
-              console.log('[广告图] 跳转到其他小程序:', { appId, path, extraData })
-              setTimeout(() => {
-                wx.navigateToMiniProgram({
-                  appId: appId,
-                  path: path || '',
-                  extraData: extraData || {},
-                  envVersion: 'release', // release, trial, develop
-                  success: (res) => {
-                    console.log('[广告图] 跳转小程序成功', res)
-                  },
-                  fail: (err) => {
-                    console.error('[广告图] 跳转小程序失败', err)
-                    wx.showToast({
-                      title: '跳转失败',
-                      icon: 'none'
-                    })
-                  }
+        if (adClickData && adClickData.appId) {
+          console.log('[广告图] 跳转到其他小程序:', adClickData)
+          setTimeout(() => {
+            wx.navigateToMiniProgram({
+              appId: adClickData.appId,
+              path: adClickData.path || '',
+              extraData: adClickData.extraData || {},
+              success: (res) => {
+                console.log('[广告图] 跳转小程序成功', res)
+              },
+              fail: (err) => {
+                console.error('[广告图] 跳转小程序失败', err)
+                wx.showToast({
+                  title: '跳转失败',
+                  icon: 'none'
                 })
-              }, 300)
-            } else {
-              console.warn('[广告图] 小程序 appId 为空')
-            }
-          } catch (e) {
-            console.error('[广告图] 解析小程序配置失败', e, adClickMiniprogram)
-            wx.showToast({
-              title: '配置错误',
-              icon: 'none'
+              }
             })
-          }
+          }, 300)
         } else {
-          console.warn('[广告图] 小程序配置为空')
+          console.warn('[广告图] 小程序配置为空或缺少 appId')
         }
         break
         

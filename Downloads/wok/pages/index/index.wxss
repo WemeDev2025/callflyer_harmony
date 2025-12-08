@@ -54,8 +54,6 @@
   height: auto;
   max-width: 90vw; /* 最大宽度为屏幕的90% */
   max-height: 80vh; /* 最大高度为屏幕的80% */
-  border-radius: 16rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.5);
   background: transparent;
   object-fit: contain;
 }
