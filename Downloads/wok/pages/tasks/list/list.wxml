@@ -43,16 +43,13 @@
               src="{{participant.avatar_url || participant.avatarUrl || ''}}" 
               mode="aspectFill"
             ></image>
-            <view class="participant-count" wx:if="{{item.participantCount > item.participants.length}}">
-              <text>+{{item.participantCount - item.participants.length}}</text>
-            </view>
           </view>
         </view>
       </view>
     </view>
 
     <view class="empty-state" wx:if="{{tasks.length === 0 && !loading}}">
-      <text>暂无任务</text>
+      <text>啥也没有</text>
     </view>
 
     <view class="loading-more" wx:if="{{loadingMore}}">
