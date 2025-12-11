@@ -125,6 +125,11 @@ Page({
           
           task.allDishes = allDishes
           
+          // 处理 selectedDish：确保字符串格式一致（trim处理）
+          if (task.selectedDish) {
+            task.selectedDish = typeof task.selectedDish === 'string' ? task.selectedDish.trim() : String(task.selectedDish).trim()
+          }
+          
           // 处理参与者头像（过滤掉创建者，用于头像显示）
           if (task.participants && Array.isArray(task.participants)) {
             // 过滤掉创建者，只保留其他参与者（用于头像显示）
@@ -147,6 +152,7 @@ Page({
           } else {
             task.durationText = null
           }
+          
           return task
         }))
 

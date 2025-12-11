@@ -12,27 +12,29 @@
         </view>
         <view class="task-status-wrapper">
           <view class="task-status {{item.status}}">
-            <text>{{item.status === 'finished' ? '已结束' : '进行中'}}</text>
+            <image wx:if="{{item.status === 'finished'}}" class="task-status-icon" src="/images/icon_pass.png" mode="aspectFit"></image>
+            <image wx:else class="task-status-icon" src="/images/icon_progress.png" mode="aspectFit"></image>
           </view>
-          <text class="task-duration" wx:if="{{item.status === 'finished' && item.durationText}}">纠结时长 {{item.durationText}}
-          </text>
         </view>
       </view>
 
       <view class="task-content">
-        <text class="task-title">{{item.title || '今天吃什么？'}}</text>
+        <view class="task-title-wrapper">
+          <image class="task-title-icon" src="/images/icon_task.png" mode="aspectFit"></image>
+          <text class="task-title">{{item.title || '今天吃什么？'}}</text>
+        </view>
         
         <!-- 菜品列表 -->
         <view class="task-dishes" wx:if="{{item.allDishes && item.allDishes.length > 0}}">
           <view class="dish-tags">
-            <view class="dish-tag" wx:for="{{item.allDishes}}" wx:key="*this">
-              <text class="dish-name">{{item}}</text>
+            <view class="dish-tag {{item.selectedDish === dish ? 'dish-tag-selected' : ''}}" wx:for="{{item.allDishes}}" wx:for-item="dish" wx:key="*this">
+              <text class="dish-name">{{dish}}</text>
             </view>
           </view>
         </view>
         
-        <view class="task-stats">
-          <view class="participants-avatars" wx:if="{{item.participants && item.participants.length > 0}}">
+        <view class="task-stats" wx:if="{{item.participants && item.participants.length > 0}}">
+          <view class="participants-avatars">
             <image 
               class="participant-avatar-small" 
               wx:for="{{item.participants}}" 
@@ -45,17 +47,7 @@
               <text>+{{item.participantCount - item.participants.length}}</text>
             </view>
           </view>
-          <view class="participants-avatars" wx:else>
-            <view class="participant-count-placeholder">
-              <text>{{item.participantCount || 0}}</text>
-            </view>
-          </view>
         </view>
-      </view>
-
-      <view class="task-result" wx:if="{{item.selectedDish}}">
-        <text class="result-label">最终选择：</text>
-        <text class="result-dish">{{item.selectedDish}}</text>
       </view>
     </view>
 

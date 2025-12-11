@@ -54,7 +54,7 @@
   max-width: 700rpx;
   background-color: #ffffff;
   border-radius: 38rpx;
-  padding: 62rpx;
+  padding: 24rpx 48rpx;
   margin: 0 auto 30rpx auto;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
@@ -69,7 +69,6 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 36rpx;
 }
 
 .creator-info {
@@ -90,6 +89,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  gap: rpx;
 }
 
 .creator-name {
@@ -107,33 +107,38 @@
 .task-status-wrapper {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 4rpx;
+  align-items: flex-start;
+  gap: 10rpx;
+  margin-bottom: 44rpx;
 }
 
 .task-status {
   padding: 8rpx 20rpx;
-  border-radius: 20rpx;
+  border-radius: 6rpx;
   font-size: 24rpx;
 }
 
 .task-status.active {
-  background-color: #e8f5e9;
-  color: #4caf50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: transparent;
 }
 
 .task-status.finished {
-  background-color: #f5f5f5;
-  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: transparent;
 }
 
-.task-duration {
-  margin-right: 10rpx;
-  font-size: 24rpx;
-  color: #999;
-  text-align: right;
-  width: 100%;
+.task-status-icon {
+  width: 166rpx;
+  height: 166rpx;
 }
+
 
 .task-content {
   display: flex;
@@ -143,13 +148,25 @@
   gap: 12rpx;
 }
 
+.task-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+  margin-left: 10rpx;
+}
+
+.task-title-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+}
+
 .task-title {
   display: block;
   font-size: 32rpx;
   font-weight: 500;
   color: #333;
-  margin-bottom: 20rpx;
-  margin-left: 10rpx;
 }
 
 .task-dishes {
@@ -160,19 +177,31 @@
   display: flex;
   flex-wrap: wrap;
   gap: 32rpx;
+  margin-top: 22rpx;
 }
 
 .dish-tag {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   background-color: #f0f0f0;
-  border-radius: 30rpx;
-  padding: 10rpx 20rpx;
+  border-radius: 66rpx;
+  padding: 18rpx 36rpx;
   font-size: 26rpx;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .dish-name {
   color: #333;
+}
+
+.dish-tag-selected {
+  background-color: #1AA376 !important;
+}
+
+.dish-tag-selected .dish-name {
+  color: #ffffff !important;
+  font-weight: bold;
 }
 
 .task-stats {
@@ -243,32 +272,14 @@
   line-height: 1.5;
 }
 
-.task-result {
-  padding: 20rpx;
-  background: #f0f0f0;
-  border-radius: 10rpx;
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-  margin-top: 22rpx;
-}
 
-.result-label {
-  font-size: 28rpx;
-  color: #999;
-}
-
-.result-dish {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: #999;
-}
 
 .empty-state {
   text-align: center;
   padding: 100rpx 40rpx;
-  color: rgba(43, 43, 43, 0.8);
+  color: rgba(43, 43, 43, 0.5);
   font-size: 28rpx;
+  margin-top: 400rpx;
 }
 
 .loading-more,
