@@ -209,8 +209,6 @@
   align-items: center;
   gap: 30rpx;
   flex-wrap: wrap;
-  margin-top: 22rpx
-  ;
 }
 
 .participants-avatars {

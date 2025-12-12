@@ -529,12 +529,20 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
   max-width: 100%;
-  margin-left: 88rpx;
-  gap: 20rpx;
+  padding: 0 66rpx;
   box-sizing: border-box;
   overflow: hidden;
+}
+
+.user-info-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+  min-width: 0;
 }
 
 .user-avatar {
@@ -569,6 +577,51 @@
   color: #353535;
   white-space: nowrap;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.customer-service-view {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 114rpx;
+  height: 114rpx;
+}
+
+.customer-service-btn-hidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  opacity: 0;
+  z-index: 1;
+}
+
+.customer-service-btn-hidden::after {
+  border: none;
+}
+
+.customer-service-icon {
+  width: 114rpx;
+  height: 114rpx;
+  display: block;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  z-index: 0;
+}
+
+.customer-service-icon {
+  width: 114rpx;
+  height: 114rpx;
 }
 
 /* 轮播文案卡片 */

@@ -31,11 +31,23 @@
 
   <!-- 用户信息 - 页面左上角 -->
   <view class="user-info" wx:if="{{userInfo}}">
-    <view class="user-avatar" bindtap="goToProfile">
-      <image wx:if="{{userInfo.avatar_url}}" class="avatar-image" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
-      <text wx:else class="avatar-text">饿</text>
+    <view class="user-info-left">
+      <view class="user-avatar" bindtap="goToProfile">
+        <image wx:if="{{userInfo.avatar_url}}" class="avatar-image" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
+        <text wx:else class="avatar-text">饿</text>
+      </view>
+      <text class="user-nickname">{{userInfo.nickname || '怎么称呼'}}</text>
     </view>
-    <text class="user-nickname">{{userInfo.nickname || '怎么称呼'}}</text>
+    <view class="customer-service-view">
+      <button 
+        class="customer-service-btn-hidden" 
+        open-type="contact" 
+        session-from="index_page"
+        send-message-title="今天吃什么？"
+        send-message-path="pages/index/index"
+      ></button>
+      <image class="customer-service-icon" src="/images/icon_contact.png" mode="aspectFit"></image>
+    </view>
   </view>
 
   <!-- 上半部分：炒锅图片和动画 -->
