@@ -683,19 +683,21 @@ Page({
    * 当用户点击分享按钮或使用 open-type="share" 的按钮时会触发
    */
   onShareAppMessage() {
-    console.log('[分享] onShareAppMessage 被调用')
     const shareCode = this.data.shareCode || (this.data.taskInfo && this.data.taskInfo.shareCode) || ''
-    console.log('[分享] shareCode:', shareCode)
+    
+    // 获取task标题
+    const shareTitle = (this.data.taskInfo && this.data.taskInfo.title) || '今天吃什么？'
+    
     if (!shareCode) {
       return {
-        title: '今天吃什么？一起来选择吧！',
+        title: shareTitle,
         path: '/pages/index/index'
       }
     }
     return {
-      title: '今天吃什么？一起来选择吧！',
+      title: shareTitle,
       path: `/pages/task/detail/detail?shareCode=${shareCode}`,
-      imageUrl: '' // 可以设置分享图片
+      imageUrl: 'https://wemedev.com/wok/data/images/pic_shareWok.png'
     }
   },
 
@@ -704,16 +706,20 @@ Page({
    */
   onShareTimeline() {
     const shareCode = this.data.shareCode || (this.data.taskInfo && this.data.taskInfo.shareCode) || ''
+    
+    // 获取task标题
+    const shareTitle = (this.data.taskInfo && this.data.taskInfo.title) || '今天吃什么？'
+    
     if (!shareCode) {
       return {
-        title: '今天吃什么？一起来选择吧！',
+        title: shareTitle,
         query: ''
       }
     }
     return {
-      title: '今天吃什么？一起来选择吧！',
+      title: shareTitle,
       query: `shareCode=${shareCode}`,
-      imageUrl: '' // 可以设置分享图片
+      imageUrl: 'https://wemedev.com/wok/data/images/pic_shareWok.png'
     }
   },
 
@@ -1071,12 +1077,6 @@ Page({
    * Tips 图片加载成功
    */
   onTipsImageLoad(e) {
-    const detail = e.detail || {}
-    console.log('[Tips图片] 图片加载成功', {
-      path: this.data.tipsImagePath,
-      width: detail.width,
-      height: detail.height
-    })
     // 确保动画状态正确
     if (!this.data.showTipsAnimation) {
       this.triggerAnimations()

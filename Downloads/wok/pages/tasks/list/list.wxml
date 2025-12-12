@@ -1,7 +1,7 @@
 <!--pages/tasks/list/list.wxml-->
 <view class="container">
   <view class="task-list">
-    <view class="task-item" wx:for="{{tasks}}" wx:key="taskId" bindtap="goToTaskDetail" data-taskid="{{item.taskId}}" data-sharecode="{{item.shareCode}}">
+    <view class="task-item" wx:for="{{tasks}}" wx:key="taskId">
       <view class="task-header">
         <view class="creator-info">
           <image class="creator-avatar" src="{{item.creator_profile.avatar_url || item.creator_profile.avatarUrl || (item.creatorProfile && (item.creatorProfile.avatar_url || item.creatorProfile.avatarUrl)) || ''}}" mode="aspectFill"></image>

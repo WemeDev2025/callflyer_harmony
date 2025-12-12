@@ -3,6 +3,14 @@
 
   <!-- 统一的卡片内容 -->
   <view class="content">
+    <!-- 任务状态显示（右上角，仅详情模式） -->
+    <view class="task-status-wrapper" wx:if="{{mode === 'detail' && taskInfo.status}}">
+      <view class="task-status {{taskInfo.status}}">
+        <image wx:if="{{taskInfo.status === 'finished'}}" class="task-status-icon" src="/images/icon_pass.png" mode="aspectFit"></image>
+        <image wx:else class="task-status-icon" src="/images/icon_progress.png" mode="aspectFit"></image>
+      </view>
+    </view>
+    
     <!-- 参与者列表 - 显示创建者（创建模式显示当前用户，详情模式显示任务创建者） -->
     <view class="participants-section">
       <view class="participants-list">

@@ -71,7 +71,48 @@
   margin-bottom: 40rpx;
   align-self: center;
   box-sizing: border-box;
+  position: relative;
   /* content 卡片保持稳定，不添加过渡效果，避免闪烁 */
+}
+
+/* 任务状态显示（右上角） */
+.content .task-status-wrapper {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10rpx;
+  z-index: 10;
+}
+
+.content .task-status {
+  padding: 8rpx 20rpx;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+}
+
+.content .task-status.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: transparent;
+}
+
+.content .task-status.finished {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: transparent;
+}
+
+.content .task-status-icon {
+  width: 166rpx;
+  height: 166rpx;
+  margin-right: 36rpx;
 }
 
 
