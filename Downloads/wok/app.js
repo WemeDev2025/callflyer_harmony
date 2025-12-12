@@ -1,6 +1,7 @@
 // app.js
 import { wxLogin, getProfile } from './utils/api.js'
 import { setToken, getToken } from './utils/storage.js'
+import { requestSubscribeMessage, isAuthorized } from './utils/subscribeMessage.js'
 
 App({
   onLaunch() {
@@ -129,6 +130,31 @@ App({
         page.loadUserInfo()
       }
     })
+  },
+
+  /**
+   * 请求订阅消息授权
+   * 可以在应用启动时或特定场景下调用
+   */
+  requestSubscribeMessageAuth() {
+    try {
+      // 注意：微信订阅消息授权是一次性的，每次发送前都需要重新授权
+      // 但为了避免频繁打扰用户，如果用户刚刚拒绝过，可以稍后再请求
+      requestSubscribeMessage()
+        .then(result => {
+          if (result.authorized) {
+            console.log('[订阅消息] 用户已授权，可以发送订阅消息')
+          } else {
+            console.log('[订阅消息] 用户未授权，稍后可以再次请求')
+          }
+        })
+        .catch(err => {
+          console.error('[订阅消息] 请求授权失败:', err)
+          // 授权失败不影响小程序正常使用
+        })
+    } catch (e) {
+      console.error('[订阅消息] 请求授权异常:', e)
+    }
   },
 
 

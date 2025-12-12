@@ -3,7 +3,7 @@
  * 用于从服务器获取配置，控制广告的显示/隐藏
  */
 
-const API_BASE_URL = 'https://wetofly.com/api';
+const API_BASE_URL = 'https://wemedev.com/wok/api';
 
 /**
  * 获取远程配置
@@ -86,6 +86,8 @@ module.exports = {
   getDefaultConfig,
   clearConfigCache
 };
+
+
 
 
 

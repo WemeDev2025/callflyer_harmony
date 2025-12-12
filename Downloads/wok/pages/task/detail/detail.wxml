@@ -49,14 +49,15 @@
     </view>
 
     <!-- 添加菜品区域 -->
-    <view class="add-dish-section" wx:if="{{mode === 'create' || (mode === 'detail' && taskInfo.status !== 'finished' && !taskInfo.selectedDish && !selectedDishResult)}}">
+    <view class="add-dish-section" wx:if="{{mode === 'create' || (mode === 'detail' && allDishes && allDishes.length > 0)}}">
       <view class="section-title">
         <text>备选项</text>
       </view>
       <!-- 创建模式显示输入框，或者详情模式中：
            1. 从分享页进入（fromShare=true）且任务进行中
-           2. 已参与任务（hasParticipated=true）且任务进行中 -->
-      <view class="dishes-input" wx:if="{{mode === 'create' || (mode === 'detail' && taskInfo.status !== 'finished' && !taskInfo.selectedDish && (fromShare || hasParticipated))}}">
+           2. 已参与任务（hasParticipated=true）且任务进行中
+           3. 没有结果时 -->
+      <view class="dishes-input" wx:if="{{mode === 'create' || (mode === 'detail' && taskInfo.status !== 'finished' && !taskInfo.selectedDish && !selectedDishResult && (fromShare || hasParticipated))}}">
         <input 
           class="input" 
           type="text" 
@@ -78,12 +79,12 @@
           </view>
         </view>
       </view>
-      <!-- 详情模式：显示所有参与者的菜品（合并显示） -->
+      <!-- 详情模式：显示所有参与者的菜品（合并显示），有结果时选中的显示绿底白字 -->
       <view class="my-dishes" wx:show="{{mode === 'detail' && allDishes && allDishes.length > 0}}">
         <view class="dish-tags">
-          <view class="dish-tag" wx:for="{{allDishes}}" wx:key="*this">
+          <view class="dish-tag {{(taskInfo.selectedDish || selectedDishResult) === item ? 'dish-tag-selected' : ''}}" wx:for="{{allDishes}}" wx:key="*this">
             <text class="dish-name">{{item}}</text>
-            <text class="dish-remove" bindtap="removeDish" data-dish="{{item}}" wx:if="{{taskInfo.status !== 'finished' && myDishes.includes(item)}}">×</text>
+            <text class="dish-remove" bindtap="removeDish" data-dish="{{item}}" wx:if="{{taskInfo.status !== 'finished' && myDishes.includes(item) && !taskInfo.selectedDish && !selectedDishResult}}">×</text>
           </view>
         </view>
       </view>
@@ -91,7 +92,7 @@
 
     <!-- 详情模式特有内容 -->
     <block wx:show="{{mode === 'detail'}}">
-      <!-- 参与者头像（不包含创建者） -->
+      <!-- 参与者头像（不包含创建者）- 显示在底部 -->
       <view class="participants-avatars-section" wx:if="{{taskInfo.otherParticipants && taskInfo.otherParticipants.length > 0}}">
         <view class="section-title">
           <text>参与者</text>
@@ -105,17 +106,6 @@
             src="{{participant.avatar_url || participant.avatarUrl || ''}}" 
             mode="aspectFill"
           ></image>
-        </view>
-      </view>
-
-      <!-- 选中结果展示区域 -->
-      <view class="result-section" wx:if="{{taskInfo.selectedDish || selectedDishResult}}">
-        <view class="result-section-header">
-          <image class="result-section-icon" src="/images/icon_great.png" mode="aspectFit"></image>
-          <text class="result-section-title">天选答案</text>
-        </view>
-        <view class="result-section-content">
-          <text class="result-section-dish">{{taskInfo.selectedDish || selectedDishResult}}</text>
         </view>
       </view>
     </block>

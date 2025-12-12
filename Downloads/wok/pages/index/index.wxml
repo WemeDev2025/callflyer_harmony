@@ -15,6 +15,20 @@
     </view>
   </view>
 
+  <!-- 订阅消息引导弹窗 -->
+  <view class="subscribe-guide-mask {{showSubscribeGuide ? 'show' : ''}}" bindtap="closeSubscribeGuide" wx:if="{{showSubscribeGuide}}">
+    <view class="subscribe-guide-container" catchtap="stopPropagation">
+      <view class="subscribe-guide-content">
+        <view class="subscribe-guide-title">开启消息通知</view>
+        <view class="subscribe-guide-desc">及时接收任务状态更新，不错过重要信息</view>
+        <view class="subscribe-guide-buttons">
+          <button class="subscribe-guide-btn cancel-btn" bindtap="closeSubscribeGuide">稍后再说</button>
+          <button class="subscribe-guide-btn confirm-btn" bindtap="requestSubscribeAuth">立即开启</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 用户信息 - 页面左上角 -->
   <view class="user-info" wx:if="{{userInfo}}">
     <view class="user-avatar" bindtap="goToProfile">
