@@ -163,8 +163,11 @@ function clearImageCache() {
 module.exports = {
   getCachedImagePath,
   downloadAndCacheImage,
-  clearImageCache
+  clearImageCache,
+  getCacheKey
 };
+
+
 
 
 

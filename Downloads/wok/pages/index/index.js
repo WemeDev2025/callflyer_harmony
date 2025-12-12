@@ -1,5 +1,6 @@
 // pages/index/index.js
 import { getTasks, getTaskResult, randomSelectDish, getBanners } from '../../utils/api.js'
+import { requestSubscribeMessage, isAuthorized } from '../../utils/subscribeMessage.js'
 const imageCache = require('../../utils/imageCache.js')
 
 Page({
@@ -39,7 +40,9 @@ Page({
     adImageWidth: null,  // 广告图宽度（rpx，自动适配）
     adImageHeight: null,  // 广告图高度（rpx，自动适配）
     adClickType: 'none',  // 广告点击类型：none, page, url, miniprogram
-    adClickData: null  // 广告点击数据（包含 path, url, appId 等）
+    adClickData: null,  // 广告点击数据（包含 path, url, appId 等）
+    // 订阅消息引导弹窗
+    showSubscribeGuide: false  // 是否显示订阅消息引导弹窗
   },
 
   onLoad() {
@@ -54,6 +57,13 @@ Page({
     this.loadSelectedResult()
     // 加载广告配置
     this.loadAdConfig()
+    // 预加载 tips 图片（每次启动都重新从服务器加载）
+    this.preloadTipsImage()
+    // 延迟显示订阅消息引导弹窗（延迟2秒，等待页面加载完成）
+    // 暂时注释掉，确保开关入口能正常授权
+    // setTimeout(() => {
+    //   this.showSubscribeMessageGuide()
+    // }, 2000)
   },
 
   onShow() {
@@ -988,6 +998,205 @@ Page({
    */
   stopPropagation() {
     // 空函数，用于阻止事件冒泡
+  },
+
+  /**
+   * 预加载 tips 图片（每次启动都重新从服务器加载最新图片）
+   */
+  async preloadTipsImage() {
+    const tipsImageUrl = 'https://wemedev.com/wok/data/images/pic_tips.png'
+    console.log('[Tips图片] 开始预加载', tipsImageUrl)
+    
+    try {
+      // 先清除旧缓存，确保每次都重新下载最新图片
+      // 使用URL的hash作为缓存key（与imageCache.js中的逻辑一致）
+      const urlHash = tipsImageUrl.split('/').pop().replace(/[^a-zA-Z0-9]/g, '_')
+      const cacheKey = `ad_image_cache_${urlHash}`
+      const versionKey = `ad_image_version_ad_image_cache_${urlHash}`
+      
+      try {
+        const cachedPath = wx.getStorageSync(cacheKey)
+        if (cachedPath) {
+          // 删除旧文件
+          const fs = wx.getFileSystemManager()
+          try {
+            fs.unlinkSync(cachedPath)
+            console.log('[Tips图片] 已删除旧缓存文件:', cachedPath)
+          } catch (e) {
+            console.warn('[Tips图片] 删除旧缓存文件失败:', e)
+          }
+          // 清除存储记录
+          wx.removeStorageSync(cacheKey)
+          wx.removeStorageSync(versionKey)
+          console.log('[Tips图片] 已清除旧缓存记录')
+        }
+      } catch (e) {
+        console.warn('[Tips图片] 清除旧缓存失败:', e)
+      }
+      
+      // 重新下载最新图片
+      const localPath = await imageCache.downloadAndCacheImage(tipsImageUrl)
+      console.log('[Tips图片] 预加载成功，本地路径:', localPath)
+      
+      // 将图片路径保存到全局数据，供详情页使用
+      const app = getApp()
+      if (app.globalData) {
+        app.globalData.tipsImagePath = localPath
+        console.log('[Tips图片] 已保存到全局数据:', localPath)
+      }
+    } catch (error) {
+      console.error('[Tips图片] 预加载失败', error)
+      // 失败时使用网络URL作为备用
+      const app = getApp()
+      if (app.globalData) {
+        app.globalData.tipsImagePath = tipsImageUrl
+        console.log('[Tips图片] 使用网络URL作为备用:', tipsImageUrl)
+      }
+    }
+  },
+
+  /**
+   * 显示订阅消息引导弹窗
+   */
+  showSubscribeMessageGuide() {
+    // 注意：微信订阅消息授权是一次性的，每次发送前都需要重新授权
+    // 所以每次进入小程序都显示引导弹窗，让用户有机会再次授权
+    // 显示引导弹窗
+    this.setData({
+      showSubscribeGuide: true
+    })
+  },
+
+  /**
+   * 关闭订阅消息引导弹窗
+   */
+  closeSubscribeGuide() {
+    this.setData({
+      showSubscribeGuide: false
+    })
+  },
+
+  /**
+   * 用户点击授权按钮，请求订阅消息授权
+   * 注意：wx.requestSubscribeMessage 必须在用户点击事件的同步调用链中直接调用，不能使用 setTimeout 延迟
+   */
+  requestSubscribeAuth() {
+    console.log('[订阅消息] 用户点击立即开启按钮')
+    
+    // 检查基础库版本
+    const systemInfo = wx.getSystemInfoSync()
+    const SDKVersion = systemInfo.SDKVersion || '0.0.0'
+    console.log('[订阅消息] 当前基础库版本:', SDKVersion)
+    
+    // 检查是否支持订阅消息API（需要基础库 >= 2.8.2）
+    if (wx.canIUse('requestSubscribeMessage')) {
+      console.log('[订阅消息] 支持订阅消息API')
+    } else {
+      console.error('[订阅消息] 不支持订阅消息API，需要基础库版本 >= 2.8.2')
+      wx.showModal({
+        title: '提示',
+        content: '当前微信版本过低，不支持订阅消息功能，请升级微信版本',
+        showCancel: false
+      })
+      return
+    }
+    
+    // 先关闭引导弹窗，避免遮挡授权弹窗
+    // 注意：关闭弹窗后必须立即调用 requestSubscribeMessage，不能延迟
+    this.closeSubscribeGuide()
+    
+    // 必须在用户点击事件的同步调用链中直接调用，不能使用 setTimeout
+    console.log('[订阅消息] 开始请求订阅消息授权')
+    console.log('[订阅消息] 模板ID:', 'fzEGVEMzu6KiGg6hmIOco3OnXdnHK4ADSNrYFJsrsVM')
+    
+    requestSubscribeMessage()
+      .then(result => {
+        console.log('[订阅消息] 授权请求成功，结果:', result)
+        if (result.authorized) {
+          console.log('[订阅消息] 用户已授权，可以发送订阅消息')
+          wx.showToast({
+            title: '授权成功',
+            icon: 'success',
+            duration: 1500
+          })
+        } else {
+          console.log('[订阅消息] 用户未授权，结果:', result.results)
+          // 检查是否有 reject 或其他状态
+          const results = result.results || {}
+          const templateIds = Object.keys(results)
+          if (templateIds.length > 0) {
+            const firstResult = results[templateIds[0]]
+            console.log('[订阅消息] 授权结果状态:', firstResult)
+            if (firstResult === 'reject') {
+              wx.showToast({
+                title: '已拒绝授权',
+                icon: 'none',
+                duration: 1500
+              })
+            } else if (firstResult === 'ban') {
+              wx.showToast({
+                title: '已被后台封禁',
+                icon: 'none',
+                duration: 2000
+              })
+            } else {
+              wx.showToast({
+                title: '授权已取消',
+                icon: 'none',
+                duration: 1500
+              })
+            }
+          } else {
+            wx.showToast({
+              title: '未获取到授权结果',
+              icon: 'none',
+              duration: 1500
+            })
+          }
+        }
+      })
+      .catch(err => {
+        console.error('[订阅消息] 请求授权失败，完整错误信息:', err)
+        console.error('[订阅消息] 错误类型:', typeof err)
+        console.error('[订阅消息] 错误消息:', err.message)
+        console.error('[订阅消息] 错误对象:', JSON.stringify(err))
+        
+        // 检查是否是模板ID未配置的错误
+        if (err.message && err.message.includes('模板ID')) {
+          wx.showModal({
+            title: '配置错误',
+            content: '订阅消息模板ID未配置，请检查小程序后台配置',
+            showCancel: false
+          })
+        } else if (err.errMsg) {
+          // 显示微信API的错误信息
+          console.error('[订阅消息] 微信API错误:', err.errMsg)
+          
+          let errorMsg = '授权失败'
+          if (err.errMsg.includes('template')) {
+            errorMsg = '模板ID无效，请检查小程序后台配置'
+          } else if (err.errMsg.includes('permission')) {
+            errorMsg = '无权限调用，请检查小程序权限配置'
+          } else if (err.errMsg.includes('can only be invoked by user TAP gesture')) {
+            errorMsg = '必须在用户点击事件中直接调用，不能延迟调用'
+          } else if (err.errMsg.includes('fail')) {
+            errorMsg = `调用失败: ${err.errMsg}`
+          }
+          
+          wx.showModal({
+            title: '授权失败',
+            content: errorMsg + '\n\n错误详情：' + err.errMsg,
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        } else {
+          wx.showModal({
+            title: '授权失败',
+            content: '未知错误，请查看控制台日志',
+            showCancel: false
+          })
+        }
+      })
   }
 })
 

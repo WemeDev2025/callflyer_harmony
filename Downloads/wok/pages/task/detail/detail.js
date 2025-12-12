@@ -1,6 +1,7 @@
 // pages/task/detail/detail.js
-import { getTaskDetail, participateTask, randomSelectDish, getTaskByShareCode, createTask } from '../../../utils/api.js'
+import { getTaskDetail, participateTask, randomSelectDish, getTaskByShareCode, createTask, subscribeTask, unsubscribeTask, getTaskSubscribeStatus } from '../../../utils/api.js'
 import { getToken } from '../../../utils/storage.js'
+import { requestSubscribeMessage, isAuthorized, getTemplateId } from '../../../utils/subscribeMessage.js'
 
 Page({
   data: {
@@ -18,8 +19,10 @@ Page({
     randoming: false,
     tapPressed: false,  // 随机选择图标按下状态
     sharePressed: false,  // 分享图标按下状态
+    tipsSharePressed: false,  // Tips 分享按钮按下状态
     showResultMask: false,  // 显示结果遮罩
     selectedDishResult: '',  // 选中的菜品结果
+    tipsImagePath: 'https://wemedev.com/wok/data/images/pic_tips.png',  // Tips 图片路径（默认使用网络URL）
     // 创建模式的数据
     title: '今天吃什么？',
     dishes: [],  // 创建模式下的菜品列表
@@ -35,7 +38,8 @@ Page({
     allDishes: [],  // 所有参与者的菜品列表
     refreshTimer: null,  // 数据刷新定时器
     fromShare: false,  // 是否通过分享码进入
-    hasParticipated: false  // 用户是否已参与任务
+    hasParticipated: false,  // 用户是否已参与任务
+    subscribeMessageEnabled: false  // 订阅消息开关状态
   },
 
   onLoad(options) {
@@ -79,6 +83,16 @@ Page({
 
     // 初始化音频
     this.initAudio()
+    
+    // 如果是分享页，初始化订阅消息开关状态
+    if (shareCode) {
+      this.initSubscribeMessageStatus()
+    }
+    
+    // 加载 tips 图片路径（延迟一点，确保主页预加载有时间完成）
+    setTimeout(() => {
+      this.loadTipsImage()
+    }, 100)
   },
 
   /**
@@ -88,6 +102,8 @@ Page({
     if (this.data.mode === 'detail' && this.data.taskId) {
       this.startRefreshTimer()
     }
+    // 每次显示页面时重新加载 tips 图片路径（以防预加载完成）
+    this.loadTipsImage()
   },
 
   /**
@@ -106,7 +122,6 @@ Page({
       this.data.refreshTimer = setInterval(() => {
         // 只在任务进行中时刷新
         if (this.data.taskInfo.status !== 'finished' && !this.data.taskInfo.selectedDish) {
-          console.log('[refreshTimer] 定时刷新任务数据')
           this.loadTaskDetail()
         } else {
           // 任务已完成，停止刷新
@@ -268,11 +283,6 @@ Page({
         }
       })
       result.allDishes = Array.from(allDishesSet)
-      console.log('[processTaskData] 收集到的所有菜品:', result.allDishes)
-      console.log('[processTaskData] 参与者数量:', result.participants.length)
-      result.participants.forEach((p, index) => {
-        console.log(`[processTaskData] 参与者 ${index}:`, p.nickname, '菜品:', p.dishes)
-      })
     } else {
       result.allDishes = []
     }
@@ -284,7 +294,6 @@ Page({
       selectedDishResult: result.selectedDish || '',
       allDishes: result.allDishes || []
     }
-    console.log('[processTaskData] 返回数据中的 allDishes:', returnData.allDishes)
     return returnData
   },
 
@@ -293,15 +302,7 @@ Page({
    */
   async loadTaskDetail() {
     try {
-      console.log('[loadTaskDetail] 开始加载任务详情')
-      console.log('[loadTaskDetail] 当前 taskInfo:', this.data.taskInfo)
-      console.log('[loadTaskDetail] 当前 taskInfo.selectedDish:', this.data.taskInfo.selectedDish)
-      console.log('[loadTaskDetail] 当前 taskInfo.status:', this.data.taskInfo.status)
-      
       const result = await getTaskDetail(this.data.taskId)
-      console.log('[loadTaskDetail] API 返回结果:', result)
-      console.log('[loadTaskDetail] result.selectedDish:', result.selectedDish)
-      console.log('[loadTaskDetail] result.status:', result.status)
       
       if (result) {
         // 处理任务数据
@@ -310,21 +311,9 @@ Page({
           throw new Error('处理任务数据失败')
         }
         
-        console.log('[loadTaskDetail] 处理后的数据:', processed)
-        console.log('[loadTaskDetail] processed.taskInfo.selectedDish:', processed.taskInfo.selectedDish)
-        console.log('[loadTaskDetail] processed.taskInfo.status:', processed.taskInfo.status)
-        
         // 合并 taskInfo，而不是完全替换，避免 content 卡片重新渲染
         const existingTaskInfo = this.data.taskInfo || {}
         const mergedTaskInfo = Object.assign({}, existingTaskInfo, processed.taskInfo)
-        
-        console.log('[loadTaskDetail] 合并后的 taskInfo:', mergedTaskInfo)
-        console.log('[loadTaskDetail] 合并后的 taskInfo.selectedDish:', mergedTaskInfo.selectedDish)
-        console.log('[loadTaskDetail] 合并后的 taskInfo.status:', mergedTaskInfo.status)
-        console.log('[loadTaskDetail] add-dish-section 应该显示:', this.data.mode === 'create' || (this.data.mode === 'detail' && mergedTaskInfo.status !== 'finished' && !mergedTaskInfo.selectedDish))
-        
-        console.log('[loadTaskDetail] processed.allDishes:', processed.allDishes)
-        console.log('[loadTaskDetail] mergedTaskInfo.allDishes:', mergedTaskInfo.allDishes)
         
         // 检查是否是第一次收到结果（从进行中变为已完成）
         const previousSelectedDish = this.data.taskInfo.selectedDish
@@ -337,10 +326,6 @@ Page({
                                   (previousStatus !== 'finished' || !previousStatus) && 
                                   newStatus === 'finished'
         
-        console.log('[loadTaskDetail] 是否首次收到结果:', isFirstTimeResult)
-        console.log('[loadTaskDetail] 之前结果:', previousSelectedDish, '之前状态:', previousStatus)
-        console.log('[loadTaskDetail] 现在结果:', newSelectedDish, '现在状态:', newStatus)
-        
         this.setData({
           taskInfo: mergedTaskInfo,
           isCreator: processed.isCreator,
@@ -352,7 +337,6 @@ Page({
         }, () => {
           // 如果是第一次收到结果，播放音频并显示结果遮罩
           if (isFirstTimeResult) {
-            console.log('[loadTaskDetail] 首次收到结果，播放音频并显示遮罩')
             // 将结果保存到全局数据，供主页显示
             const app = getApp()
             if (app.globalData && newSelectedDish) {
@@ -368,10 +352,6 @@ Page({
           }
         })
         
-        console.log('[loadTaskDetail] setData 完成')
-        console.log('[loadTaskDetail] 当前 data.allDishes:', this.data.allDishes)
-        console.log('[loadTaskDetail] all-dishes-section 应该显示:', this.data.mode === 'detail' && this.data.allDishes && this.data.allDishes.length > 0 && mergedTaskInfo.status !== 'finished')
-        
         // 启动数据刷新定时器（仅在任务进行中）
         if (mergedTaskInfo.status !== 'finished' && !mergedTaskInfo.selectedDish) {
           this.startRefreshTimer()
@@ -379,10 +359,25 @@ Page({
           this.stopRefreshTimer()
         }
         
-        // 延迟触发动画，让 content 卡片先稳定
+        // 如果是分享页，初始化订阅消息状态
+        if (this.data.fromShare) {
+          this.initSubscribeMessageStatus()
+        }
+        
+        // 延迟触发动画，让 content 卡片先稳定，同时确保 tipsImagePath 已设置
         setTimeout(() => {
-          this.triggerAnimations()
-        }, 100)
+          // 确保 tipsImagePath 已加载（如果还没有）
+          const app = getApp()
+          if (app.globalData && app.globalData.tipsImagePath && !this.data.tipsImagePath) {
+            this.setData({
+              tipsImagePath: app.globalData.tipsImagePath
+            }, () => {
+              this.triggerAnimations()
+            })
+          } else {
+            this.triggerAnimations()
+          }
+        }, 150)
       }
     } catch (error) {
       console.error('加载任务详情失败:', error)
@@ -688,7 +683,9 @@ Page({
    * 当用户点击分享按钮或使用 open-type="share" 的按钮时会触发
    */
   onShareAppMessage() {
+    console.log('[分享] onShareAppMessage 被调用')
     const shareCode = this.data.shareCode || (this.data.taskInfo && this.data.taskInfo.shareCode) || ''
+    console.log('[分享] shareCode:', shareCode)
     if (!shareCode) {
       return {
         title: '今天吃什么？一起来选择吧！',
@@ -723,7 +720,9 @@ Page({
   /**
    * 分享图标按下
    */
-  onShareTouchStart() {
+  onShareTouchStart(e) {
+    console.log('[分享] onShareTouchStart 被调用', e)
+    console.log('[分享] 当前 shareCode:', this.data.shareCode, 'taskInfo.shareCode:', this.data.taskInfo?.shareCode)
     // 震动反馈
     wx.vibrateShort({
       type: 'light'
@@ -743,6 +742,32 @@ Page({
       })
     }, 150)
   },
+
+  /**
+   * Tips 分享按钮按下
+   */
+  onTipsShareTouchStart(e) {
+    console.log('[Tips分享] onTipsShareTouchStart 被调用', e)
+    // 震动反馈
+    wx.vibrateShort({
+      type: 'light'
+    })
+    this.setData({
+      tipsSharePressed: true
+    })
+  },
+
+  /**
+   * Tips 分享按钮释放
+   */
+  onTipsShareTouchEnd() {
+    setTimeout(() => {
+      this.setData({
+        tipsSharePressed: false
+      })
+    }, 150)
+  },
+
 
   /**
    * 随机选择图标按下
@@ -1006,6 +1031,70 @@ Page({
   },
 
   /**
+   * 加载 tips 图片路径
+   */
+  loadTipsImage() {
+    const app = getApp()
+    const tipsImageUrl = 'https://wemedev.com/wok/data/images/pic_tips.png'
+    
+    // 优先使用全局数据中缓存的图片路径
+    if (app.globalData && app.globalData.tipsImagePath) {
+      this.setData({
+        tipsImagePath: app.globalData.tipsImagePath
+      }, () => {
+        // 重新触发动画检查
+        this.triggerAnimations()
+      })
+    } else {
+      // 如果没有缓存，使用网络URL（确保图片路径不为空）
+      this.setData({
+        tipsImagePath: tipsImageUrl
+      }, () => {
+        // 重新触发动画检查
+        this.triggerAnimations()
+      })
+    }
+    
+    // 如果 tipsImagePath 仍然为空，强制设置为网络URL
+    setTimeout(() => {
+      if (!this.data.tipsImagePath) {
+        this.setData({
+          tipsImagePath: tipsImageUrl
+        }, () => {
+          this.triggerAnimations()
+        })
+      }
+    }, 50)
+  },
+
+  /**
+   * Tips 图片加载成功
+   */
+  onTipsImageLoad(e) {
+    const detail = e.detail || {}
+    console.log('[Tips图片] 图片加载成功', {
+      path: this.data.tipsImagePath,
+      width: detail.width,
+      height: detail.height
+    })
+    // 确保动画状态正确
+    if (!this.data.showTipsAnimation) {
+      this.triggerAnimations()
+    }
+  },
+
+  /**
+   * Tips 图片加载失败
+   */
+  onTipsImageError(e) {
+    // 如果本地路径加载失败，使用网络URL作为备用
+    const tipsImageUrl = 'https://wemedev.com/wok/data/images/pic_tips.png'
+    this.setData({
+      tipsImagePath: tipsImageUrl
+    })
+  },
+
+  /**
    * 初始化音频
    */
   initAudio() {
@@ -1100,6 +1189,259 @@ Page({
       setTimeout(() => {
         this.playResultAudio() // 延迟播放，等待初始化完成
       }, 500)
+    }
+  },
+
+  /**
+   * 初始化订阅消息开关状态
+   */
+  async initSubscribeMessageStatus() {
+    if (!this.data.taskId) {
+      console.log('[订阅消息] 任务ID不存在，跳过初始化')
+      // 默认关闭
+      this.setData({
+        subscribeMessageEnabled: false
+      })
+      return
+    }
+    
+    try {
+      // 查询后端订阅状态
+      const status = await getTaskSubscribeStatus(this.data.taskId)
+      console.log('[订阅消息] 后端订阅状态:', status)
+      
+      // 后端返回格式：{ subscribed: true/false }
+      const subscribed = status.subscribed === true
+      this.setData({
+        subscribeMessageEnabled: subscribed
+      })
+      console.log('[订阅消息] 初始化开关状态:', subscribed)
+    } catch (error) {
+      console.error('[订阅消息] 查询订阅状态失败:', error)
+      // 如果查询失败，默认关闭（不订阅）
+      // 404表示没有订阅记录，这是正常的，应该关闭
+      if (error.message && error.message.includes('资源不存在')) {
+        console.log('[订阅消息] 没有订阅记录，默认关闭')
+      }
+      this.setData({
+        subscribeMessageEnabled: false
+      })
+      console.log('[订阅消息] 默认关闭开关状态')
+    }
+  },
+
+  /**
+   * 订阅消息开关变化处理
+   */
+  onSubscribeSwitchChange(e) {
+    const enabled = e.detail.value
+    console.log('[订阅消息] 开关状态变化:', enabled)
+    
+    if (enabled) {
+      // 开启订阅消息，请求授权
+      // 注意：微信订阅消息授权是一次性的，每次都需要重新授权
+      // 即使之前授权过，再次调用 wx.requestSubscribeMessage 也会弹出授权弹窗
+      this.requestSubscribeAuth()
+    } else {
+      // 关闭订阅消息，调用后端接口取消订阅
+      this.cancelSubscribe()
+    }
+  },
+
+  /**
+   * 请求订阅消息授权
+   * 注意：微信订阅消息授权是一次性的，每次调用 wx.requestSubscribeMessage 都会弹出授权弹窗
+   * 即使之前授权过，再次调用也会弹出授权弹窗，这是微信的机制
+   */
+  requestSubscribeAuth() {
+    console.log('[订阅消息] 开始请求订阅消息授权')
+    
+    if (!this.data.taskId) {
+      console.error('[订阅消息] 任务ID不存在，无法订阅')
+      this.setData({
+        subscribeMessageEnabled: false
+      })
+      return
+    }
+    
+    // 检查基础库版本
+    if (!wx.canIUse('requestSubscribeMessage')) {
+      wx.showModal({
+        title: '提示',
+        content: '当前微信版本过低，不支持订阅消息功能，请升级微信版本',
+        showCancel: false
+      })
+      // 恢复开关状态
+      this.setData({
+        subscribeMessageEnabled: false
+      })
+      return
+    }
+    
+    // 获取模板ID
+    const templateId = getTemplateId()
+    
+    // 先请求微信授权（每次调用都会弹出授权弹窗，这是微信的机制）
+    // 注意：即使之前授权过，再次调用也会弹出授权弹窗
+    // 如果用户之前选择了"总是保持以上选择"，不会再次弹出，但可以正常完整授权
+    requestSubscribeMessage([templateId])
+      .then(result => {
+        console.log('[订阅消息] 微信授权请求成功，结果:', result)
+        if (result.authorized) {
+          console.log('[订阅消息] 用户已授权，开始调用后端接口保存订阅关系')
+          // 用户同意授权，调用后端接口保存订阅关系
+          return subscribeTask(this.data.taskId, templateId)
+            .then(() => {
+              // 后端保存成功
+              console.log('[订阅消息] 后端保存订阅关系成功')
+              this.setData({
+                subscribeMessageEnabled: true
+              })
+              wx.showToast({
+                title: '已授权',
+                icon: 'success',
+                duration: 1500
+              })
+            })
+            .catch(err => {
+              console.error('[订阅消息] 后端保存订阅关系失败:', err)
+              // 恢复开关状态
+              this.setData({
+                subscribeMessageEnabled: false
+              })
+              wx.showToast({
+                title: '授权失败',
+                icon: 'none',
+                duration: 1500
+              })
+              throw err
+            })
+        } else {
+          console.log('[订阅消息] 用户未授权')
+          // 恢复开关状态
+          this.setData({
+            subscribeMessageEnabled: false
+          })
+          
+          const results = result.results || {}
+          const templateIds = Object.keys(results)
+          if (templateIds.length > 0) {
+            const firstResult = results[templateIds[0]]
+            if (firstResult === 'reject') {
+              wx.showToast({
+                title: '授权失败',
+                icon: 'none',
+                duration: 1500
+              })
+            } else {
+              wx.showToast({
+                title: '授权失败',
+                icon: 'none',
+                duration: 1500
+              })
+            }
+          } else {
+            wx.showToast({
+              title: '授权失败',
+              icon: 'none',
+              duration: 1500
+            })
+          }
+          throw new Error('用户未授权')
+        }
+      })
+      .catch(err => {
+        console.error('[订阅消息] 订阅失败:', err)
+        
+        // 如果已经显示过toast（用户未授权的情况），不再重复显示
+        if (err.message === '用户未授权') {
+          return
+        }
+        
+        // 恢复开关状态
+        this.setData({
+          subscribeMessageEnabled: false
+        })
+        
+        if (err.errMsg) {
+          let errorMsg = '授权失败'
+          if (err.errMsg.includes('template')) {
+            errorMsg = '授权失败'
+          } else if (err.errMsg.includes('can only be invoked by user TAP gesture')) {
+            errorMsg = '授权失败'
+          }
+          wx.showToast({
+            title: errorMsg,
+            icon: 'none',
+            duration: 1500
+          })
+        } else if (err.message && err.message !== '用户未授权') {
+          wx.showToast({
+            title: '授权失败',
+            icon: 'none',
+            duration: 1500
+          })
+        } else {
+          wx.showToast({
+            title: '授权失败',
+            icon: 'none',
+            duration: 1500
+          })
+        }
+      })
+  },
+
+  /**
+   * 取消订阅
+   */
+  async cancelSubscribe() {
+    if (!this.data.taskId) {
+      console.error('[订阅消息] 任务ID不存在，无法取消订阅')
+      // 直接关闭开关
+      this.setData({
+        subscribeMessageEnabled: false
+      })
+      return
+    }
+    
+    try {
+      console.log('[订阅消息] 开始取消订阅')
+      await unsubscribeTask(this.data.taskId)
+      console.log('[订阅消息] 取消订阅成功')
+      this.setData({
+        subscribeMessageEnabled: false
+      })
+      wx.showToast({
+        title: '已关闭消息通知',
+        icon: 'success',
+        duration: 1500
+      })
+    } catch (error) {
+      console.error('[订阅消息] 取消订阅失败:', error)
+      
+      // 如果是404（资源不存在），说明本来就没有订阅记录，这是正常的
+      if (error.message && error.message.includes('资源不存在')) {
+        console.log('[订阅消息] 没有订阅记录，正常关闭')
+        this.setData({
+          subscribeMessageEnabled: false
+        })
+        wx.showToast({
+          title: '已关闭消息通知',
+          icon: 'success',
+          duration: 1500
+        })
+        return
+      }
+      
+      // 其他错误，也更新本地状态为关闭
+      this.setData({
+        subscribeMessageEnabled: false
+      })
+      wx.showToast({
+        title: '已关闭消息通知',
+        icon: 'success',
+        duration: 1500
+      })
     }
   },
 

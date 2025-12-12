@@ -12,8 +12,6 @@ function request(url, method = 'GET', data = {}) {
     const token = getToken()
     const fullUrl = `${BASE_URL}${url}`
     
-    console.log(`[API] ${method} ${fullUrl}`, token ? '有token' : '无token')
-    
     wx.request({
       url: fullUrl,
       method: method,
@@ -23,8 +21,6 @@ function request(url, method = 'GET', data = {}) {
         'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
-        console.log(`[API] 响应 ${res.statusCode}:`, res.data)
-        
         if (res.statusCode === 200) {
           resolve(res.data)
         } else if (res.statusCode === 401) {
@@ -245,14 +241,11 @@ export function getBanners() {
         'Content-Type': 'application/json'
       },
       success: (res) => {
-        console.log(`[API] 响应 ${res.statusCode}:`, res.data)
-        
         if (res.statusCode === 200) {
           // 返回 items 数组，只包含 enabled: true 的广告图
           const items = res.data.items || []
           resolve(items)
         } else {
-          console.warn('[API] 获取广告图失败，返回空数组', res.statusCode)
           resolve([]) // 失败时返回空数组，不阻塞应用
         }
       },
@@ -262,6 +255,27 @@ export function getBanners() {
       }
     })
   })
+}
+
+/**
+ * 订阅任务通知
+ */
+export function subscribeTask(taskId, templateId) {
+  return request(`/tasks/${taskId}/subscribe`, 'POST', { templateId })
+}
+
+/**
+ * 取消订阅任务通知
+ */
+export function unsubscribeTask(taskId) {
+  return request(`/tasks/${taskId}/subscribe`, 'DELETE')
+}
+
+/**
+ * 查询任务订阅状态
+ */
+export function getTaskSubscribeStatus(taskId) {
+  return request(`/tasks/${taskId}/subscribe`, 'GET')
 }
 
 /**

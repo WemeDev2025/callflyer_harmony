@@ -113,11 +113,34 @@
     </block>
   </view>
 
+  <!-- 订阅消息开关 - 仅在分享页显示 -->
+  <view class="subscribe-switch-section" wx:if="{{mode === 'detail' && fromShare}}">
+    <view class="subscribe-switch-content">
+      <view class="subscribe-switch-info">
+        <text class="subscribe-switch-title">开启消息通知</text>
+        <text class="subscribe-switch-desc">任务状态更新时及时通知你</text>
+      </view>
+      <switch 
+        class="subscribe-switch" 
+        checked="{{subscribeMessageEnabled}}" 
+        bindchange="onSubscribeSwitchChange"
+        color="#FF6B35"
+      />
+    </view>
+  </view>
+
   <!-- Tips 提示 -->
-  <view class="tips-section {{showTipsAnimation ? 'animate-in' : ''}}" wx:if="{{mode === 'detail' && isCreator === true && taskInfo.status !== 'finished' && !taskInfo.selectedDish}}">
+  <view class="tips-section {{showTipsAnimation ? 'animate-in' : ''}}" wx:if="{{mode === 'detail' && isCreator === true && taskInfo && taskInfo.status !== 'finished' && !taskInfo.selectedDish && tipsImagePath}}">
     <view class="tips-content">
-      <image class="tips-icon" src="/images/icon_tips.png" mode="aspectFit"></image>
-      <text class="tips-text">等你的吃货队伍人员到齐 就可以按下 "出锅" 按钮 随机选中天选答案啦～</text>
+      <image class="tips-image" src="{{tipsImagePath}}" mode="widthFix" binderror="onTipsImageError" bindload="onTipsImageLoad"></image>
+      <!-- 覆盖的透明分享按钮 -->
+      <button 
+        class="tips-share-overlay {{tipsSharePressed ? 'pressed' : ''}}" 
+        open-type="share" 
+        wx:if="{{taskInfo && taskInfo.shareCode}}"
+        bindtouchstart="onTipsShareTouchStart"
+        bindtouchend="onTipsShareTouchEnd"
+      ></button>
     </view>
   </view>
 
