@@ -2,6 +2,7 @@
 import { getTasks, getTaskResult, randomSelectDish, getBanners } from '../../utils/api.js'
 import { requestSubscribeMessage, isAuthorized } from '../../utils/subscribeMessage.js'
 const imageCache = require('../../utils/imageCache.js')
+const { getConfig, clearConfigCache } = require('../../utils/config.js')
 
 Page({
   data: {
@@ -41,6 +42,8 @@ Page({
     adImageHeight: null,  // 广告图高度（rpx，自动适配）
     adClickType: 'none',  // 广告点击类型：none, page, url, miniprogram
     adClickData: null,  // 广告点击数据（包含 path, url, appId 等）
+    globalBannerConfig: null,  // 全局广告图配置（从 /api/config 获取）
+    adImageShown: false,  // 是否已经显示过广告图（本次会话中，避免重复显示）
     // 订阅消息引导弹窗
     showSubscribeGuide: false  // 是否显示订阅消息引导弹窗
   },
@@ -55,8 +58,12 @@ Page({
     this.startPolling()
     // 检查是否有选中的结果文字
     this.loadSelectedResult()
-    // 加载广告配置
-    this.loadAdConfig()
+    // 重置广告图显示标记（新页面加载时重置）
+    this.setData({
+      adImageShown: false
+    })
+    // 加载广告配置（首次加载时强制刷新，确保获取最新配置）
+    this.loadAdConfig(true)
     // 预加载 tips 图片（每次启动都重新从服务器加载）
     this.preloadTipsImage()
     // 延迟显示订阅消息引导弹窗（延迟2秒，等待页面加载完成）
@@ -79,6 +86,14 @@ Page({
     this.startSloganCarousel()
     // 检查是否有选中的结果文字
     this.loadSelectedResult()
+    // 如果已经显示过广告图，不再重复显示（避免从其他页面返回时重复显示）
+    if (!this.data.adImageShown) {
+      // 清除配置缓存并重新加载广告配置（确保获取最新配置）
+      clearConfigCache()
+      this.loadAdConfig()
+    } else {
+      console.log('[广告图] 本次会话已显示过广告图，不再重复显示')
+    }
   },
 
   onHide() {
@@ -608,11 +623,46 @@ Page({
 
   /**
    * 加载广告图列表
+   * @param {boolean} forceRefresh 是否强制刷新配置（不使用缓存）
    */
-  async loadAdConfig() {
+  async loadAdConfig(forceRefresh = false) {
     try {
-      const banners = await getBanners()
-      console.log('[广告图] 获取广告图列表成功', banners)
+      // 如果需要强制刷新，先清除配置缓存
+      if (forceRefresh) {
+        clearConfigCache()
+      }
+      
+      // 先获取全局配置，检查是否允许显示广告图
+      // 如果强制刷新，使用较短的缓存时间（0毫秒，即不使用缓存）
+      const config = await getConfig(forceRefresh ? 0 : undefined)
+      console.log('[广告图] 获取全局配置:', config)
+      
+      // 保存全局配置到 data 中，供点击事件使用
+      this.setData({
+        globalBannerConfig: config
+      })
+      
+      // 检查全局开关：如果 showBanners 为 false，则不显示广告图
+      if (config && config.showBanners === false) {
+        console.log('[广告图] 后台已关闭显示广告图，不显示广告', {
+          showBanners: config.showBanners
+        })
+        // 确保不显示广告图，并清除当前显示的广告图
+        this.setData({
+          showAdImage: false,
+          adImagePath: '',
+          banners: []
+        })
+        return
+      }
+      
+      // 全局开关为 true，继续加载广告图列表
+      const response = await getBanners()
+      console.log('[广告图] 获取广告图响应:', response)
+      
+      // 获取广告图列表
+      const banners = response.items || []
+      console.log('[广告图] 获取广告图列表成功', banners.length, '个广告图')
       
       // 只处理 enabled: true 的广告图，按 order 排序
       const enabledBanners = banners
@@ -627,20 +677,33 @@ Page({
           return bTime - aTime
         })
       
+      // 如果没有启用的广告图，确保不显示（即使有缓存）
+      if (enabledBanners.length === 0) {
+        console.log('[广告图] 没有启用的广告图，不显示广告（包括缓存）')
+        this.setData({
+          showAdImage: false,
+          adImagePath: '',
+          banners: []
+        })
+        return
+      }
+      
       this.setData({
         banners: enabledBanners
       })
       
       // 如果有广告图，加载第一个
-      if (enabledBanners.length > 0) {
-        const firstBanner = enabledBanners[0]
-        this.processBanner(firstBanner)
-      } else {
-        console.log('[广告图] 没有启用的广告图')
-      }
+      const firstBanner = enabledBanners[0]
+      this.processBanner(firstBanner)
     } catch (error) {
       console.error('[广告图] 加载广告图列表失败', error)
       // 失败时不显示广告，不阻塞应用
+      // 确保不显示广告图
+      this.setData({
+        showAdImage: false,
+        adImagePath: '',
+        banners: []
+      })
     }
   },
 
@@ -655,11 +718,44 @@ Page({
       return
     }
     
+    // 获取全局配置（优先使用全局配置）
+    const globalConfig = this.data.globalBannerConfig || {}
+    
+    // 确定点击类型和点击数据
+    // 优先使用全局配置，如果没有则使用单个广告图的配置
+    let clickType = 'none'
+    let clickData = null
+    
+    if (globalConfig.bannerClickType) {
+      // 使用全局配置
+      clickType = globalConfig.bannerClickType
+      if (clickType === 'page' && globalConfig.bannerClickPage) {
+        clickData = { path: globalConfig.bannerClickPage }
+      } else if (clickType === 'url' && globalConfig.bannerClickUrl) {
+        clickData = { url: globalConfig.bannerClickUrl }
+      } else if (clickType === 'miniprogram' && globalConfig.bannerClickMiniprogram) {
+        try {
+          clickData = typeof globalConfig.bannerClickMiniprogram === 'string' 
+            ? JSON.parse(globalConfig.bannerClickMiniprogram)
+            : globalConfig.bannerClickMiniprogram
+        } catch (e) {
+          console.error('[广告图] 解析全局小程序配置失败', e)
+          clickData = null
+        }
+      }
+    } else if (banner.clickType) {
+      // 使用单个广告图的配置
+      clickType = banner.clickType
+      clickData = banner.clickData || null
+    }
+    
+    console.log('[广告图] 点击配置:', { clickType, clickData, globalConfig })
+    
     // 更新广告点击配置
     this.setData({
       currentBanner: banner,
-      adClickType: banner.clickType || 'none',
-      adClickData: banner.clickData || null
+      adClickType: clickType,
+      adClickData: clickData
     })
     
     // 加载广告图
@@ -669,7 +765,7 @@ Page({
   /**
    * 加载广告图（参考 Festival 的逻辑：第一次下载，下次启动才显示）
    */
-  loadAdImage(imageUrl) {
+  async loadAdImage(imageUrl) {
     if (!imageUrl) {
       console.warn('[广告图] URL为空')
       return
@@ -677,13 +773,55 @@ Page({
 
     console.log('[广告图] 开始加载', imageUrl)
 
+    // 在显示缓存图片之前，再次检查配置（防止配置更新后仍显示缓存）
+    try {
+      const config = await getConfig(0) // 不使用缓存，获取最新配置
+      if (config && config.showBanners === false) {
+        console.log('[广告图] 配置已关闭显示，不显示缓存图片', {
+          showBanners: config.showBanners
+        })
+        // 确保不显示广告图
+        this.setData({
+          showAdImage: false,
+          adImagePath: ''
+        })
+        return
+      }
+    } catch (error) {
+      console.error('[广告图] 检查配置失败', error)
+      // 配置检查失败时，为了安全起见，不显示广告图
+      this.setData({
+        showAdImage: false,
+        adImagePath: ''
+      })
+      return
+    }
+
     // 先检查本地缓存
     imageCache.getCachedImagePath(imageUrl).then(cachedPath => {
       console.log('[广告图] 缓存检查结果:', cachedPath)
       if (cachedPath) {
-        // 有缓存，直接显示
-        console.log('[广告图] 使用缓存的广告图', cachedPath)
-        this.showAdImage(cachedPath)
+        // 有缓存，显示前再次检查配置（双重保险）
+        getConfig(0).then(config => {
+          if (config && config.showBanners === false) {
+            console.log('[广告图] 配置已关闭显示，不显示缓存图片（二次检查）')
+            this.setData({
+              showAdImage: false,
+              adImagePath: ''
+            })
+            return
+          }
+          // 配置允许显示，显示缓存图片
+          console.log('[广告图] 使用缓存的广告图', cachedPath)
+          this.showAdImage(cachedPath)
+        }).catch(err => {
+          console.error('[广告图] 二次配置检查失败', err)
+          // 配置检查失败时，为了安全起见，不显示广告图
+          this.setData({
+            showAdImage: false,
+            adImagePath: ''
+          })
+        })
       } else {
         // 无缓存，后台静默下载，不显示（参考 Festival 的逻辑）
         console.log('[广告图] 无缓存，后台静默下载，不显示', imageUrl)
@@ -752,15 +890,18 @@ Page({
     })
     
     // 先设置图片路径和显示状态，同时立即设置动画状态
+    // 标记广告图已显示，避免从其他页面返回时重复显示
     this.setData({
       adImagePath: imagePath,
       showAdImage: true,
-      adImageAnimating: false // 先设置为false
+      adImageAnimating: false, // 先设置为false
+      adImageShown: true // 标记已显示过广告图
     }, () => {
       console.log('[广告图] setData回调执行，当前状态:', {
         adImagePath: this.data.adImagePath,
         showAdImage: this.data.showAdImage,
-        adImageAnimating: this.data.adImageAnimating
+        adImageAnimating: this.data.adImageAnimating,
+        adImageShown: this.data.adImageShown
       })
       
       // DOM渲染完成后立即触发动画
@@ -771,7 +912,8 @@ Page({
         console.log('[广告图] 动画已触发，最终状态:', {
           adImagePath: this.data.adImagePath,
           showAdImage: this.data.showAdImage,
-          adImageAnimating: this.data.adImageAnimating
+          adImageAnimating: this.data.adImageAnimating,
+          adImageShown: this.data.adImageShown
         })
       }, 50) // 减少延迟，快速显示
     })

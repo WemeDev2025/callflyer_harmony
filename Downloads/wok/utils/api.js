@@ -227,6 +227,7 @@ export function getTaskResult(taskId) {
 
 /**
  * 获取广告图列表（公开接口，无需登录）
+ * 返回完整响应对象，包含 items 和可能的全局配置字段
  */
 export function getBanners() {
   return new Promise((resolve, reject) => {
@@ -242,16 +243,15 @@ export function getBanners() {
       },
       success: (res) => {
         if (res.statusCode === 200) {
-          // 返回 items 数组，只包含 enabled: true 的广告图
-          const items = res.data.items || []
-          resolve(items)
+          // 返回完整响应对象，包含 items 和可能的全局配置字段（如 enabled, showAdImage 等）
+          resolve(res.data || { items: [] })
         } else {
-          resolve([]) // 失败时返回空数组，不阻塞应用
+          resolve({ items: [] }) // 失败时返回空对象，不阻塞应用
         }
       },
       fail: (err) => {
-        console.error('[API] 获取广告图请求失败，返回空数组', err)
-        resolve([]) // 失败时返回空数组，不阻塞应用
+        console.error('[API] 获取广告图请求失败，返回空对象', err)
+        resolve({ items: [] }) // 失败时返回空对象，不阻塞应用
       }
     })
   })

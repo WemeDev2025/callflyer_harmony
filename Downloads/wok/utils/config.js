@@ -34,16 +34,16 @@ function getRemoteConfig() {
 
 /**
  * 获取默认配置
- * @returns {Object} 默认配置对象
+ * @returns {Object} 默认配置对象（与后端 AppConfigResponse 字段名一致）
  */
 function getDefaultConfig() {
   return {
-    showAdImage: false, // 默认不显示广告图
-    adImageUrl: '', // 默认广告图URL为空
-    adClickType: 'none', // 默认无跳转
-    adClickPage: null, // 小程序页面路径
-    adClickUrl: null, // 网页URL
-    adClickMiniprogram: null // 其他小程序配置
+    showBanners: false, // 默认不显示广告图
+    bannerImageUrl: null, // 默认广告图URL为空
+    bannerClickType: null, // 默认无跳转
+    bannerClickPage: null, // 小程序页面路径
+    bannerClickUrl: null, // 网页URL
+    bannerClickMiniprogram: null // 其他小程序配置（JSON格式）
   };
 }
 
@@ -86,6 +86,9 @@ module.exports = {
   getDefaultConfig,
   clearConfigCache
 };
+
+
+
 
 
 
