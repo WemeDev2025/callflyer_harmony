@@ -575,55 +575,6 @@
   text-overflow: ellipsis;
 }
 
-.customer-service-view {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.customer-service-btn {
-  font-size: 28rpx;
-  color: #fff;
-  background: rgb(8, 151, 73);
-  padding: 22rpx !important;
-  width: 140rpx !important;
-  border-radius: 66rpx;
-}
-
-.customer-service-btn-hidden {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  border: none;
-  background: transparent;
-  opacity: 0;
-  z-index: 1;
-}
-
-.customer-service-btn-hidden::after {
-  border: none;
-}
-
-.customer-service-icon {
-  width: 114rpx;
-  height: 114rpx;
-  display: block;
-  padding: 0;
-  margin: 0;
-  position: relative;
-  z-index: 0;
-}
-
-.customer-service-icon {
-  width: 114rpx;
-  height: 114rpx;
-}
-
 /* 轮播文案卡片 */
 .slogan-card {
   width: 90%;

@@ -38,14 +38,6 @@
       </view>
       <text class="user-nickname">{{userInfo.nickname || '怎么称呼'}}</text>
     </view>
-    <view class="customer-service-view">
-      <button 
-        class="customer-service-btn" 
-        open-type="contact" 
-        session-from="index_page"
-        send-message-title="今天吃什么？"
-        send-message-path="pages/index/index">客服</button>
-    </view>
   </view>
 
   <!-- 上半部分：炒锅图片和动画 -->
