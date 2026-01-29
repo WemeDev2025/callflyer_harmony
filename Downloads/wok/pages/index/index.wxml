@@ -2,15 +2,15 @@
 <view class="container">
   <!-- 广告图遮罩 -->
   <view class="ad-image-mask {{adImageAnimating ? 'show' : ''}}" bindtap="closeAdImage" wx:if="{{showAdImage && adImagePath}}">
-    <view class="ad-image-container" catchtap="stopPropagation">
+    <view class="ad-image-container {{adImageAnimating ? 'animating' : ''}}">
       <image 
         class="ad-image {{adClickType !== 'none' ? 'ad-image-clickable' : ''}}" 
         src="{{adImagePath}}" 
-        mode="aspectFit" 
+        mode="widthFix" 
         binderror="onAdImageError" 
         bindload="onAdImageLoad" 
         bindtap="onAdImageClick" 
-        style="{{adImageWidth ? 'width: ' + adImageWidth + 'rpx;' : ''}}{{adImageHeight ? 'height: ' + adImageHeight + 'rpx;' : ''}}"
+        style="{{adImageWidth ? 'width: ' + adImageWidth + 'rpx;' : ''}}"
       ></image>
     </view>
   </view>
@@ -40,13 +40,11 @@
     </view>
     <view class="customer-service-view">
       <button 
-        class="customer-service-btn-hidden" 
+        class="customer-service-btn" 
         open-type="contact" 
         session-from="index_page"
         send-message-title="今天吃什么？"
-        send-message-path="pages/index/index"
-      ></button>
-      <image class="customer-service-icon" src="/images/icon_contact.png" mode="aspectFit"></image>
+        send-message-path="pages/index/index">客服</button>
     </view>
   </view>
 
