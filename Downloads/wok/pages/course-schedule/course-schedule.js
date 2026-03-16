@@ -812,6 +812,44 @@ Page({
     });
   },
 
+  clearAllCourses() {
+    wx.showModal({
+      title: '清空课程表',
+      content: '确认清空当前课程表吗？此操作不可恢复',
+      confirmText: '清空',
+      cancelText: '取消',
+      success: (res) => {
+        if (!res.confirm) return;
+
+        const current = this.data.scheduleData || [];
+        const reminderIds = [];
+        current.forEach(day => {
+          if (Array.isArray(day)) {
+            day.forEach(course => {
+              if (course && course.reminderId) {
+                reminderIds.push(course.reminderId);
+              }
+            });
+          }
+        });
+
+        reminderIds.forEach(id => {
+          cancelReminder(id).catch(err => {
+            console.error('[Reminder] cancel on clear failed:', err);
+          });
+        });
+
+        const cleared = [[], [], [], [], [], [], []];
+        this.setData({
+          scheduleData: cleared
+        }, () => {
+          wx.setStorageSync('course_schedule', cleared);
+          this.queueScheduleSync(200);
+        });
+      }
+    });
+  },
+
   async prepareShare() {
     if (this.data.shareLoading) return;
     if (this.data.shareCodeReady && !this.data.shareDirty) return;
@@ -1015,7 +1053,7 @@ Page({
 
   calculateEndTime(startTime) {
     const [h, m] = startTime.split(':').map(Number);
-    let endH = h + 1;
+    let endH = h;
     let endM = m + 45;
     if (endM >= 60) {
       endH += 1;

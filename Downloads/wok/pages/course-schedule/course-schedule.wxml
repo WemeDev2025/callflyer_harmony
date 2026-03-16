@@ -160,6 +160,7 @@
       <view class="modal-footer">
         <button wx:if="{{isEditing}}" class="delete-btn" bindtap="deleteCourse">删除课程</button>
         <button class="submit-btn" bindtap="saveCourse">{{isEditing ? '保存修改' : '确认添加'}}</button>
+        <text class="clear-schedule-text" bindtap="clearAllCourses">清空课程表</text>
       </view>
     </view>
   </view>

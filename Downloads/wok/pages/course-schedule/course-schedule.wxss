@@ -663,6 +663,13 @@ button.action-btn::after {
   margin-top: 20rpx;
 }
 
+.clear-schedule-text {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+  padding: 6rpx 0;
+}
+
 .submit-btn {
   width: 100% !important;
   height: 100rpx;
