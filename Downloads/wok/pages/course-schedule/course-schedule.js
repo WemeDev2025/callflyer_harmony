@@ -217,6 +217,7 @@ Page({
 
   selectVipBackground(e) {
     const { url } = e.currentTarget.dataset;
+    wx.vibrateShort({ type: 'medium' });
     this.setData({
       'bgConfig.url': url
     }, () => {
@@ -263,6 +264,7 @@ Page({
 
   startAdjusting() {
     this.setData({ isAdjustingBg: true });
+    wx.vibrateShort({ type: 'medium' });
   },
 
   stopAdjusting() {
@@ -282,6 +284,7 @@ Page({
 
   onTextColorChange(e) {
     const color = e.currentTarget.dataset.color;
+    wx.vibrateShort({ type: 'medium' });
     console.log('[BG] Text color changing:', color);
     this.setData({
       'bgConfig.textColor': color
