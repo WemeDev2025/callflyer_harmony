@@ -265,6 +265,7 @@ button.action-btn::after {
   display: flex;
   align-items: center;
   gap: 16rpx;
+  line-height: 1;
 }
 
 .home-entry-inline {
@@ -276,11 +277,12 @@ button.action-btn::after {
   align-items: center;
   justify-content: center;
   box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.12);
+  margin-top: 2rpx;
 }
 
 .day-title-text {
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: 38rpx;
+  font-weight: 700;
 }
 
 .home-icon {

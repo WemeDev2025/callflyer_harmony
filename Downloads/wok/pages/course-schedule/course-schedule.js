@@ -245,7 +245,9 @@ Page({
         console.log('[BG] API Result:', res.data);
         if (res.data && res.data.items && res.data.items.length > 0) {
           // 过滤掉作为默认缺省图使用的文件
-          const filtered = res.data.items.filter(item => item.filename !== 'pic_default.png');
+          const filtered = res.data.items.filter(item => 
+            item.filename !== 'pic_default.png' && item.filename !== 'pic_share.png'
+          );
           this.setData({ vipBackgrounds: filtered });
         } else {
           console.warn('[BG] No backgrounds returned from API, using defaults');
