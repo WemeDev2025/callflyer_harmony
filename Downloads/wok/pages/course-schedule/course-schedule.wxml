@@ -28,8 +28,16 @@
   <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" display-multiple-items="{{1}}" circular="{{false}}">
     <swiper-item wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
       <view class="day-content">
-        <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px; color: {{bgConfig.textColor}}">{{item.name}}</view>
-        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{scrollTop}}" scroll-with-animation="{{true}}">
+        <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px; color: {{bgConfig.textColor}}">
+          <view class="home-entry-inline" bindtap="goBack">
+            <view class="home-icon">
+              <view class="home-roof"></view>
+              <view class="home-body"></view>
+            </view>
+          </view>
+          <text class="day-title-text">{{item.name}}</text>
+        </view>
+        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{scrollTop}}" scroll-into-view="{{scrollIntoView}}" scroll-with-animation="{{true}}">
         <block wx:if="{{scheduleData[dayIdx] && scheduleData[dayIdx].length > 0}}">
           <view class="course-card" 
                 wx:for="{{scheduleData[dayIdx]}}" 
@@ -39,6 +47,7 @@
                 bindtap="onCourseTap" 
                 data-day="{{dayIdx}}" 
                 data-index="{{classIdx}}"
+                id="course-{{dayIdx}}-{{classIdx}}"
                 style="animation-delay: {{classIdx * 0.05}}s">
             <view class="course-time">
               <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
@@ -78,6 +87,9 @@
       <text class="btn-text">背景</text>
     </view>
     
+    <!-- 分享按钮 -->
+    <button class="action-btn share-btn-action" open-type="share" bindtap="prepareShare">分享</button>
+
     <!-- 手动添加按钮 -->
     <view class="action-btn add-btn-action" bindtap="showAddModal">
       <text class="btn-text">添加</text>
@@ -211,6 +223,7 @@
             ></view>
           </view>
         </view>
+
       </view>
       <view class="modal-footer">
         <button class="reset-btn" bindtap="clearBackground">移除背景</button>
@@ -218,6 +231,7 @@
       </view>
     </view>
   </view>
+
 
 
 </view>

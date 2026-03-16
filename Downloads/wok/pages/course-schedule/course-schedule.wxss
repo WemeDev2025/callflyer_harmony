@@ -223,11 +223,17 @@
   overflow: hidden;
   box-sizing: border-box;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  padding: 0;
+  border: none;
 }
 
 .action-btn:active {
   transform: scale(0.95);
   opacity: 0.8;
+}
+
+button.action-btn::after {
+  border: none;
 }
 
 .voice-btn-action {
@@ -242,12 +248,66 @@
 }
 
 .bg-btn-action {
-  background: rgba(255, 255, 255, 0.9);
+  background: #FFD54F;
   color: #1A1A1A;
+}
+
+.share-btn-action {
+  background: #28C76F;
+  color: #FFFFFF;
 }
 
 .btn-icon {
   font-size: 32rpx;
+}
+
+.day-title-overlay {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.home-entry-inline {
+  width: 56rpx;
+  height: 56rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.12);
+}
+
+.day-title-text {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.home-icon {
+  position: relative;
+  width: 32rpx;
+  height: 28rpx;
+}
+
+.home-roof {
+  position: absolute;
+  left: 2rpx;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-left: 14rpx solid transparent;
+  border-right: 14rpx solid transparent;
+  border-bottom: 14rpx solid #1A1A1A;
+}
+
+.home-body {
+  position: absolute;
+  left: 6rpx;
+  bottom: 0;
+  width: 20rpx;
+  height: 16rpx;
+  background: #1A1A1A;
+  border-radius: 2rpx;
 }
 
 .voice-pulse {
@@ -616,6 +676,11 @@
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
+.submit-btn.light {
+  background: #F0F3FF;
+  color: #5C7CFA;
+}
+
 .color-chips {
   display: flex;
   flex-wrap: wrap;
@@ -636,6 +701,7 @@
   border-color: #1A1A1A;
   box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
 }
+
 
 /* VIP Background Styles */
 .vip-scroll {
@@ -722,4 +788,3 @@
   transform: scale(0.95);
   opacity: 0.8;
 }
-

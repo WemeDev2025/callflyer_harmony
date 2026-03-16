@@ -2,7 +2,7 @@
 const app = getApp();
 const plugin = requirePlugin('WechatSI');
 const manager = plugin.getRecordRecognitionManager();
-const { createReminder, cancelReminder } = require('../../utils/api.js');
+const { createReminder, cancelReminder, getMySchedule, saveMySchedule, createScheduleTemplate, cloneScheduleTemplate } = require('../../utils/api.js');
 
 Page({
   data: {
@@ -52,32 +52,31 @@ Page({
       blur: 0,
       textColor: '#1A1A1A'
     },
+    defaultBgConfig: {
+      url: '',
+      opacity: 0.5,
+      blur: 0,
+      textColor: '#1A1A1A'
+    },
     vipBackgrounds: [],
     emptyImgTimestamp: Date.now(),
     isAdjustingBg: false,
-    scrollTop: 0
+    scrollTop: 0,
+    scrollIntoView: '',
+    shareCodeResult: '',
+    shareLoading: false,
+    shareCodeReady: false,
+    shareDirty: false
   },
 
-  onLoad() {
+  onLoad(options) {
+    this._loadOptions = options || {};
     this.initDate();
     this.initVoiceManager();
     this.setData({
       currentDayIndex: this.getTodayIndex()
     });
-    // 从持久化存储恢复数据
-    let savedData = wx.getStorageSync('course_schedule');
-    if (savedData && savedData.length > 0) {
-      // 兼容旧版 5 天数据，自动补全到 7 天
-      while (savedData.length < 7) {
-        savedData.push([]);
-      }
-      this.setData({ scheduleData: savedData });
-    }
-
-    const savedBg = wx.getStorageSync('course_bg_config');
-    if (savedBg) {
-      this.setData({ bgConfig: savedBg });
-    }
+    this.loadScheduleFromServer();
 
     this.fetchVipBackgrounds();
 
@@ -97,6 +96,30 @@ Page({
     }
   },
 
+  onShareAppMessage() {
+    const shareCode = this.data.shareCodeResult || wx.getStorageSync('course_share_code') || '';
+    const title = shareCode ? '欢迎使用我的课程表' : '我的课程表';
+    const path = shareCode ? `/pages/course-schedule/course-schedule?shareCode=${shareCode}` : '/pages/course-schedule/course-schedule';
+
+    return {
+      title: title,
+      path: path,
+      imageUrl: 'https://wemedev.com/wok/data/bg/pic_share.png'
+    };
+  },
+
+  onShareTimeline() {
+    const shareCode = this.data.shareCodeResult || wx.getStorageSync('course_share_code') || '';
+    const title = shareCode ? '欢迎使用我的课程表' : '我的课程表';
+    const query = shareCode ? `shareCode=${shareCode}` : '';
+
+    return {
+      title: title,
+      query: query,
+      imageUrl: 'https://wemedev.com/wok/data/bg/pic_share.png'
+    };
+  },
+
   onShow() {
     this.setData({
       emptyImgTimestamp: Date.now()
@@ -106,6 +129,10 @@ Page({
   onUnload() {
     // 页面卸载时停止识别
     manager.stop();
+    if (this._scheduleSyncTimer) {
+      clearTimeout(this._scheduleSyncTimer);
+      this._scheduleSyncTimer = null;
+    }
   },
 
   initDate() {
@@ -236,6 +263,138 @@ Page({
     });
   },
 
+  /**
+   * 加载课表（优先服务器，失败再读本地）
+   */
+  async loadScheduleFromServer() {
+    const options = this._loadOptions;
+    if (options && options.shareCode) {
+      this.importShareCode(options.shareCode);
+      return;
+    }
+
+    try {
+      const result = await getMySchedule();
+      if (result) {
+        const serverContent = result.contentJson || {
+          scheduleData: result.scheduleData,
+          bgConfig: result.bgConfig
+        };
+        this.applyScheduleContent(serverContent, true);
+        return;
+      }
+    } catch (error) {
+      if (error && error.message && error.message.includes('资源不存在')) {
+        console.log('[Schedule] server has no schedule, fallback to local');
+      } else {
+        console.warn('[Schedule] load from server failed, fallback to local:', error && error.message);
+      }
+    }
+
+    const savedData = wx.getStorageSync('course_schedule');
+    const savedBg = wx.getStorageSync('course_bg_config');
+    const fallbackContent = {
+      scheduleData: savedData || null,
+      bgConfig: savedBg || null
+    };
+    this.applyScheduleContent(fallbackContent, false);
+
+    if (savedData && savedData.length > 0) {
+      this.queueScheduleSync();
+    }
+  },
+
+  /**
+   * 规范化并应用课表内容
+   */
+  applyScheduleContent(content, persistLocal) {
+    const normalized = this.normalizeScheduleContent(content);
+    this.setData({
+      scheduleData: normalized.scheduleData,
+      bgConfig: normalized.bgConfig,
+      shareDirty: false
+    });
+
+    if (persistLocal) {
+      wx.setStorageSync('course_schedule', normalized.scheduleData);
+      wx.setStorageSync('course_bg_config', normalized.bgConfig);
+    }
+  },
+
+  /**
+   * 规范化课程表内容
+   */
+  normalizeScheduleContent(content) {
+    const scheduleData = Array.isArray(content && content.scheduleData)
+      ? JSON.parse(JSON.stringify(content.scheduleData))
+      : null;
+
+    const normalizedSchedule = scheduleData && scheduleData.length > 0
+      ? scheduleData
+      : [[], [], [], [], [], [], []];
+
+    while (normalizedSchedule.length < 7) {
+      normalizedSchedule.push([]);
+    }
+
+    const bgConfig = Object.assign(
+      {},
+      this.data.defaultBgConfig,
+      content && content.bgConfig ? content.bgConfig : {}
+    );
+
+    return {
+      scheduleData: normalizedSchedule,
+      bgConfig: bgConfig
+    };
+  },
+
+  buildSchedulePayload() {
+    return {
+      title: '我的课程表',
+      contentJson: {
+        scheduleData: this.data.scheduleData,
+        bgConfig: this.data.bgConfig
+      }
+    };
+  },
+
+  buildSharePayload() {
+    const sanitized = JSON.parse(JSON.stringify(this.data.scheduleData || []));
+    sanitized.forEach(day => {
+      if (Array.isArray(day)) {
+        day.forEach(course => {
+          if (course && course.reminderId) {
+            course.reminderId = null;
+          }
+        });
+      }
+    });
+
+    return {
+      title: '我的课程表',
+      contentJson: {
+        scheduleData: sanitized,
+        bgConfig: this.data.bgConfig
+      }
+    };
+  },
+
+  queueScheduleSync(delay = 600) {
+    clearTimeout(this._scheduleSyncTimer);
+    this._scheduleSyncTimer = setTimeout(() => {
+      this.syncScheduleToServer();
+    }, delay);
+  },
+
+  async syncScheduleToServer() {
+    try {
+      await saveMySchedule(this.buildSchedulePayload());
+    } catch (error) {
+      console.warn('[Schedule] sync failed:', error && error.message);
+    }
+  },
+
   selectVipBackground(e) {
     const { url } = e.currentTarget.dataset;
     wx.vibrateShort({ type: 'medium' });
@@ -324,6 +483,8 @@ Page({
 
   saveBgConfig() {
     wx.setStorageSync('course_bg_config', this.data.bgConfig);
+    this.queueScheduleSync();
+    this.setData({ shareDirty: true });
   },
 
   onStartTimeChange(e) {
@@ -423,18 +584,27 @@ Page({
    * @param {Function} callback 保存成功后的回调，参数为最终的 entry
    */
   _saveScheduleData(scheduleData, dayIdx, entry, isEditing, editingDay, editingIndex, callback) {
+    const targetIndex = scheduleData[dayIdx].findIndex(c => 
+      c.name === entry.name && c.startTime === entry.startTime
+    );
+    const targetViewId = targetIndex >= 0 ? `course-${dayIdx}-${targetIndex}` : '';
+
     // 立即更新数据，同时触发关闭动画，两者并行
     this.setData({
       scheduleData: scheduleData,
       modalClosing: true,
-      scrollTop: 99999
+      scrollTop: 99999,
+      scrollIntoView: targetViewId
     });
     setTimeout(() => {
       this.setData({
         showModal: false,
-        modalClosing: false
+        modalClosing: false,
+        scrollIntoView: targetViewId
       }, () => {
         wx.setStorageSync('course_schedule', scheduleData);
+        this.queueScheduleSync(200);
+        this.setData({ shareDirty: true });
         if (callback) callback(entry);
       });
     }, 250);
@@ -557,10 +727,102 @@ Page({
             editingIndex: -1
           }, () => {
             wx.setStorageSync('course_schedule', scheduleData);
+            this.queueScheduleSync(200);
+            this.setData({ shareDirty: true });
           });
         }
       }
     });
+  },
+
+  prepareShare() {
+    if (this.data.shareLoading) return;
+    if (this.data.shareCodeReady && !this.data.shareDirty) return;
+
+    this.generateShareCode();
+  },
+
+  async generateShareCode() {
+    if (this.data.shareLoading) return;
+
+    this.setData({ shareLoading: true, shareCodeReady: false });
+    try {
+      await saveMySchedule(this.buildSchedulePayload());
+      const result = await createScheduleTemplate(this.buildSharePayload());
+      const shareCode = result && (result.shareCode || result.share_code || result.code);
+
+      if (!shareCode) {
+        throw new Error('分享码生成失败');
+      }
+
+      this.setData({
+        shareCodeResult: String(shareCode),
+        shareCodeReady: true,
+        shareDirty: false
+      });
+      wx.setStorageSync('course_share_code', String(shareCode));
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '生成失败',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ shareLoading: false });
+    }
+  },
+
+  copyShareCode() {
+    const code = this.data.shareCodeResult;
+    if (!code) return;
+
+    wx.setClipboardData({
+      data: code,
+      success: () => {
+        wx.showToast({
+          title: '已复制',
+          icon: 'success'
+        });
+      }
+    });
+  },
+
+  async importShareCode(codeOverride) {
+    const code = (codeOverride || '').trim();
+    if (!code) {
+      wx.showToast({
+        title: '分享码无效',
+        icon: 'none'
+      });
+      return;
+    }
+
+    if (this.data.shareLoading) return;
+    this.setData({ shareLoading: true });
+
+    try {
+      await cloneScheduleTemplate(code);
+      const result = await getMySchedule();
+      if (result) {
+        const serverContent = result.contentJson || {
+          scheduleData: result.scheduleData,
+          bgConfig: result.bgConfig
+        };
+        this.applyScheduleContent(serverContent, true);
+      }
+
+      wx.showToast({
+        title: '导入成功',
+        icon: 'success'
+      });
+      this.setData({ shareDirty: false });
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '导入失败',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ shareLoading: false });
+    }
   },
 
   // Start Real Voice Recording

@@ -390,3 +390,38 @@ export function getReminders() {
 export function cancelReminder(reminderId) {
   return request(`/reminders/${reminderId}`, 'DELETE')
 }
+
+/**
+ * 获取当前用户的课程表
+ */
+export function getMySchedule() {
+  return request('/schedule/my', 'GET')
+}
+
+/**
+ * 保存当前用户的课程表
+ */
+export function saveMySchedule(data) {
+  return request('/schedule/my', 'PUT', data)
+}
+
+/**
+ * 生成课程表分享模板
+ */
+export function createScheduleTemplate(data) {
+  return request('/schedule/template', 'POST', data)
+}
+
+/**
+ * 获取课程表分享模板
+ */
+export function getScheduleTemplate(shareCode) {
+  return request(`/schedule/template/${shareCode}`, 'GET')
+}
+
+/**
+ * 克隆课程表分享模板到当前用户
+ */
+export function cloneScheduleTemplate(shareCode) {
+  return request(`/schedule/clone/${shareCode}`, 'POST')
+}
