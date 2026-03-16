@@ -7,6 +7,9 @@ Page({
   data: {
     currentDateStr: '',
     currentDayIndex: 0,
+    statusBarHeight: 20,
+    menuButtonTop: 24, // 默认胶囊顶部偏移
+    menuButtonHeight: 32, // 默认胶囊高度
     weekDays: [
       { name: '星期一', shortName: '周一' },
       { name: '星期二', shortName: '周二' },
@@ -58,6 +61,21 @@ Page({
     const savedBg = wx.getStorageSync('course_bg_config');
     if (savedBg) {
       this.setData({ bgConfig: savedBg });
+    }
+
+    // 获取系统状态栏高度及胶囊按钮位置
+    const info = wx.getSystemInfoSync();
+    try {
+      const menuButton = wx.getMenuButtonBoundingClientRect();
+      this.setData({
+        statusBarHeight: info.statusBarHeight,
+        menuButtonTop: menuButton.top,
+        menuButtonHeight: menuButton.height
+      });
+    } catch (e) {
+      this.setData({
+        statusBarHeight: info.statusBarHeight
+      });
     }
   },
 
@@ -370,6 +388,14 @@ Page({
       endM -= 60;
     }
     return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+  },
+
+  goBack() {
+    wx.navigateBack({
+      fail: () => {
+        wx.reLaunch({ url: '/pages/index/index' });
+      }
+    });
   },
 
   stopPropagation() {}
