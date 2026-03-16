@@ -1,6 +1,7 @@
 {
   "navigationBarTitleText": "我的课程表",
   "navigationStyle": "custom",
+  "disableScroll": true,
   "navigationBarBackgroundColor": "#FFFFFF",
   "navigationBarTextStyle": "black",
   "backgroundColor": "#FFFFFF",

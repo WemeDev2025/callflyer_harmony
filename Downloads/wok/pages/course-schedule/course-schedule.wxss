@@ -145,18 +145,32 @@
 }
 
 .empty-state {
+  width: 100%;
+  height: 800rpx; /* 给一个固定的大高度确保在可滚动区域内也能居中感强 */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-top: 350rpx;
+  padding-bottom: 200rpx; /* 抵消底部按钮区的影响，让图片视觉中心上升 */
 }
 
 .empty-img {
-  width: 300rpx;
-  height: 300rpx;
-  margin-bottom: 30rpx;
-  opacity: 0.8;
+  width: 500rpx;
+  height: 500rpx;
+  margin-bottom: 40rpx;
+  opacity: 0.9;
+  animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
 }
 
 .empty-text {
