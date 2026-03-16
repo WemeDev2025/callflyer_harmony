@@ -208,6 +208,11 @@
   box-sizing: border-box;
 }
 
+.bottom-bar.samsung-offset {
+  transform: translateY(40rpx);
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
+}
+
 .action-btn {
   flex: 1;
   width: 0; /* 强制等宽分配 */
@@ -269,26 +274,27 @@ button.action-btn::after {
 }
 
 .home-entry-inline {
-  width: 56rpx;
-  height: 56rpx;
+  width: 70rpx;
+  height: 70rpx;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 28rpx;
+  border-radius: 35rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.12);
-  margin-top: 2rpx;
+  margin-top: -5rpx;
 }
 
 .day-title-text {
-  font-size: 38rpx;
+  font-size: 52rpx;
   font-weight: 700;
+  margin-left: 18rpx;
 }
 
 .home-icon {
   position: relative;
-  width: 32rpx;
-  height: 28rpx;
+  width: 40rpx;
+  height: 35rpx;
 }
 
 .home-roof {
@@ -297,17 +303,17 @@ button.action-btn::after {
   top: 0;
   width: 0;
   height: 0;
-  border-left: 14rpx solid transparent;
-  border-right: 14rpx solid transparent;
-  border-bottom: 14rpx solid #1A1A1A;
+  border-left: 18rpx solid transparent;
+  border-right: 18rpx solid transparent;
+  border-bottom: 18rpx solid #1A1A1A;
 }
 
 .home-body {
   position: absolute;
-  left: 6rpx;
+  left: 8rpx;
   bottom: 0;
-  width: 20rpx;
-  height: 16rpx;
+  width: 24rpx;
+  height: 22rpx;
   background: #1A1A1A;
   border-radius: 2rpx;
 }

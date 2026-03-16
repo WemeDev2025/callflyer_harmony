@@ -66,7 +66,8 @@ Page({
     shareCodeResult: '',
     shareLoading: false,
     shareCodeReady: false,
-    shareDirty: false
+    shareDirty: false,
+    isSamsung: false
   },
 
   onLoad(options) {
@@ -82,16 +83,21 @@ Page({
 
     // 获取系统状态栏高度及胶囊按钮位置
     const info = wx.getSystemInfoSync();
+    const model = (info.model || '').toLowerCase();
+    const brand = (info.brand || '').toLowerCase();
+    const isSamsung = model.includes('samsung') || brand.includes('samsung') || brand.includes('三星');
     try {
       const menuButton = wx.getMenuButtonBoundingClientRect();
       this.setData({
         statusBarHeight: info.statusBarHeight,
         menuButtonTop: menuButton.top,
-        menuButtonHeight: menuButton.height
+        menuButtonHeight: menuButton.height,
+        isSamsung: isSamsung
       });
     } catch (e) {
       this.setData({
-        statusBarHeight: info.statusBarHeight
+        statusBarHeight: info.statusBarHeight,
+        isSamsung: isSamsung
       });
     }
   },

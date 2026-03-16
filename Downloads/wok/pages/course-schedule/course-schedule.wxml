@@ -73,7 +73,7 @@
   </swiper>
 
   <!-- 底部操作栏 - 统一样式，三个圆角拉满的按钮 -->
-  <view class="bottom-bar">
+  <view class="bottom-bar {{isSamsung ? 'samsung-offset' : ''}}">
     <!-- 语音按钮 -->
     <view class="action-btn voice-btn-action {{isRecording ? 'recording' : ''}}" 
           bindtouchstart="startVoice" 
