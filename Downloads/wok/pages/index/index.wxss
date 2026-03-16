@@ -624,7 +624,7 @@
   max-width: 600rpx;
   display: flex;
   flex-direction: row;
-  gap: 20rpx;
+  gap: 16rpx;
   margin-bottom: 66rpx;
 }
 
@@ -637,22 +637,23 @@
   background-color:#000000;
   color: #fff;
   border-radius: 66rpx;
-  font-size: 32rpx;
+  font-size: 28rpx;
+  white-space: nowrap;
 }
 
 .action-btn.primary-btn {
   background-color:#000000;
   font-weight: bold;
-  font-size: 32rpx;
+  font-size: 28rpx;
 }
 
 .action-btn.test-btn {
   background: linear-gradient(135deg, #FF6B35 0%, #FFB627 100%);
   font-weight: bold;
+  font-size: 28rpx;
   box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 }
 
 .action-btn::after {
   border: none;
 }
-
