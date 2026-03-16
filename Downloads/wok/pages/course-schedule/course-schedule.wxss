@@ -146,12 +146,17 @@
 
 .empty-state {
   width: 100%;
-  height: 800rpx; /* 给一个固定的大高度确保在可滚动区域内也能居中感强 */
+  height: 800rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-bottom: 200rpx; /* 抵消底部按钮区的影响，让图片视觉中心上升 */
+  padding-top: 200rpx; /* 往下移动 */
+}
+
+.empty-img-container {
+  /* 容器负责：淡入 + 升起 (只执行一次) */
+  animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .empty-img {
@@ -159,7 +164,8 @@
   height: 500rpx;
   margin-bottom: 40rpx;
   opacity: 0.9;
-  animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  /* 图片负责：无限循环左右轻微晃动 */
+  animation: gentleSway 4s ease-in-out infinite;
 }
 
 @keyframes fadeInUp {
@@ -168,9 +174,14 @@
     transform: translateY(40rpx);
   }
   to {
-    opacity: 0.9;
+    opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes gentleSway {
+  0%, 100% { transform: rotate(-3deg) translateX(-10rpx); }
+  50% { transform: rotate(3deg) translateX(10rpx); }
 }
 
 .empty-text {
@@ -225,14 +236,19 @@
   box-shadow: 0 8rpx 20rpx rgba(255, 107, 53, 0.2);
 }
 
-.bg-btn-action {
-  background: #F0F3FF;
-  color: #5C7CFA;
+.add-btn-action {
+  background: #5C7CFA;
+  color: #FFFFFF;
 }
 
-.add-btn-action {
-  background: #1A1A1A;
+.share-btn-action {
+  background: #40C057;
   color: #FFFFFF;
+}
+
+.bg-btn-action {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1A1A1A;
 }
 
 .btn-icon {
@@ -455,11 +471,26 @@
   width: 100%;
   height: 100rpx;
   background: #F5F6FA;
-  border-radius: 24rpx;
+  border-radius: 12rpx;
   padding: 0 30rpx;
   margin-bottom: 24rpx;
   font-size: 30rpx;
   box-sizing: border-box;
+}
+
+/* 提醒设置样式 */
+.setting-header switch {
+  transform: scale(0.85);
+}
+
+.setting-header picker {
+  flex: 1;
+  text-align: right;
+}
+
+.setting-header .value {
+  color: #5C7CFA;
+  font-weight: 600;
 }
 
 .time-pickers {

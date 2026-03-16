@@ -15,10 +15,12 @@ Page({
       { name: '星期二', shortName: '周二' },
       { name: '星期三', shortName: '周三' },
       { name: '星期四', shortName: '周四' },
-      { name: '星期五', shortName: '周五' }
+      { name: '星期五', shortName: '周五' },
+      { name: '星期六', shortName: '周六' },
+      { name: '星期日', shortName: '周日' }
     ],
     scheduleData: [
-      [], [], [], [], [] // 5 days, cleared
+      [], [], [], [], [], [], [] // 7 days
     ],
     showModal: false,
     isRecording: false,
@@ -46,7 +48,10 @@ Page({
     },
     vipBackgrounds: [],
     emptyImgTimestamp: Date.now(),
-    isAdjustingBg: false
+    isAdjustingBg: false,
+    reminderOptions: ['5分钟前', '10分钟前', '15分钟前', '30分钟前', '1小时前'],
+    reminderValues: [5, 10, 15, 30, 60],
+    reminderIndex: 1
   },
 
   onLoad() {
@@ -55,9 +60,13 @@ Page({
     this.setData({
       currentDayIndex: this.getTodayIndex()
     });
-    // 从持久化存储恢复数据，防止多次操作导致数据丢失
-    const savedData = wx.getStorageSync('course_schedule');
+    // 从持久化存储恢复数据
+    let savedData = wx.getStorageSync('course_schedule');
     if (savedData && savedData.length > 0) {
+      // 兼容旧版 5 天数据，自动补全到 7 天
+      while (savedData.length < 7) {
+        savedData.push([]);
+      }
       this.setData({ scheduleData: savedData });
     }
 
@@ -82,6 +91,12 @@ Page({
         statusBarHeight: info.statusBarHeight
       });
     }
+  },
+
+  onShow() {
+    this.setData({
+      emptyImgTimestamp: Date.now()
+    });
   },
 
   onUnload() {
@@ -109,19 +124,14 @@ Page({
     };
     manager.onError = (res) => {
       console.error('Voice error:', res.msg, res);
-      let msg = '语音识别失败';
-      if (res.msg === 'internal voice data failed') {
-        msg = '模拟器暂不支持语音，请在手机真机调试';
-      }
-      wx.showToast({ title: msg, icon: 'none', duration: 3000 });
       this.setData({ isRecording: false });
     };
   },
 
   getTodayIndex() {
-    const day = new Date().getDay(); // 0 is Sunday, 1-6 Mon-Sat
-    if (day === 0 || day > 5) return 0; // Default to Mon for weekends
-    return day - 1; 
+    const day = new Date().getDay(); // 0 (Sun) to 6 (Sat)
+    // 转换: Mon(1)->0, Tue(2)->1, ..., Sat(6)->5, Sun(0)->6
+    return day === 0 ? 6 : day - 1;
   },
 
   onSwiperChange(e) {
@@ -267,8 +277,155 @@ Page({
     wx.vibrateShort({ type: 'medium' });
   },
 
-  stopAdjusting() {
-    this.setData({ isAdjustingBg: false });
+  onReminderToggle(e) {
+    this.setData({ 'newCourse.isReminderEnabled': e.detail.value });
+  },
+
+  onReminderTimeChange(e) {
+    this.setData({ reminderIndex: e.detail.value });
+  },
+
+  onShareTap() {
+    wx.vibrateShort({ type: 'medium' });
+    wx.showActionSheet({
+      itemList: ['生成朋友圈海报', '直接转发给好友'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          this.drawPoster();
+        } else {
+          // 触发原生分享通常需要 button open-type="share"
+          // 这里可以弹窗提示用户点击右上角或点击特定按钮
+          wx.showModal({
+            title: '提示',
+            content: '请点击课程列表右下角的分享按钮进行转发',
+            showCancel: false
+          });
+        }
+      }
+    });
+  },
+
+  async drawPoster() {
+    wx.showLoading({ title: '正在设计海报...' });
+    const ctx = wx.createCanvasContext('shareCanvas');
+    const systemInfo = wx.getSystemInfoSync();
+    const posterW = 750;
+    const posterH = 1334;
+    
+    // 1. 背景绘制
+    if (this.data.bgConfig.url) {
+      try {
+        const imgInfo = await new Promise((resolve, reject) => {
+          wx.getImageInfo({
+            src: this.data.bgConfig.url,
+            success: resolve,
+            fail: reject
+          });
+        });
+        ctx.drawImage(imgInfo.path, 0, 0, posterW, posterH);
+      } catch (e) {
+        ctx.setFillStyle('#FFFFFF');
+        ctx.fillRect(0, 0, posterW, posterH);
+      }
+    } else {
+      ctx.setFillStyle('#FFFFFF');
+      ctx.fillRect(0, 0, posterW, posterH);
+    }
+
+    // 2. 蒙层叠加
+    ctx.setFillStyle(`rgba(255, 255, 255, ${this.data.bgConfig.opacity})`);
+    ctx.fillRect(0, 0, posterW, posterH);
+
+    // 3. 绘制标题
+    ctx.setFillStyle(this.data.bgConfig.textColor || '#1A1A1A');
+    ctx.setFontSize(50);
+    ctx.setTextAlign('center');
+    ctx.fillText('我的课程表', posterW / 2, 120);
+    
+    const todayStr = this.data.weekDays[this.data.currentDayIndex].name;
+    ctx.setFontSize(32);
+    ctx.fillText(todayStr, posterW / 2, 180);
+
+    // 4. 绘制课程卡片
+    const currentCourses = this.data.scheduleData[this.data.currentDayIndex] || [];
+    let startY = 280;
+    
+    if (currentCourses.length === 0) {
+      ctx.setFontSize(36);
+      ctx.setFillStyle('#999999');
+      ctx.fillText('今天没有课哦，享受时光～', posterW / 2, 600);
+    }
+
+    currentCourses.slice(0, 6).forEach((course, index) => {
+      const cardX = 60;
+      const cardW = posterW - 120;
+      const cardH = 150;
+      
+      // 绘制卡片背景 (毛玻璃感)
+      ctx.save();
+      ctx.setShadow(0, 10, 30, 'rgba(0,0,0,0.05)');
+      ctx.setFillStyle(course.color || '#F0F3FF');
+      this.drawRoundRect(ctx, cardX, startY, cardW, cardH, 30);
+      ctx.fill();
+      ctx.restore();
+
+      // 时间
+      ctx.setTextAlign('left');
+      ctx.setFillStyle('#333333');
+      ctx.setFontSize(32);
+      ctx.fillText(course.startTime, cardX + 40, startY + 65);
+      ctx.setFontSize(24);
+      ctx.setFillStyle('#666666');
+      ctx.fillText(course.endTime, cardX + 40, startY + 110);
+
+      // 课程名
+      ctx.setFillStyle('#1A1A1A');
+      ctx.setFontSize(36);
+      ctx.fillText(course.name, cardX + 160, startY + 70);
+      
+      // 备注/地点
+      ctx.setFillStyle('#888888');
+      ctx.setFontSize(26);
+      ctx.fillText(course.location || '无备注', cardX + 160, startY + 115);
+
+      startY += cardH + 40;
+    });
+
+    // 5. 底部装饰
+    ctx.setTextAlign('center');
+    ctx.setFillStyle('#999999');
+    ctx.setFontSize(24);
+    ctx.fillText('-- 由 Wok 智能课表生成 --', posterW / 2, posterH - 100);
+
+    ctx.draw(false, () => {
+      setTimeout(() => {
+        wx.canvasToTempFilePath({
+          canvasId: 'shareCanvas',
+          success: (res) => {
+            wx.hideLoading();
+            wx.previewImage({
+              urls: [res.tempFilePath]
+            });
+          },
+          fail: (err) => {
+            wx.hideLoading();
+            wx.showToast({ title: '海报生成失败', icon: 'none' });
+          }
+        });
+      }, 500);
+    });
+  },
+
+  drawRoundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.arc(x + radius, y + radius, radius, Math.PI, Math.PI * 1.5);
+    ctx.lineTo(x + width - radius, y);
+    ctx.arc(x + width - radius, y + radius, radius, Math.PI * 1.5, Math.PI * 2);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.arc(x + width - radius, y + height - radius, radius, 0, Math.PI * 0.5);
+    ctx.lineTo(x + radius, y + height);
+    ctx.arc(x + radius, y + height - radius, radius, Math.PI * 0.5, Math.PI);
+    ctx.closePath();
   },
 
   clearBackground() {
@@ -327,6 +484,8 @@ Page({
       startTime,
       endTime,
       location,
+      isReminderEnabled: this.data.newCourse.isReminderEnabled || false,
+      reminderMinutes: this.data.reminderValues[this.data.reminderIndex],
       color: isEditing ? this.data.scheduleData[editingDay][editingIndex].color : this.data.colors[Math.floor(Math.random() * this.data.colors.length)]
     };
 
@@ -342,16 +501,24 @@ Page({
     // 重新排序
     scheduleData[dayIdx].sort((a, b) => a.startTime.localeCompare(b.startTime));
 
+    // 请求订阅消息
+    if (this.data.newCourse.isReminderEnabled) {
+      wx.requestSubscribeMessage({
+        tmplIds: ['fzEGVEMzu6KiGg6hmIOco3OnXdnHK4ADSNrYFJsrsVM'], // 模板ID
+        success(res) {
+          console.log('[Reminder] Subscription success:', res);
+        }
+      });
+    }
+
     this.setData({
       scheduleData: scheduleData,
       showModal: false,
-      isEditing: false,
-      editingIndex: -1
+      modalClosing: false
     }, () => {
       wx.setStorageSync('course_schedule', scheduleData);
+      wx.showToast({ title: '已同步课表', icon: 'success' });
     });
-
-
   },
 
   deleteCourse() {
@@ -424,7 +591,8 @@ Page({
       'newCourse.dayIdx': dayIdx,
       'newCourse.startTime': startTime,
       'newCourse.endTime': this.calculateEndTime(startTime),
-      'newCourse.location': text.includes('在') ? text.split('在')[1].substring(0, 10) : '待定'
+      'newCourse.location': text.includes('在') ? text.split('在')[1].substring(0, 10) : '无备注',
+      'newCourse.isReminderEnabled': false // 语音默认不开启提醒，让用户手动勾选
     });
 
 

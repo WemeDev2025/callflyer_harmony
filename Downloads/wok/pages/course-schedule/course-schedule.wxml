@@ -39,7 +39,7 @@
                 bindtap="onCourseTap" 
                 data-day="{{dayIdx}}" 
                 data-index="{{classIdx}}"
-                style="animation-delay: {{classIdx * 0.1}}s">
+                style="animation-delay: {{classIdx * 0.1 + 0.5}}s">
             <view class="course-time">
               <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
               <view class="time-line" style="background: {{bgConfig.textColor}}; opacity: 0.3"></view>
@@ -47,13 +47,14 @@
             </view>
             <view class="course-info" style="background: {{course.color || '#F0F3FF'}}">
               <text class="course-name">{{course.name}}</text>
-              <text class="course-location">{{course.location || '暂无地点'}}</text>
+              <text class="course-location">{{course.location || '暂无备注'}}</text>
             </view>
           </view>
         </block>
         <view wx:else class="empty-state">
-          <image class="empty-img" src="https://wemedev.com/wok/data/bg/pic_default.png?t={{emptyImgTimestamp}}" mode="aspectFit"></image>
-
+          <view class="empty-img-container">
+            <image class="empty-img" src="https://wemedev.com/wok/data/bg/pic_default.png?t={{emptyImgTimestamp}}" mode="aspectFit"></image>
+          </view>
         </view>
         <!-- 底部占位，防止被下方按钮遮挡且滚动更顺滑 -->
         <view class="bottom-spacer"></view>
@@ -77,6 +78,11 @@
       <text class="btn-text">背景</text>
     </view>
     
+    <!-- 分享按钮 -->
+    <view class="action-btn share-btn-action" bindtap="onShareTap">
+      <text class="btn-text">分享</text>
+    </view>
+    
     <!-- 手动添加按钮 -->
     <view class="action-btn add-btn-action" bindtap="showAddModal">
       <text class="btn-text">添加</text>
@@ -92,7 +98,7 @@
       </view>
       <view class="modal-body">
         <input class="input-field" placeholder="课程名称" model:value="{{newCourse.name}}" />
-        <input class="input-field" placeholder="上课地点" model:value="{{newCourse.location}}" />
+        <input class="input-field" placeholder="课程备忘" model:value="{{newCourse.location}}" />
         
         <view class="time-pickers">
           <picker mode="time" value="{{newCourse.startTime}}" bindchange="onStartTimeChange">
@@ -107,6 +113,22 @@
               <text class="value">{{newCourse.endTime || '请选择'}}</text>
             </view>
           </picker>
+        </view>
+
+        <view class="setting-item">
+          <view class="setting-header">
+            <text class="label">上课提醒</text>
+            <switch checked="{{newCourse.isReminderEnabled}}" bindchange="onReminderToggle" color="#5C7CFA" />
+          </view>
+        </view>
+
+        <view class="setting-item" wx:if="{{newCourse.isReminderEnabled}}">
+          <view class="setting-header">
+            <text class="label">提醒时间</text>
+            <picker bindchange="onReminderTimeChange" value="{{reminderIndex}}" range="{{reminderOptions}}">
+              <view class="value">{{reminderOptions[reminderIndex]}}</view>
+            </picker>
+          </view>
         </view>
 
         <view class="day-picker">
@@ -195,4 +217,7 @@
       </view>
     </view>
   </view>
+
+  <!-- 海报生成画布 (离屏显示) -->
+  <canvas canvas-id="shareCanvas" style="width: 750px; height: 1334px; position: fixed; left: -9999px;"></canvas>
 </view>
