@@ -369,3 +369,24 @@ export function uploadAvatar(filePath) {
   })
 }
 
+
+/**
+ * 创建下课提醒
+ */
+export function createReminder(data) {
+  return request('/reminders', 'POST', data)
+}
+
+/**
+ * 获取提醒列表
+ */
+export function getReminders() {
+  return request('/reminders', 'GET')
+}
+
+/**
+ * 取消提醒
+ */
+export function cancelReminder(reminderId) {
+  return request(`/reminders/${reminderId}`, 'DELETE')
+}

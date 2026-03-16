@@ -29,7 +29,7 @@
     <swiper-item wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
       <view class="day-content">
         <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px; color: {{bgConfig.textColor}}">{{item.name}}</view>
-        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}">
+        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{scrollTop}}" scroll-with-animation="{{true}}">
         <block wx:if="{{scheduleData[dayIdx] && scheduleData[dayIdx].length > 0}}">
           <view class="course-card" 
                 wx:for="{{scheduleData[dayIdx]}}" 
@@ -39,7 +39,7 @@
                 bindtap="onCourseTap" 
                 data-day="{{dayIdx}}" 
                 data-index="{{classIdx}}"
-                style="animation-delay: {{classIdx * 0.1 + 0.5}}s">
+                style="animation-delay: {{classIdx * 0.05}}s">
             <view class="course-time">
               <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
               <view class="time-line" style="background: {{bgConfig.textColor}}; opacity: 0.3"></view>
@@ -78,11 +78,6 @@
       <text class="btn-text">背景</text>
     </view>
     
-    <!-- 分享按钮 -->
-    <view class="action-btn share-btn-action" bindtap="onShareTap">
-      <text class="btn-text">分享</text>
-    </view>
-    
     <!-- 手动添加按钮 -->
     <view class="action-btn add-btn-action" bindtap="showAddModal">
       <text class="btn-text">添加</text>
@@ -115,21 +110,27 @@
           </picker>
         </view>
 
-        <view class="setting-item">
+        <!-- 下课提醒静态 UI -->
+        <view class="setting-item reminder-setting">
           <view class="setting-header">
-            <text class="label">上课提醒</text>
-            <switch checked="{{newCourse.isReminderEnabled}}" bindchange="onReminderToggle" color="#5C7CFA" />
+            <view class="label-group">
+              <text class="label-main">下课提醒</text>
+              <text class="label-sub">{{newCourse.reminderId ? '提醒已设置 ✓' : '即将下课时发送通知'}}</text>
+            </view>
+            <switch checked="{{newCourse.isEndReminderEnabled}}" bindchange="onEndReminderToggle" color="#5C7CFA" />
           </view>
-        </view>
-
-        <view class="setting-item" wx:if="{{newCourse.isReminderEnabled}}">
-          <view class="setting-header">
-            <text class="label">提醒时间</text>
-            <picker bindchange="onReminderTimeChange" value="{{reminderIndex}}" range="{{reminderOptions}}">
-              <view class="value">{{reminderOptions[reminderIndex]}}</view>
+          
+          <view class="setting-detail {{newCourse.isEndReminderEnabled ? 'show' : ''}}">
+            <picker bindchange="onEndReminderTimeChange" value="{{reminderIndex}}" range="{{reminderOptions}}">
+              <view class="picker-row">
+                <text class="picker-label">提醒时间</text>
+                <text class="picker-value">{{reminderOptions[reminderIndex]}}</text>
+              </view>
             </picker>
           </view>
         </view>
+
+
 
         <view class="day-picker">
           <text class="label">上课日期</text>
@@ -218,6 +219,5 @@
     </view>
   </view>
 
-  <!-- 海报生成画布 (离屏显示) -->
-  <canvas canvas-id="shareCanvas" style="width: 750px; height: 1334px; position: fixed; left: -9999px;"></canvas>
+
 </view>

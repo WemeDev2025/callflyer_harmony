@@ -60,7 +60,7 @@
 .day-scroll {
   flex: 1;
   height: 0;
-  padding: 20rpx 40rpx;
+  padding: 50rpx 40rpx 20rpx;
   box-sizing: border-box;
   background-color: transparent;
 }
@@ -238,11 +238,6 @@
 
 .add-btn-action {
   background: #5C7CFA;
-  color: #FFFFFF;
-}
-
-.share-btn-action {
-  background: #40C057;
   color: #FFFFFF;
 }
 
@@ -478,17 +473,70 @@
   box-sizing: border-box;
 }
 
-/* 提醒设置样式 */
-.setting-header switch {
-  transform: scale(0.85);
+
+.reminder-setting {
+  background: #F8F9FF;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
 }
 
-.setting-header picker {
-  flex: 1;
-  text-align: right;
+.reminder-setting switch {
+  margin-right: -20rpx;
 }
 
-.setting-header .value {
+.label-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.label-main {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 4rpx;
+}
+
+.label-sub {
+  font-size: 24rpx;
+  color: #888;
+}
+
+.setting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting-detail {
+  height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.setting-detail.show {
+  height: 90rpx;
+  opacity: 1;
+  margin-top: 20rpx;
+  border-top: 2rpx solid rgba(0, 0, 0, 0.05);
+  padding-top: 20rpx;
+}
+
+.picker-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.picker-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.picker-value {
+  font-size: 28rpx;
   color: #5C7CFA;
   font-weight: 600;
 }
@@ -565,6 +613,7 @@
   font-size: 32rpx;
   font-weight: bold;
   z-index: 10;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .color-chips {
@@ -661,5 +710,16 @@
   font-size: 32rpx;
   font-weight: bold;
   border: 1rpx solid #FFCCC7;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.delete-btn:active {
+  transform: scale(0.95);
+  opacity: 0.7;
+}
+
+.submit-btn:active {
+  transform: scale(0.95);
+  opacity: 0.8;
 }
 
