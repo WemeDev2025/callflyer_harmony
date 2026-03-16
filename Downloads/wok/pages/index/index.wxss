@@ -6,7 +6,7 @@
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #FFE6A8;
+  background-color: #FFFFFF;
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -644,6 +644,12 @@
   background-color:#000000;
   font-weight: bold;
   font-size: 32rpx;
+}
+
+.action-btn.test-btn {
+  background: linear-gradient(135deg, #FF6B35 0%, #FFB627 100%);
+  font-weight: bold;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.3);
 }
 
 .action-btn::after {

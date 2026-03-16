@@ -4,17 +4,29 @@
     "pages/profile/profile",
     "pages/task/detail/detail",
     "pages/tasks/list/list",
-    "pages/webview/webview"
+    "pages/webview/webview",
+    "pages/course-schedule/course-schedule"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#FFE6A8",
+    "navigationBarBackgroundColor": "#FFFFFF",
     "navigationBarTitleText": "WOK",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#FFE6A8"
+    "backgroundColor": "#FFFFFF"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "plugins": {
+    "WechatSI": {
+      "version": "0.3.5",
+      "provider": "wx069ba97219f66d99"
+    }
+  },
+  "permission": {
+    "scope.record": {
+      "desc": "您的录音将用于课程信息的快速录入"
+    }
+  }
 }
 

@@ -1,0 +1,178 @@
+<view class="container {{bgConfig.url ? 'has-bg' : ''}}">
+  <!-- 背景图层 -->
+  <view class="bg-layer" wx:if="{{bgConfig.url}}">
+    <image 
+      src="{{bgConfig.url}}" 
+      mode="aspectFill" 
+      class="bg-image-real" 
+      style="opacity: {{bgConfig.opacity}}; filter: blur({{bgConfig.blur}}px);"
+    ></image>
+  </view>
+
+  <!-- 语音识别酷炫蒙层 -->
+  <view class="voice-overlay {{isRecording ? 'show' : ''}}">
+    <view class="voice-card">
+      <view class="voice-waves">
+        <view class="wave-bar bar-1"></view>
+        <view class="wave-bar bar-2"></view>
+        <view class="wave-bar bar-3"></view>
+        <view class="wave-bar bar-4"></view>
+        <view class="wave-bar bar-5"></view>
+      </view>
+      <text class="voice-status">正在聆听中...</text>
+      <text class="voice-tip">说出课程、时间或地点</text>
+    </view>
+  </view>
+  
+  <!-- 课程表主体 - 使用 swiper 实现左右滑动 -->
+  <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" display-multiple-items="{{1}}" circular="{{false}}">
+    <swiper-item wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
+      <view class="day-content">
+        <view class="day-title-overlay" style="color: {{bgConfig.textColor}}">{{item.name}}</view>
+        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}">
+        <block wx:if="{{scheduleData[dayIdx] && scheduleData[dayIdx].length > 0}}">
+          <view class="course-card" 
+                wx:for="{{scheduleData[dayIdx]}}" 
+                wx:key="index" 
+                wx:for-index="classIdx" 
+                wx:for-item="course" 
+                bindtap="onCourseTap" 
+                data-day="{{dayIdx}}" 
+                data-index="{{classIdx}}"
+                style="animation-delay: {{classIdx * 0.1}}s">
+            <view class="course-time">
+              <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
+              <view class="time-line" style="background: {{bgConfig.textColor}}; opacity: 0.3"></view>
+              <text class="end-time" style="color: {{bgConfig.textColor}}; opacity: 0.6">{{course.endTime}}</text>
+            </view>
+            <view class="course-info" style="background: {{course.color || '#F0F3FF'}}">
+              <text class="course-name">{{course.name}}</text>
+              <text class="course-location">{{course.location || '暂无地点'}}</text>
+            </view>
+          </view>
+        </block>
+        <view wx:else class="empty-state">
+          <text class="empty-icon">📅</text>
+          <text class="empty-text" style="color: {{bgConfig.textColor}}; opacity: 0.6">今天没有课哦，享受自由时光吧～</text>
+        </view>
+        <!-- 底部占位，防止被下方按钮遮挡且滚动更顺滑 -->
+        <view class="bottom-spacer"></view>
+      </scroll-view>
+    </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 底部操作栏 - 统一样式，三个圆角拉满的按钮 -->
+  <view class="bottom-bar">
+    <!-- 语音按钮 -->
+    <view class="action-btn voice-btn-action {{isRecording ? 'recording' : ''}}" 
+          bindtouchstart="startVoice" 
+          bindtouchend="stopVoice">
+      <view class="voice-pulse" wx:if="{{isRecording}}"></view>
+      <text class="btn-text">{{isRecording ? '录音中' : '语音'}}</text>
+    </view>
+    
+    <!-- 背景按钮 -->
+    <view class="action-btn bg-btn-action" bindtap="showBgEditor">
+      <text class="btn-text">背景</text>
+    </view>
+    
+    <!-- 手动添加按钮 -->
+    <view class="action-btn add-btn-action" bindtap="showAddModal">
+      <text class="btn-text">添加</text>
+    </view>
+  </view>
+
+  <!-- 添加课程弹窗 -->
+  <view class="modal-mask {{modalClosing ? 'closing' : ''}}" wx:if="{{showModal}}" bindtap="hideAddModal">
+    <view class="modal-content {{modalClosing ? 'closing' : ''}}" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text>{{isEditing ? '编辑课程' : '添加课程'}}</text>
+        <text class="close-btn" bindtap="hideAddModal">×</text>
+      </view>
+      <view class="modal-body">
+        <input class="input-field" placeholder="课程名称" model:value="{{newCourse.name}}" />
+        <input class="input-field" placeholder="上课地点" model:value="{{newCourse.location}}" />
+        
+        <view class="time-pickers">
+          <picker mode="time" value="{{newCourse.startTime}}" bindchange="onStartTimeChange">
+            <view class="picker-item">
+              <text class="label">开始时间</text>
+              <text class="value">{{newCourse.startTime || '请选择'}}</text>
+            </view>
+          </picker>
+          <picker mode="time" value="{{newCourse.endTime}}" bindchange="onEndTimeChange">
+            <view class="picker-item">
+              <text class="label">结束时间</text>
+              <text class="value">{{newCourse.endTime || '请选择'}}</text>
+            </view>
+          </picker>
+        </view>
+
+        <view class="day-picker">
+          <text class="label">上课日期</text>
+          <view class="day-chips">
+            <view 
+              wx:for="{{weekDays}}" 
+              wx:key="index" 
+              class="day-chip {{newCourse.dayIdx === index ? 'active' : ''}}"
+              bindtap="selectNewCourseDay"
+              data-index="{{index}}"
+            >{{item.shortName}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button wx:if="{{isEditing}}" class="delete-btn" bindtap="deleteCourse">删除课程</button>
+        <button class="submit-btn" bindtap="saveCourse">{{isEditing ? '保存修改' : '确认添加'}}</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 背景编辑器弹窗 -->
+  <view class="modal-mask {{bgModalClosing ? 'closing' : ''}}" wx:if="{{showBgModal}}" bindtap="hideBgEditor">
+    <view class="modal-content {{bgModalClosing ? 'closing' : ''}}" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text>背景样式设定</text>
+        <text class="close-btn" bindtap="hideBgEditor">×</text>
+      </view>
+      <view class="modal-body">
+        <button class="choice-btn" bindtap="chooseBackground">更换背景图片</button>
+
+        <view class="setting-item">
+          <view class="setting-header">
+            <text class="label">透明度</text>
+            <text class="value">{{bgConfig.opacity}}</text>
+          </view>
+          <slider min="0" max="1" step="0.1" value="{{bgConfig.opacity}}" activeColor="#1A1A1A" bindchange="onOpacityChange" bindchanging="onOpacityChange" />
+        </view>
+
+        <view class="setting-item">
+          <view class="setting-header">
+            <text class="label">模糊度</text>
+            <text class="value">{{bgConfig.blur}}px</text>
+          </view>
+          <slider min="0" max="20" step="1" value="{{bgConfig.blur}}" activeColor="#1A1A1A" bindchange="onBlurChange" bindchanging="onBlurChange" />
+        </view>
+
+        <view class="setting-item">
+          <view class="box-label">字体颜色</view>
+          <view class="color-chips">
+            <view 
+              wx:for="{{textColors}}" 
+              wx:key="*this" 
+              class="color-chip {{bgConfig.textColor === item ? 'active' : ''}}" 
+              style="background: {{item}}"
+              bindtap="onTextColorChange"
+              data-color="{{item}}"
+            ></view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="reset-btn" bindtap="clearBackground">移除背景</button>
+        <button class="submit-btn" bindtap="hideBgEditor">完成</button>
+      </view>
+    </view>
+  </view>
+</view>

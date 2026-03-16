@@ -233,6 +233,15 @@ Page({
   },
 
   /**
+   * 跳转到课程表页面
+   */
+  goToCourseSchedule() {
+    wx.navigateTo({
+      url: '/pages/course-schedule/course-schedule'
+    })
+  },
+
+  /**
    * 跳转到任务详情页（用于随机选择按钮）
    */
   goToTaskDetail() {

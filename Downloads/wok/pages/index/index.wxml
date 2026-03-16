@@ -102,8 +102,9 @@
   <!-- 下半部分：操作按钮 -->
   <view class="bottom-section">
     <view class="actions">
-      <button class="action-btn primary-btn" bindtap="createTask">当前铁锅</button>
-      <button class="action-btn" bindtap="goToTasksList">查看更多</button>
+      <button class="action-btn primary-btn" bindtap="createTask">当前</button>
+      <button class="action-btn" bindtap="goToTasksList">更多</button>
+      <button class="action-btn test-btn" bindtap="goToCourseSchedule">课程表</button>
     </view>
   </view>
 </view>
