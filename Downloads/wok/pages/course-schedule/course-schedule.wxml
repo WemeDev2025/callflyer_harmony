@@ -104,8 +104,8 @@
         <text class="close-btn" bindtap="hideAddModal">×</text>
       </view>
       <view class="modal-body">
-        <input class="input-field" placeholder="课程名称" model:value="{{newCourse.name}}" />
-        <input class="input-field" placeholder="课程备忘" model:value="{{newCourse.location}}" />
+        <input class="input-field" placeholder="课程名称" value="{{newCourse.name}}" bindinput="onCourseNameInput" />
+        <input class="input-field" placeholder="课程备忘" value="{{newCourse.location}}" bindinput="onCourseLocationInput" />
         
         <view class="time-pickers">
           <picker mode="time" value="{{newCourse.startTime}}" bindchange="onStartTimeChange">

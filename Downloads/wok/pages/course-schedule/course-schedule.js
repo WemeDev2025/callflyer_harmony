@@ -133,6 +133,10 @@ Page({
       clearTimeout(this._scheduleSyncTimer);
       this._scheduleSyncTimer = null;
     }
+    if (this._shareCodeTimer) {
+      clearTimeout(this._shareCodeTimer);
+      this._shareCodeTimer = null;
+    }
   },
 
   initDate() {
@@ -271,7 +275,7 @@ Page({
   async loadScheduleFromServer() {
     const options = this._loadOptions;
     if (options && options.shareCode) {
-      this.importShareCode(options.shareCode);
+      this.ensureLoginThenImport(options.shareCode);
       return;
     }
 
@@ -304,6 +308,45 @@ Page({
     if (savedData && savedData.length > 0) {
       this.queueScheduleSync();
     }
+  },
+
+  ensureLoginThenImport(shareCode) {
+    const app = getApp();
+    if (app && app.globalData && app.globalData.isLoggedIn) {
+      this.importShareCode(shareCode);
+      return;
+    }
+
+    if (app && typeof app.silentLogin === 'function') {
+      app.silentLogin()
+        .then(() => this.importShareCode(shareCode))
+        .catch(() => {
+          wx.showModal({
+            title: '需要登录',
+            content: '登录后才可以查看分享的课程表，是否现在登录？',
+            confirmText: '登录',
+            cancelText: '取消',
+            success: res => {
+              if (res.confirm) {
+                app.silentLogin()
+                  .then(() => this.importShareCode(shareCode))
+                  .catch(() => {
+                    wx.showToast({
+                      title: '登录失败，请稍后重试',
+                      icon: 'none'
+                    });
+                  });
+              }
+            }
+          });
+        });
+      return;
+    }
+
+    wx.showToast({
+      title: '请先登录后查看',
+      icon: 'none'
+    });
   },
 
   /**
@@ -382,6 +425,15 @@ Page({
     };
   },
 
+  queueShareCodeRefresh(delay = 1200) {
+    clearTimeout(this._shareCodeTimer);
+    this._shareCodeTimer = setTimeout(() => {
+      if (this.data.shareLoading) return;
+      if (!this.data.shareDirty) return;
+      this.generateShareCode();
+    }, delay);
+  },
+
   queueScheduleSync(delay = 600) {
     clearTimeout(this._scheduleSyncTimer);
     this._scheduleSyncTimer = setTimeout(() => {
@@ -393,6 +445,18 @@ Page({
     try {
       await saveMySchedule(this.buildSchedulePayload());
     } catch (error) {
+      if (error && error.message && (error.message.includes('过期') || error.message.includes('401'))) {
+        const app = getApp();
+        if (app && typeof app.silentLogin === 'function') {
+          try {
+            await app.silentLogin();
+            await saveMySchedule(this.buildSchedulePayload());
+            return;
+          } catch (loginErr) {
+            console.warn('[Schedule] sync failed after re-login:', loginErr && loginErr.message);
+          }
+        }
+      }
       console.warn('[Schedule] sync failed:', error && error.message);
     }
   },
@@ -487,6 +551,7 @@ Page({
     wx.setStorageSync('course_bg_config', this.data.bgConfig);
     this.queueScheduleSync();
     this.setData({ shareDirty: true });
+    this.queueShareCodeRefresh(2000);
   },
 
   onStartTimeChange(e) {
@@ -495,6 +560,14 @@ Page({
 
   onEndTimeChange(e) {
     this.setData({ 'newCourse.endTime': e.detail.value });
+  },
+
+  onCourseNameInput(e) {
+    this.setData({ 'newCourse.name': e.detail.value });
+  },
+
+  onCourseLocationInput(e) {
+    this.setData({ 'newCourse.location': e.detail.value });
   },
 
   selectNewCourseDay(e) {
@@ -607,6 +680,7 @@ Page({
         wx.setStorageSync('course_schedule', scheduleData);
         this.queueScheduleSync(200);
         this.setData({ shareDirty: true });
+        this.queueShareCodeRefresh(2000);
         if (callback) callback(entry);
       });
     }, 250);
@@ -731,13 +805,14 @@ Page({
             wx.setStorageSync('course_schedule', scheduleData);
             this.queueScheduleSync(200);
             this.setData({ shareDirty: true });
+            this.queueShareCodeRefresh(2000);
           });
         }
       }
     });
   },
 
-  prepareShare() {
+  async prepareShare() {
     if (this.data.shareLoading) return;
     if (this.data.shareCodeReady && !this.data.shareDirty) return;
 
@@ -763,6 +838,7 @@ Page({
         shareDirty: false
       });
       wx.setStorageSync('course_share_code', String(shareCode));
+      return String(shareCode);
     } catch (error) {
       wx.showToast({
         title: error.message || '生成失败',
@@ -816,8 +892,36 @@ Page({
         title: '导入成功',
         icon: 'success'
       });
-      this.setData({ shareDirty: false });
+      this.setData({
+        shareDirty: true,
+        shareCodeReady: false,
+        shareCodeResult: ''
+      });
+      wx.removeStorageSync('course_share_code');
+      this.queueShareCodeRefresh(800);
+      if (this._loadOptions) {
+        this._loadOptions = Object.assign({}, this._loadOptions, { shareCode: '' });
+      }
     } catch (error) {
+      if (error && error.message && (error.message.includes('过期') || error.message.includes('401'))) {
+        const app = getApp();
+        if (app && typeof app.silentLogin === 'function') {
+          try {
+            await app.silentLogin();
+            this.setData({ shareLoading: false });
+            this.importShareCode(code);
+            return;
+          } catch (loginErr) {
+            console.error('[Schedule] re-login failed:', loginErr);
+            wx.showModal({
+              title: '需要登录',
+              content: '登录后才可以查看分享的课程表，请先登录',
+              showCancel: false,
+              confirmText: '知道了'
+            });
+          }
+        }
+      }
       wx.showToast({
         title: error.message || '导入失败',
         icon: 'none'
