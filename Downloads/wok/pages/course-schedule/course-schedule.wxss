@@ -324,6 +324,17 @@
   animation: slideDown 0.25s cubic-bezier(0.8, 0.2, 0.8, 0.2) both;
 }
 
+.modal-mask.adjusting {
+  background: transparent !important;
+  transition: all 0.3s ease;
+}
+
+.modal-content.adjusting {
+  opacity: 0 !important;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }

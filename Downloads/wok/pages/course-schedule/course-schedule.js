@@ -45,7 +45,8 @@ Page({
       textColor: '#1A1A1A'
     },
     vipBackgrounds: [],
-    emptyImgTimestamp: Date.now()
+    emptyImgTimestamp: Date.now(),
+    isAdjustingBg: false
   },
 
   onLoad() {
@@ -258,6 +259,14 @@ Page({
     }, () => {
       this.saveBgConfig();
     });
+  },
+
+  startAdjusting() {
+    this.setData({ isAdjustingBg: true });
+  },
+
+  stopAdjusting() {
+    this.setData({ isAdjustingBg: false });
   },
 
   clearBackground() {

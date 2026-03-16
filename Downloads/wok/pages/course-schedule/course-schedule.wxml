@@ -130,8 +130,8 @@
   </view>
 
   <!-- 背景编辑器弹窗 -->
-  <view class="modal-mask {{bgModalClosing ? 'closing' : ''}}" wx:if="{{showBgModal}}" bindtap="hideBgEditor">
-    <view class="modal-content {{bgModalClosing ? 'closing' : ''}}" catchtap="stopPropagation">
+  <view class="modal-mask {{bgModalClosing ? 'closing' : ''}} {{isAdjustingBg ? 'adjusting' : ''}}" wx:if="{{showBgModal}}" bindtap="hideBgEditor">
+    <view class="modal-content {{bgModalClosing ? 'closing' : ''}} {{isAdjustingBg ? 'adjusting' : ''}}" catchtap="stopPropagation">
       <view class="modal-header">
         <text>背景样式设定</text>
         <text class="close-btn" bindtap="hideBgEditor">×</text>
@@ -164,7 +164,7 @@
             <text class="label">透明度</text>
             <text class="value">{{bgConfig.opacity}}</text>
           </view>
-          <slider min="0" max="1" step="0.1" value="{{bgConfig.opacity}}" activeColor="#1A1A1A" bindchange="onOpacityChange" bindchanging="onOpacityChange" />
+          <slider min="0" max="1" step="0.1" value="{{bgConfig.opacity}}" activeColor="#1A1A1A" bindchange="onOpacityChange" bindchanging="onOpacityChange" bindtouchstart="startAdjusting" bindtouchend="stopAdjusting" bindtouchcancel="stopAdjusting" />
         </view>
 
         <view class="setting-item">
@@ -172,7 +172,7 @@
             <text class="label">模糊度</text>
             <text class="value">{{bgConfig.blur}}px</text>
           </view>
-          <slider min="0" max="20" step="1" value="{{bgConfig.blur}}" activeColor="#1A1A1A" bindchange="onBlurChange" bindchanging="onBlurChange" />
+          <slider min="0" max="20" step="1" value="{{bgConfig.blur}}" activeColor="#1A1A1A" bindchange="onBlurChange" bindchanging="onBlurChange" bindtouchstart="startAdjusting" bindtouchend="stopAdjusting" bindtouchcancel="stopAdjusting" />
         </view>
 
         <view class="setting-item">
