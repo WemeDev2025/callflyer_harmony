@@ -152,9 +152,11 @@
   padding-top: 350rpx;
 }
 
-.empty-icon {
-  font-size: 100rpx;
-  margin-bottom: 20rpx;
+.empty-img {
+  width: 300rpx;
+  height: 300rpx;
+  margin-bottom: 30rpx;
+  opacity: 0.8;
 }
 
 .empty-text {
@@ -528,6 +530,60 @@
   transform: scale(1.2);
   border-color: #1A1A1A;
   box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
+}
+
+/* VIP Background Styles */
+.vip-scroll {
+  width: 100%;
+  white-space: nowrap;
+  margin-top: 10rpx;
+}
+
+.vip-list {
+  display: inline-flex;
+  gap: 24rpx;
+  padding: 20rpx 10rpx; /* 增加上下左右边距，防止缩放被切割 */
+}
+
+.vip-item {
+  position: relative;
+  width: 180rpx; /* 增加宽度 */
+  height: 280rpx; /* 增加高度，更接近手机屏幕比例 */
+  border-radius: 20rpx;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.vip-item.active {
+  transform: scale(1.05);
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.15);
+}
+
+.vip-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.vip-tag {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  background: rgba(0, 0, 0, 0.6);
+  color: #FFD700;
+  font-size: 18rpx;
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  font-weight: bold;
+}
+
+.vip-loading {
+  font-size: 24rpx;
+  color: #999;
+  padding: 40rpx 0;
+  width: 100%;
+  text-align: center;
 }
 
 .box-label {

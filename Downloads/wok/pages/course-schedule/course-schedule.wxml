@@ -52,8 +52,8 @@
           </view>
         </block>
         <view wx:else class="empty-state">
-          <text class="empty-icon">📅</text>
-          <text class="empty-text" style="color: {{bgConfig.textColor}}; opacity: 0.6">今天没有课哦，享受自由时光吧～</text>
+          <image class="empty-img" src="https://wemedev.com/wok/data/bg/pic_default.png?t={{emptyImgTimestamp}}" mode="aspectFit"></image>
+
         </view>
         <!-- 底部占位，防止被下方按钮遮挡且滚动更顺滑 -->
         <view class="bottom-spacer"></view>
@@ -137,7 +137,27 @@
         <text class="close-btn" bindtap="hideBgEditor">×</text>
       </view>
       <view class="modal-body">
-        <button class="choice-btn" bindtap="chooseBackground">更换背景图片</button>
+        <view class="setting-item">
+          <view class="box-label">VIP 背景推荐</view>
+          <scroll-view scroll-x class="vip-scroll">
+            <view class="vip-list">
+              <block wx:if="{{vipBackgrounds.length > 0}}">
+                <view class="vip-item {{bgConfig.url === item.url ? 'active' : ''}}" 
+                      wx:for="{{vipBackgrounds}}" 
+                      wx:key="filename" 
+                      bindtap="selectVipBackground" 
+                      data-url="{{item.url}}">
+                  <image src="{{item.url}}" mode="aspectFill" class="vip-img"></image>
+                  <view class="vip-tag">VIP</view>
+                </view>
+              </block>
+              <view wx:else class="vip-loading">正在加载...</view>
+            </view>
+          </scroll-view>
+        </view>
+
+        <button class="choice-btn" bindtap="chooseBackground">从相册选择本地图片</button>
+
 
         <view class="setting-item">
           <view class="setting-header">

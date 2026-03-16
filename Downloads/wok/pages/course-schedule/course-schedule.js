@@ -43,7 +43,9 @@ Page({
       opacity: 0.5,
       blur: 0,
       textColor: '#1A1A1A'
-    }
+    },
+    vipBackgrounds: [],
+    emptyImgTimestamp: Date.now()
   },
 
   onLoad() {
@@ -62,6 +64,8 @@ Page({
     if (savedBg) {
       this.setData({ bgConfig: savedBg });
     }
+
+    this.fetchVipBackgrounds();
 
     // 获取系统状态栏高度及胶囊按钮位置
     const info = wx.getSystemInfoSync();
@@ -182,6 +186,41 @@ Page({
         bgModalClosing: false
       });
     }, 250);
+  },
+
+  fetchVipBackgrounds() {
+    console.log('[BG] Fetching VIP backgrounds...');
+    wx.request({
+      url: 'https://wemedev.com/wok/api/bg-images',
+      success: (res) => {
+        console.log('[BG] API Result:', res.data);
+        if (res.data && res.data.items && res.data.items.length > 0) {
+          // 过滤掉作为默认缺省图使用的文件
+          const filtered = res.data.items.filter(item => item.filename !== 'pic_default.png');
+          this.setData({ vipBackgrounds: filtered });
+        } else {
+          console.warn('[BG] No backgrounds returned from API, using defaults');
+          // 提供一个默认精品背景防止列表为空
+          this.setData({
+            vipBackgrounds: [
+              { url: 'https://wemedev.com/wok/data/images/pic_wok.png', filename: 'demo.png' }
+            ]
+          });
+        }
+      },
+      fail: (err) => {
+        console.error('[BG] API Failed:', err);
+      }
+    });
+  },
+
+  selectVipBackground(e) {
+    const { url } = e.currentTarget.dataset;
+    this.setData({
+      'bgConfig.url': url
+    }, () => {
+      this.saveBgConfig();
+    });
   },
 
   chooseBackground() {
