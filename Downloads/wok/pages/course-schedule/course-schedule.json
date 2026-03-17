@@ -5,5 +5,8 @@
   "navigationBarBackgroundColor": "#FFFFFF",
   "navigationBarTextStyle": "black",
   "backgroundColor": "#FFFFFF",
-  "usingComponents": {}
+  "usingComponents": {
+    "recycle-view": "miniprogram-recycle-view/recycle-view",
+    "recycle-item": "miniprogram-recycle-view/recycle-item"
+  }
 }

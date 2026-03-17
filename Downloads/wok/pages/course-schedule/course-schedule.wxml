@@ -26,7 +26,7 @@
   </view>
   
   <!-- 课程表主体 - 使用 swiper 实现左右滑动 -->
-  <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" display-multiple-items="{{1}}" circular="{{false}}" skip-hidden-item-layout="{{true}}">
+  <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" bindanimationfinish="onSwiperAnimationFinish" display-multiple-items="{{1}}" circular="{{false}}" skip-hidden-item-layout="{{true}}" duration="{{300}}">
     <swiper-item wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
       <view class="day-content" wx:if="{{dayIdx >= renderMin && dayIdx <= renderMax}}">
         <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeightRpx}}rpx;">
@@ -37,36 +37,38 @@
             <text class="day-title-text" style="color: {{bgConfig.textColor}}">{{item.name}}</text>
           </view>
         </view>
-        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{dayIdx === currentDayIndex ? scrollTop : 0}}" scroll-into-view="{{dayIdx === currentDayIndex ? scrollIntoView : ''}}" scroll-with-animation="{{false}}">
-        <block wx:if="{{scheduleData[dayIdx] && scheduleData[dayIdx].length > 0}}">
-          <view class="course-card" 
-                wx:for="{{scheduleData[dayIdx]}}" 
-                wx:key="index" 
-                wx:for-index="classIdx" 
-                wx:for-item="course" 
-                bindtap="onCourseTap" 
-                data-day="{{dayIdx}}" 
-                data-index="{{classIdx}}"
-                id="course-{{dayIdx}}-{{classIdx}}">
-            <view class="course-time">
-              <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
-              <view class="time-line" style="background: {{bgConfig.textColor}}; opacity: 0.3"></view>
-              <text class="end-time" style="color: {{bgConfig.textColor}}; opacity: 0.6">{{course.endTime}}</text>
-            </view>
-            <view class="course-info" style="background: {{course.color || '#F0F3FF'}}">
-              <text class="course-name">{{course.name}}</text>
-              <text class="course-location">{{course.location || '暂无备注'}}</text>
+        <recycle-view id="course-recycle-{{dayIdx}}" scroll-y class="day-scroll" batch="{{batchSetRecycleData}}">
+          <block wx:if="{{scheduleData[dayIdx].length > 0}}">
+            <recycle-item 
+                  wx:for="{{scheduleData[dayIdx]}}" 
+                  wx:key="index" 
+                  wx:for-item="course" 
+                  wx:for-index="courseIdx"
+                  bindtap="onCourseTap" 
+                  data-day="{{dayIdx}}" 
+                  data-index="{{courseIdx}}"
+                  id="course-{{dayIdx}}-{{courseIdx}}">
+              <view class="course-card">
+                <view class="course-time">
+                  <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
+                  <view class="time-line" style="background: {{bgConfig.textColor}}; opacity: 0.3"></view>
+                  <text class="end-time" style="color: {{bgConfig.textColor}}; opacity: 0.6">{{course.endTime}}</text>
+                </view>
+                <view class="course-info" style="background: {{course.color || '#F0F3FF'}}">
+                  <text class="course-name">{{course.name}}</text>
+                  <text class="course-location">{{course.location || '暂无备注'}}</text>
+                </view>
+              </view>
+            </recycle-item>
+          </block>
+          <view wx:else class="empty-state">
+            <view class="empty-img-container">
+              <image class="empty-img" src="https://wemedev.com/wok/data/bg/pic_default.png?t={{emptyImgTimestamp}}" mode="aspectFit"></image>
             </view>
           </view>
-        </block>
-        <view wx:else class="empty-state">
-          <view class="empty-img-container">
-            <image class="empty-img" src="https://wemedev.com/wok/data/bg/pic_default.png?t={{emptyImgTimestamp}}" mode="aspectFit"></image>
-          </view>
-        </view>
-        <!-- 底部占位，防止被下方按钮遮挡且滚动更顺滑 -->
-        <view class="bottom-spacer"></view>
-      </scroll-view>
+          <!-- 底部占位，防止被下方按钮遮挡且滚动更顺滑 -->
+          <view class="bottom-spacer"></view>
+        </recycle-view>
     </view>
     <view wx:else class="day-content"></view>
     </swiper-item>

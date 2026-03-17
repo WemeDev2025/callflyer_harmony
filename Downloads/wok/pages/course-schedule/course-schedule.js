@@ -1,5 +1,6 @@
 // pages/course-schedule/course-schedule.js
 const app = getApp();
+const RecycleContext = require('miniprogram-recycle-view');
 const plugin = requirePlugin('WechatSI');
 const manager = plugin.getRecordRecognitionManager();
 const { createReminder, cancelReminder, getReminderById, getMySchedule, saveMySchedule, createScheduleTemplate, cloneScheduleTemplate } = require('../../utils/api.js');
@@ -85,6 +86,13 @@ Page({
     iconLoadError: false,
     iconVisible: true,
     isVip: false,
+    recycleList: [],
+    batchSetRecycleData: false,
+    swipeDir: 'left',
+    cardAnimKey: 0,
+    listAnimName: 'listInFromRight',
+    _lastSwiperIndex: 0,
+    swiperAnimating: false,
   },
 
   onLoad(options) {
@@ -96,7 +104,8 @@ Page({
       currentDayIndex: todayIdx,
       renderMin: Math.max(0, todayIdx - 2),
       renderMax: Math.min(6, todayIdx + 2),
-      isVip: !!(app.globalData && app.globalData.isVip)
+      isVip: !!(app.globalData && app.globalData.isVip),
+      _lastSwiperIndex: todayIdx
     });
     // globalData.isVip 可能还未就绪（登录异步），主动查一次确保准确
     if (!app.globalData.isVip) {
@@ -131,6 +140,11 @@ Page({
         isSamsung: isSamsung
       });
     }
+  },
+
+  onReady() {
+    this._initRecycleView();
+    this._updateRecycleList(true);
   },
 
   onShareAppMessage() {
@@ -209,6 +223,8 @@ Page({
     
     const t1 = Date.now();
     console.log('[Schedule] onShow DONE, total:', t1 - t0, 'ms')
+
+    // 避免页面未渲染完成时触发 recycle-view 更新
   },
 
   /**
@@ -254,6 +270,14 @@ Page({
       clearTimeout(this._emptyImgTsTimer)
       this._emptyImgTsTimer = null
     }
+    if (this._recycleRetryTimer) {
+      clearTimeout(this._recycleRetryTimer)
+      this._recycleRetryTimer = null
+    }
+    if (this._recycleInitTimer) {
+      clearTimeout(this._recycleInitTimer)
+      this._recycleInitTimer = null
+    }
     if (this._shareCodeTimer) {
       clearTimeout(this._shareCodeTimer);
       this._shareCodeTimer = null;
@@ -290,8 +314,97 @@ Page({
     return day === 0 ? 6 : day - 1;
   },
 
+  _initRecycleView() {
+    if (this._recycleCtx) return;
+    const comp = this.selectComponent('#course-recycle');
+    if (!comp) {
+      if (this._recycleInitTimer) clearTimeout(this._recycleInitTimer);
+      this._recycleInitTimer = setTimeout(() => {
+        this._recycleInitTimer = null;
+        this._initRecycleView();
+      }, 50);
+      return;
+    }
+    try {
+      this._recycleCtx = new RecycleContext({
+        id: 'course-recycle',
+        dataKey: 'recycleList',
+        page: this,
+        itemSize: function () {
+          return {
+            width: this.transformRpx(750),
+            height: this.transformRpx(200)
+          };
+        }
+      });
+      if (this._recycleCtx && this._recycleCtx.page && this._recycleCtx.page._recycleViewportChange) {
+        this._recycleCtx.page._recycleViewportChange = this._recycleCtx.page._recycleViewportChange.bind(this._recycleCtx.page);
+      }
+    } catch (e) {
+      console.warn('[Schedule] recycle-view init failed:', e && e.message);
+    }
+  },
+
+  _buildRecycleList(dayIdx, dir, animKey) {
+    const idx = typeof dayIdx === 'number' ? dayIdx : (this.data.currentDayIndex || 0);
+    const list = (this.data.scheduleData && this.data.scheduleData[idx]) || [];
+    const useDir = dir || this.data.swipeDir;
+    const useAnimKey = typeof animKey === 'number' ? animKey : this.data.cardAnimKey;
+    return list.map((item, index) => Object.assign({}, item, { __index__: index, __dir__: useDir, __anim__: useAnimKey }));
+  },
+
+  _getListAnimName(dir, animKey) {
+    const useDir = dir || this.data.swipeDir;
+    const useKey = typeof animKey === 'number' ? animKey : this.data.cardAnimKey;
+    // dir 表示滑动方向：'left' = 向左滑动（手指从右向左），内容从右侧进入
+    // 'right' = 向右滑动（手指从左向右），内容从左侧进入
+    let animName;
+    if (useDir === 'left') {
+      animName = useKey ? 'listInFromRight' : 'listInFromRight2';
+    } else {
+      animName = useKey ? 'listInFromLeft' : 'listInFromLeft2';
+    }
+    console.log('[Schedule] _getListAnimName:', { dir: useDir, animKey: useKey, result: animName });
+    return animName;
+  },
+
+  _updateRecycleList(allowRetry) {
+    const comp = this.selectComponent('#course-recycle');
+    if (!comp) {
+      if (allowRetry) {
+        if (this._recycleRetryTimer) clearTimeout(this._recycleRetryTimer);
+        this._recycleRetryTimer = setTimeout(() => {
+          this._recycleRetryTimer = null;
+          this._updateRecycleList(false);
+        }, 50);
+      }
+      return;
+    }
+    if (!this._recycleCtx) {
+      this._initRecycleView();
+      return;
+    }
+    const list = this._buildRecycleList();
+    try {
+      // 先同步一次 dataKey，避免组件尚未完成内部计算时空白
+      this.setData({ recycleList: list });
+      this._recycleCtx.update(0, list);
+    } catch (e) {
+      console.warn('[Schedule] recycle-view update failed:', e && e.message);
+      // 兜底：至少让列表显示出来
+      this.setData({ recycleList: list });
+      if (allowRetry) {
+        this._recycleCtx = null;
+        this._initRecycleView();
+      }
+    }
+  },
+
   onSwiperChange(e) {
     const idx = e.detail.current;
+    const prev = typeof this.data._lastSwiperIndex === 'number' ? this.data._lastSwiperIndex : this.data.currentDayIndex;
+    const dir = idx > prev ? 'left' : 'right';
+    
     // 节流：同一帧内多次触发只处理最后一次
     if (this._swiperChangeTimer) clearTimeout(this._swiperChangeTimer);
     this._swiperChangeTimer = setTimeout(() => {
@@ -303,7 +416,27 @@ Page({
       if (this.data.renderMin !== nearMin) updates.renderMin = nearMin;
       if (this.data.renderMax !== nearMax) updates.renderMax = nearMax;
       if (this.data.iconLoadError) updates.iconLoadError = false;
-      if (Object.keys(updates).length > 0) this.setData(updates);
+      if (idx !== this.data.currentDayIndex) {
+        console.log('[Schedule] swipe', { prev, idx, dir });
+        updates.swipeDir = dir;
+        updates.cardAnimKey = (this.data.cardAnimKey + 1) % 2;
+        updates._lastSwiperIndex = idx;
+      }
+      const nextDir = typeof updates.swipeDir === 'string' ? updates.swipeDir : this.data.swipeDir;
+      const nextAnimKey = typeof updates.cardAnimKey === 'number' ? updates.cardAnimKey : this.data.cardAnimKey;
+      updates.listAnimName = this._getListAnimName(nextDir, nextAnimKey);
+      const nextList = this._buildRecycleList(idx, nextDir, nextAnimKey);
+      if (Object.keys(updates).length > 0) {
+        this.setData(Object.assign({}, updates, { recycleList: nextList }), () => {
+          this._recycleCtx = null;
+          wx.nextTick(() => this._updateRecycleList(true));
+        });
+      } else {
+        this.setData({ recycleList: nextList }, () => {
+          this._recycleCtx = null;
+          wx.nextTick(() => this._updateRecycleList(true));
+        });
+      }
 
       if (this._renderExpandTimer) clearTimeout(this._renderExpandTimer);
       this._renderExpandTimer = setTimeout(() => {
@@ -315,6 +448,10 @@ Page({
         }
       }, 120);
     }, 16); // 一帧时间，合并连续触发
+  },
+
+  onSwiperAnimationFinish(e) {
+    // swiper 动画完成的回调（保留以防后续需要）
   },
 
   playIconEntrance() {},
@@ -401,6 +538,7 @@ Page({
             courses[index].reminderId = null
             courses[index].reminderMinutes = undefined
             this.setData({ scheduleData: updatedSchedule }, () => {
+              this._updateRecycleList();
               wx.setStorageSync('course_schedule', updatedSchedule)
               this.queueScheduleSync(300)
             })
@@ -531,6 +669,8 @@ Page({
       scheduleData: normalized.scheduleData,
       bgConfig: normalized.bgConfig,
       shareDirty: false
+    }, () => {
+      this._updateRecycleList();
     });
 
     if (persistLocal) {
@@ -878,6 +1018,8 @@ Page({
       modalClosing: true,
       scrollTop: 99999,
       scrollIntoView: targetViewId
+    }, () => {
+      this._updateRecycleList();
     });
     setTimeout(() => {
       this.setData({
