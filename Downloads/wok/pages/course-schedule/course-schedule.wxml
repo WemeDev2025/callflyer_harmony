@@ -27,7 +27,7 @@
   <!-- 课程表主体 - 使用 swiper 实现左右滑动 -->
   <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" display-multiple-items="{{1}}" circular="{{false}}">
     <swiper-item wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
-      <view class="day-content">
+      <view class="day-content" wx:if="{{dayIdx >= renderMin && dayIdx <= renderMax}}">
         <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeightRpx}}rpx; color: {{bgConfig.textColor}}">
           <view class="title-row" style="height: {{menuButtonHeightRpx}}rpx;">
             <view class="home-entry-inline" bindtap="goBack" style="width: {{iconSizeRpx}}rpx; height: {{iconSizeRpx}}rpx;">
@@ -36,7 +36,7 @@
             <text class="day-title-text">{{item.name}}</text>
           </view>
         </view>
-        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{scrollTop}}" scroll-into-view="{{scrollIntoView}}" scroll-with-animation="{{true}}">
+        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{dayIdx === currentDayIndex ? scrollTop : 0}}" scroll-into-view="{{dayIdx === currentDayIndex ? scrollIntoView : ''}}" scroll-with-animation="{{true}}">
         <block wx:if="{{scheduleData[dayIdx] && scheduleData[dayIdx].length > 0}}">
           <view class="course-card" 
                 wx:for="{{scheduleData[dayIdx]}}" 
@@ -68,6 +68,7 @@
         <view class="bottom-spacer"></view>
       </scroll-view>
     </view>
+    <view wx:else class="day-content"></view>
     </swiper-item>
   </swiper>
 

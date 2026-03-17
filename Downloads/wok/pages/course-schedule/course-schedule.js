@@ -72,6 +72,8 @@ Page({
       '/images/icon_home.png'
     ],
     scrollIntoView: '',
+    renderMin: 0,
+    renderMax: 2,
     shareCodeResult: '',
     shareLoading: false,
     shareCodeReady: false,
@@ -90,8 +92,11 @@ Page({
     this._loadOptions = options || {};
     this.initDate();
     this.initVoiceManager();
+    const todayIdx = this.getTodayIndex();
     this.setData({
-      currentDayIndex: this.getTodayIndex()
+      currentDayIndex: todayIdx,
+      renderMin: Math.max(0, todayIdx - 1),
+      renderMax: Math.min(6, todayIdx + 1)
     });
     console.log('[Schedule] emptyImages:', this.data.emptyImages);
     this.playIconEntrance();
@@ -200,11 +205,14 @@ Page({
   },
 
   onSwiperChange(e) {
+    const idx = e.detail.current;
     this.setData({
-      currentDayIndex: e.detail.current,
-      iconLoadError: false
+      currentDayIndex: idx,
+      iconLoadError: false,
+      // 只保留当前页 ±1 的渲染范围
+      renderMin: Math.max(0, idx - 1),
+      renderMax: Math.min(6, idx + 1)
     });
-    // 等待 swiper 滑动过渡完成后再播放动画
     setTimeout(() => {
       this.playIconEntrance();
     }, 50);
