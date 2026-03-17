@@ -1,6 +1,18 @@
 <!--pages/task/detail/detail.wxml-->
 <view class="container">
 
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="height: {{navBarHeight}}px;">
+    <!-- 分享页：显示房子图标回主页 -->
+    <view wx:if="{{fromShare}}" class="nav-home" style="top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px;" bindtap="goHome">
+      <image class="nav-home-icon" src="/images/icon_home.png" mode="aspectFit"></image>
+    </view>
+    <text class="nav-title" style="top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">{{navTitle}}</text>
+  </view>
+
+  <!-- 导航栏占位 -->
+  <view style="height: {{navBarHeight}}px;"></view>
+
   <!-- 统一的卡片内容 -->
   <view class="content">
     <!-- 任务状态显示（右上角，仅详情模式） -->

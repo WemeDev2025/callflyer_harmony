@@ -29,16 +29,25 @@
   display: block;
 }
 
+.bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  pointer-events: none;
+}
+
 /* Day Indicator Inside Swiper */
 .day-title-overlay {
   padding: 0 40rpx;
   background-color: transparent;
-  font-size: 44rpx; /* 稍微放大字号对齐胶囊高度 */
+  font-size: 44rpx;
   font-weight: 800;
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  animation: slideInRight 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 /* Schedule List Styles */
@@ -82,7 +91,6 @@
   display: flex;
   margin-bottom: 40rpx;
   min-height: 160rpx;
-  animation: slideInRight 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @keyframes slideInRight {
@@ -201,11 +209,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 24rpx;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(30rpx);
-  -webkit-backdrop-filter: blur(30rpx);
+  background: rgba(255, 255, 255, 0.85);
   z-index: 100;
   box-sizing: border-box;
+}
+
+.container.has-bg .bottom-bar {
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.25);
 }
 
 .bottom-bar.samsung-offset {
@@ -228,7 +241,6 @@
   overflow: hidden;
   box-sizing: border-box;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
-  padding: 0;
   border: none;
 }
 
@@ -254,12 +266,17 @@ button.action-btn::after {
 
 .bg-btn-action {
   background: #FFD54F;
-  color: #1A1A1A;
+  color: #ffffff;
 }
 
 .share-btn-action {
   background: #28C76F;
   color: #FFFFFF;
+  padding: 0;
+  margin: 0;
+  line-height: 96rpx;
+  font-size: 28rpx;
+  font-weight: 600;
 }
 
 .btn-icon {
@@ -724,8 +741,8 @@ button.action-btn::after {
 
 .vip-item {
   position: relative;
-  width: 180rpx; /* 增加宽度 */
-  height: 280rpx; /* 增加高度，更接近手机屏幕比例 */
+  width: 120rpx;
+  height: 187rpx;
   border-radius: 20rpx;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -748,7 +765,7 @@ button.action-btn::after {
   top: 8rpx;
   right: 8rpx;
   background: rgba(0, 0, 0, 0.6);
-  color: #FFD700;
+  color: #FDDE7F;
   font-size: 18rpx;
   padding: 2rpx 8rpx;
   border-radius: 4rpx;
@@ -761,6 +778,19 @@ button.action-btn::after {
   padding: 40rpx 0;
   width: 100%;
   text-align: center;
+}
+
+.vip-more-btn {
+  background: rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vip-more-text {
+  font-size: 26rpx;
+  color: #555;
+  font-weight: 500;
 }
 
 .box-label {

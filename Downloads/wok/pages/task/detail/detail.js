@@ -1,7 +1,7 @@
 // pages/task/detail/detail.js
 import { getTaskDetail, participateTask, randomSelectDish, getTaskByShareCode, createTask, subscribeTask, unsubscribeTask, getTaskSubscribeStatus } from '../../../utils/api.js'
 import { getToken } from '../../../utils/storage.js'
-import { requestSubscribeMessage, isAuthorized, getTemplateId } from '../../../utils/subscribeMessage.js'
+import { requestSubscribeMessage, isAuthorized } from '../../../utils/subscribeMessage.js'
 
 Page({
   data: {
@@ -39,17 +39,33 @@ Page({
     refreshTimer: null,  // 数据刷新定时器
     fromShare: false,  // 是否通过分享码进入
     hasParticipated: false,  // 用户是否已参与任务
-    subscribeMessageEnabled: false  // 订阅消息开关状态
+    subscribeMessageEnabled: false,  // 订阅消息开关状态
+    // 导航栏
+    navBarHeight: 88,
+    menuButtonTop: 44,
+    menuButtonHeight: 32,
+    navTitle: '当前铁锅'
   },
 
   onLoad(options) {
+    // 获取胶囊信息，对齐导航栏
+    try {
+      const menuButton = wx.getMenuButtonBoundingClientRect()
+      this.setData({
+        navBarHeight: menuButton.bottom + 8,
+        menuButtonTop: menuButton.top,
+        menuButtonHeight: menuButton.height
+      })
+    } catch (e) {}
+
     const { taskId, shareCode } = options
     if (shareCode) {
       // 通过分享码进入详情模式（从分享页进入）
       this.setData({ 
         mode: 'detail',
         fromShare: true,
-        shareCode
+        shareCode,
+        navTitle: '当前铁锅'
       })
       this.loadTaskByShareCode(shareCode)
     } else if (taskId) {
@@ -57,12 +73,13 @@ Page({
       this.setData({ 
         mode: 'detail',
         taskId,
-        fromShare: false  // 从列表页进入，不是分享
+        fromShare: false,
+        navTitle: '当前铁锅'
       })
       this.loadTaskDetail()
     } else {
       // 没有参数，进入创建模式
-      this.setData({ mode: 'create' })
+      this.setData({ mode: 'create', navTitle: '新建' })
       // 加载当前用户信息（用于显示创建者头像）
       this.loadCurrentUserInfo()
       // 启动 placeholder 自动切换
@@ -1209,6 +1226,7 @@ Page({
       // 查询后端订阅状态
       const status = await getTaskSubscribeStatus(this.data.taskId)
       console.log('[订阅消息] 后端订阅状态:', status)
+      console.log('[订阅消息] taskId:', this.data.taskId, 'subscribed:', status.subscribed)
       
       // 后端返回格式：{ subscribed: true/false }
       const subscribed = status.subscribed === true
@@ -1279,7 +1297,7 @@ Page({
     }
     
     // 获取模板ID
-    const templateId = getTemplateId()
+    const templateId = 'fzEGVEMzu6KiGg6hmIOco3OnXdnHK4ADSNrYFJsrsVM'
     
     // 先请求微信授权（每次调用都会弹出授权弹窗，这是微信的机制）
     // 注意：即使之前授权过，再次调用也会弹出授权弹窗
@@ -1287,13 +1305,15 @@ Page({
     requestSubscribeMessage([templateId])
       .then(result => {
         console.log('[订阅消息] 微信授权请求成功，结果:', result)
-        if (result.authorized) {
+        const accepted = result[templateId] === 'accept'
+        if (accepted) {
           console.log('[订阅消息] 用户已授权，开始调用后端接口保存订阅关系')
+          console.log('[订阅消息] taskId:', this.data.taskId, 'templateId:', templateId)
           // 用户同意授权，调用后端接口保存订阅关系
           return subscribeTask(this.data.taskId, templateId)
-            .then(() => {
+            .then((res) => {
               // 后端保存成功
-              console.log('[订阅消息] 后端保存订阅关系成功')
+              console.log('[订阅消息] 后端保存订阅关系成功, response:', res)
               this.setData({
                 subscribeMessageEnabled: true
               })
@@ -1448,6 +1468,19 @@ Page({
   /**
    * 页面卸载
    */
+  goBack() {
+    wx.navigateBack()
+  },
+
+  goHome() {
+    wx.reLaunch({
+      url: '/pages/index/index',
+      fail: () => {
+        wx.navigateTo({ url: '/pages/index/index' })
+      }
+    })
+  },
+
   onUnload() {
     // 清理定时器
     this.stopPlaceholderCarousel()

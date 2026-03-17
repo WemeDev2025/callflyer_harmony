@@ -1,6 +1,6 @@
 <!--pages/tasks/list/list.wxml-->
 <view class="container">
-  <view class="task-list">
+  <view class="task-list" style="padding-top: {{navBarHeight}}px;">
     <view class="task-item" wx:for="{{tasks}}" wx:key="taskId">
       <view class="task-header">
         <view class="creator-info">

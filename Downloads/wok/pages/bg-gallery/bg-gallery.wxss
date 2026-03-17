@@ -1,0 +1,115 @@
+/* pages/bg-gallery/bg-gallery.wxss */
+
+.container {
+  min-height: 100vh;
+  background: #FFFFFF;
+}
+
+/* 导航栏 */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #FFFFFF;
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.nav-back {
+  width: 80rpx;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 16rpx;
+}
+
+.nav-back-icon {
+  width: 88rpx;
+  height: 88rpx;
+}
+
+.nav-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1A1A1A;
+  pointer-events: none;
+}
+
+/* 滚动区域 */
+.gallery-scroll {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* 网格 */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6rpx;
+  padding: 18rpx;
+}
+
+/* 卡片 */
+.gallery-card {
+  position: relative;
+  border-radius: 12rpx;
+  overflow: hidden;
+  aspect-ratio: 9 / 12;
+  background: #EFEFEF;
+}
+
+.gallery-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 锁定蒙层 */
+.lock-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lock-icon {
+  font-size: 40rpx;
+}
+
+/* 使用按钮 */
+.use-btn {
+  position: absolute;
+  bottom: 12rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 32rpx;
+  padding: 8rpx 24rpx;
+}
+
+.use-btn-text {
+  font-size: 22rpx;
+  color: #FFFFFF;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 底部占位 */
+.bottom-spacer {
+  height: 60rpx;
+}

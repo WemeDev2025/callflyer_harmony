@@ -5,8 +5,9 @@
       src="{{bgConfig.url}}" 
       mode="aspectFill" 
       class="bg-image-real" 
-      style="opacity: {{bgConfig.opacity}}; filter: blur({{bgConfig.blur}}px);"
+      style="filter: blur({{bgConfig.blur}}px); margin: -{{bgConfig.blur * 2}}px; width: calc(100% + {{bgConfig.blur * 4}}px); height: calc(100% + {{bgConfig.blur * 4}}px);"
     ></image>
+    <view class="bg-overlay" style="opacity: {{bgConfig.opacity}}"></view>
   </view>
 
   <!-- 语音识别酷炫蒙层 -->
@@ -25,18 +26,18 @@
   </view>
   
   <!-- 课程表主体 - 使用 swiper 实现左右滑动 -->
-  <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" display-multiple-items="{{1}}" circular="{{false}}">
+  <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" display-multiple-items="{{1}}" circular="{{false}}" skip-hidden-item-layout="{{true}}">
     <swiper-item wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
       <view class="day-content" wx:if="{{dayIdx >= renderMin && dayIdx <= renderMax}}">
-        <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeightRpx}}rpx; color: {{bgConfig.textColor}}">
+        <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeightRpx}}rpx;">
           <view class="title-row" style="height: {{menuButtonHeightRpx}}rpx;">
             <view class="home-entry-inline" bindtap="goBack" style="width: {{iconSizeRpx}}rpx; height: {{iconSizeRpx}}rpx;">
               <image class="home-icon-img" src="{{emptyImages[dayIdx]}}" mode="aspectFit" style="width: {{iconSizeRpx}}rpx; height: {{iconSizeRpx}}rpx;"></image>
             </view>
-            <text class="day-title-text">{{item.name}}</text>
+            <text class="day-title-text" style="color: {{bgConfig.textColor}}">{{item.name}}</text>
           </view>
         </view>
-        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{dayIdx === currentDayIndex ? scrollTop : 0}}" scroll-into-view="{{dayIdx === currentDayIndex ? scrollIntoView : ''}}" scroll-with-animation="{{true}}">
+        <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{dayIdx === currentDayIndex ? scrollTop : 0}}" scroll-into-view="{{dayIdx === currentDayIndex ? scrollIntoView : ''}}" scroll-with-animation="{{false}}">
         <block wx:if="{{scheduleData[dayIdx] && scheduleData[dayIdx].length > 0}}">
           <view class="course-card" 
                 wx:for="{{scheduleData[dayIdx]}}" 
@@ -46,8 +47,7 @@
                 bindtap="onCourseTap" 
                 data-day="{{dayIdx}}" 
                 data-index="{{classIdx}}"
-                id="course-{{dayIdx}}-{{classIdx}}"
-                style="animation-delay: {{classIdx * 0.05}}s">
+                id="course-{{dayIdx}}-{{classIdx}}">
             <view class="course-time">
               <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
               <view class="time-line" style="background: {{bgConfig.textColor}}; opacity: 0.3"></view>
@@ -180,11 +180,15 @@
               <block wx:if="{{vipBackgrounds.length > 0}}">
                 <view class="vip-item {{bgConfig.url === item.url ? 'active' : ''}}" 
                       wx:for="{{vipBackgrounds}}" 
-                      wx:key="filename" 
+                      wx:key="filename"
+                      wx:if="{{index < 9}}"
                       bindtap="selectVipBackground" 
                       data-url="{{item.url}}">
                   <image src="{{item.url}}" mode="aspectFill" class="vip-img"></image>
-                  <view class="vip-tag">VIP</view>
+                  <view wx:if="{{!isVip}}" class="vip-tag">🔒</view>
+                </view>
+                <view wx:if="{{vipBackgrounds.length >= 9}}" class="vip-item vip-more-btn" bindtap="openBgGallery">
+                  <text class="vip-more-text">更多</text>
                 </view>
               </block>
               <view wx:else class="vip-loading">正在加载...</view>
@@ -197,7 +201,7 @@
 
         <view class="setting-item">
           <view class="setting-header">
-            <text class="label">透明度</text>
+            <text class="label">背景亮度</text>
             <text class="value">{{bgConfig.opacity}}</text>
           </view>
           <slider min="0" max="1" step="0.1" value="{{bgConfig.opacity}}" activeColor="#1A1A1A" bindchange="onOpacityChange" bindchanging="onOpacityChange" bindtouchstart="startAdjusting" bindtouchend="stopAdjusting" bindtouchcancel="stopAdjusting" />

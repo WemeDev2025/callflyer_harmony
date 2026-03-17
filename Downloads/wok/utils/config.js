@@ -38,12 +38,13 @@ function getRemoteConfig() {
  */
 function getDefaultConfig() {
   return {
-    showBanners: false, // 默认不显示广告图
-    bannerImageUrl: null, // 默认广告图URL为空
-    bannerClickType: null, // 默认无跳转
-    bannerClickPage: null, // 小程序页面路径
-    bannerClickUrl: null, // 网页URL
-    bannerClickMiniprogram: null // 其他小程序配置（JSON格式）
+    showBanners: false,
+    bannerImageUrl: null,
+    bannerClickType: null,
+    bannerClickPage: null,
+    bannerClickUrl: null,
+    bannerClickMiniprogram: null,
+    remindersEnabled: true  // 默认开启
   };
 }
 

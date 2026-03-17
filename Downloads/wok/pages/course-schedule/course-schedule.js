@@ -2,7 +2,7 @@
 const app = getApp();
 const plugin = requirePlugin('WechatSI');
 const manager = plugin.getRecordRecognitionManager();
-const { createReminder, cancelReminder, getMySchedule, saveMySchedule, createScheduleTemplate, cloneScheduleTemplate } = require('../../utils/api.js');
+const { createReminder, cancelReminder, getReminderById, getMySchedule, saveMySchedule, createScheduleTemplate, cloneScheduleTemplate } = require('../../utils/api.js');
 
 Page({
   data: {
@@ -48,13 +48,13 @@ Page({
     bgModalClosing: false,
     bgConfig: {
       url: '',
-      opacity: 0.5,
+      opacity: 0.2,
       blur: 0,
       textColor: '#1A1A1A'
     },
     defaultBgConfig: {
       url: '',
-      opacity: 0.5,
+      opacity: 0.2,
       blur: 0,
       textColor: '#1A1A1A'
     },
@@ -84,6 +84,7 @@ Page({
     iconAnim: {},
     iconLoadError: false,
     iconVisible: true,
+    isVip: false,
   },
 
   onLoad(options) {
@@ -93,10 +94,14 @@ Page({
     const todayIdx = this.getTodayIndex();
     this.setData({
       currentDayIndex: todayIdx,
-      renderMin: Math.max(0, todayIdx - 1),
-      renderMax: Math.min(6, todayIdx + 1)
+      renderMin: Math.max(0, todayIdx - 2),
+      renderMax: Math.min(6, todayIdx + 2),
+      isVip: !!(app.globalData && app.globalData.isVip)
     });
-    console.log('[Schedule] emptyImages:', this.data.emptyImages);
+    // globalData.isVip 可能还未就绪（登录异步），主动查一次确保准确
+    if (!app.globalData.isVip) {
+      this._fetchVipStatus();
+    }
     this.loadScheduleFromServer();
 
     this.fetchVipBackgrounds();
@@ -153,9 +158,81 @@ Page({
   },
 
   onShow() {
-    this.setData({
-      emptyImgTimestamp: Date.now()
-    });
+    const t0 = Date.now();
+    console.log('[Schedule] onShow START')
+    
+    // VIP 状态同步（同步执行，不延迟）
+    const isVip = !!(app.globalData && app.globalData.isVip);
+    if (isVip !== this.data.isVip) {
+      console.log('[Schedule] updating isVip:', isVip)
+      this.setData({ isVip });
+    }
+    if (!isVip) {
+      setTimeout(() => this._fetchVipStatus(), 100);
+    }
+
+    // 背景图更新（同步执行）
+    const pendingUrl = app.globalData.pendingBgUrl;
+    if (pendingUrl) {
+      console.log('[Schedule] applying pending bg:', pendingUrl.substring(0, 50))
+      app.globalData.pendingBgUrl = null;
+      const newBgConfig = Object.assign({}, this.data.bgConfig, { url: pendingUrl });
+      this.setData({ bgConfig: newBgConfig });
+      wx.setStorageSync('course_bg_config', newBgConfig);
+      this.queueScheduleSync(300);
+    } else {
+      const savedBg = wx.getStorageSync('course_bg_config');
+      if (savedBg && savedBg.url !== this.data.bgConfig.url) {
+        console.log('[Schedule] updating bg from storage')
+        this.setData({ bgConfig: Object.assign({}, this.data.bgConfig, savedBg) });
+      }
+    }
+
+    // emptyImgTimestamp 仅在“可见范围内存在空状态”时更新，避免返回页时无意义的大范围重绘
+    try {
+      const schedule = this.data.scheduleData || []
+      const min = Math.max(0, this.data.renderMin || 0)
+      const max = Math.min(6, this.data.renderMax || 6)
+      let hasEmptyVisibleDay = false
+      for (let i = min; i <= max; i++) {
+        const day = schedule[i]
+        if (!day || day.length === 0) { hasEmptyVisibleDay = true; break }
+      }
+      if (hasEmptyVisibleDay) {
+        if (this._emptyImgTsTimer) clearTimeout(this._emptyImgTsTimer)
+        this._emptyImgTsTimer = setTimeout(() => {
+          this._emptyImgTsTimer = null
+          this.setData({ emptyImgTimestamp: Date.now() })
+        }, 200)
+      }
+    } catch (e) {}
+    
+    const t1 = Date.now();
+    console.log('[Schedule] onShow DONE, total:', t1 - t0, 'ms')
+  },
+
+  /**
+   * app.js refreshVipStatus 完成后的回调，保持页面状态同步
+   */
+  onVipUpdate(isVip) {
+    this.setData({ isVip: !!isVip });
+  },
+
+  /**
+   * 主动查询 VIP 状态（onLoad 时 globalData 可能还未就绪）
+   * 直接从 profile 接口读 isVip，与 app.js 保持一致
+   */
+  async _fetchVipStatus() {
+    try {
+      const { getProfile } = require('../../utils/api.js');
+      const profile = await getProfile();
+      const isVip = !!(profile && profile.isVip);
+      app.globalData.isVip = isVip;
+      this.setData({ isVip });
+      console.log('[Schedule] VIP 状态:', isVip);
+    } catch (e) {
+      console.warn('[Schedule] 获取 VIP 状态失败:', e.message || e);
+    }
   },
 
   onUnload() {
@@ -164,6 +241,18 @@ Page({
     if (this._scheduleSyncTimer) {
       clearTimeout(this._scheduleSyncTimer);
       this._scheduleSyncTimer = null;
+    }
+    if (this._swiperChangeTimer) {
+      clearTimeout(this._swiperChangeTimer);
+      this._swiperChangeTimer = null;
+    }
+    if (this._renderExpandTimer) {
+      clearTimeout(this._renderExpandTimer);
+      this._renderExpandTimer = null;
+    }
+    if (this._emptyImgTsTimer) {
+      clearTimeout(this._emptyImgTsTimer)
+      this._emptyImgTsTimer = null
     }
     if (this._shareCodeTimer) {
       clearTimeout(this._shareCodeTimer);
@@ -203,12 +292,29 @@ Page({
 
   onSwiperChange(e) {
     const idx = e.detail.current;
-    this.setData({
-      currentDayIndex: idx,
-      iconLoadError: false,
-      renderMin: Math.max(0, idx - 1),
-      renderMax: Math.min(6, idx + 1)
-    });
+    // 节流：同一帧内多次触发只处理最后一次
+    if (this._swiperChangeTimer) clearTimeout(this._swiperChangeTimer);
+    this._swiperChangeTimer = setTimeout(() => {
+      this._swiperChangeTimer = null;
+      const nearMin = Math.max(0, idx - 1);
+      const nearMax = Math.min(6, idx + 1);
+      const updates = {};
+      if (idx !== this.data.currentDayIndex) updates.currentDayIndex = idx;
+      if (this.data.renderMin !== nearMin) updates.renderMin = nearMin;
+      if (this.data.renderMax !== nearMax) updates.renderMax = nearMax;
+      if (this.data.iconLoadError) updates.iconLoadError = false;
+      if (Object.keys(updates).length > 0) this.setData(updates);
+
+      if (this._renderExpandTimer) clearTimeout(this._renderExpandTimer);
+      this._renderExpandTimer = setTimeout(() => {
+        this._renderExpandTimer = null;
+        const farMin = Math.max(0, idx - 2);
+        const farMax = Math.min(6, idx + 2);
+        if (this.data.renderMin !== farMin || this.data.renderMax !== farMax) {
+          this.setData({ renderMin: farMin, renderMax: farMax });
+        }
+      }, 120);
+    }, 16); // 一帧时间，合并连续触发
   },
 
   playIconEntrance() {},
@@ -253,6 +359,7 @@ Page({
   onCourseTap(e) {
     const { day, index } = e.currentTarget.dataset;
     const course = this.data.scheduleData[day][index];
+    console.log('[Schedule] onCourseTap course:', JSON.stringify(course));
     
     this.setData({
       showModal: true,
@@ -269,11 +376,49 @@ Page({
         reminderId: course.reminderId || null
       }
     });
+    // 恢复提醒时间选项
+    if (course.reminderId && course.reminderMinutes !== undefined) {
+      const idx = this.data.reminderValues.indexOf(course.reminderMinutes)
+      this.setData({ reminderIndex: idx >= 0 ? idx : 0 })
+    } else {
+      this.setData({ reminderIndex: 0 })
+    }
+
+    // 如果有 reminderId，异步检查是否已发送完成
+    if (course.reminderId) {
+      getReminderById(course.reminderId).then(reminder => {
+        const done = reminder && (reminder.status === 'sent' || reminder.status === 'failed')
+        if (done) {
+          console.log('[Reminder] status:', reminder.status, '- clearing reminderId')
+          this.setData({
+            'newCourse.isEndReminderEnabled': false,
+            'newCourse.reminderId': null,
+            reminderIndex: 0
+          })
+          const updatedSchedule = JSON.parse(JSON.stringify(this.data.scheduleData))
+          const courses = updatedSchedule[day]
+          if (courses[index]) {
+            courses[index].reminderId = null
+            courses[index].reminderMinutes = undefined
+            this.setData({ scheduleData: updatedSchedule }, () => {
+              wx.setStorageSync('course_schedule', updatedSchedule)
+              this.queueScheduleSync(300)
+            })
+          }
+        }
+      }).catch(() => {
+        // 查询失败静默处理，不影响编辑
+      })
+    }
   },
 
   showBgEditor() {
     this.setData({ showBgModal: true });
     console.log('[BG] Editor opened, current config:', this.data.bgConfig);
+  },
+
+  openBgGallery() {
+    wx.navigateTo({ url: '/pages/bg-gallery/bg-gallery' });
   },
 
   hideBgEditor() {
@@ -287,31 +432,14 @@ Page({
   },
 
   fetchVipBackgrounds() {
-    console.log('[BG] Fetching VIP backgrounds...');
-    wx.request({
-      url: 'https://wemedev.com/wok/api/bg-images',
-      success: (res) => {
-        console.log('[BG] API Result:', res.data);
-        if (res.data && res.data.items && res.data.items.length > 0) {
-          // 过滤掉作为默认缺省图使用的文件
-          const filtered = res.data.items.filter(item => 
-            item.filename !== 'pic_default.png' && item.filename !== 'pic_share.png'
-          );
-          this.setData({ vipBackgrounds: filtered });
-        } else {
-          console.warn('[BG] No backgrounds returned from API, using defaults');
-          // 提供一个默认精品背景防止列表为空
-          this.setData({
-            vipBackgrounds: [
-              { url: 'https://wemedev.com/wok/data/images/pic_wok.png', filename: 'demo.png' }
-            ]
-          });
+    if (!app || typeof app.getBgList !== 'function') return
+    app.getBgList({ backgroundRefresh: true })
+      .then(list => {
+        if (Array.isArray(list) && list.length > 0) {
+          this.setData({ vipBackgrounds: list })
         }
-      },
-      fail: (err) => {
-        console.error('[BG] API Failed:', err);
-      }
-    });
+      })
+      .catch(() => {})
   },
 
   /**
@@ -508,12 +636,23 @@ Page({
 
   selectVipBackground(e) {
     const { url } = e.currentTarget.dataset;
+    // VIP 门控：选择精品背景需要 VIP
+    if (!this.data.isVip) {
+      wx.showModal({
+        title: '解锁 VIP',
+        content: '精品背景是 VIP 专属功能\n\n解锁内容：VIP 背景 + 下课提醒\n价格：¥6 永久解锁',
+        confirmText: '去解锁',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/profile/profile' });
+          }
+        }
+      });
+      return;
+    }
     wx.vibrateShort({ type: 'medium' });
-    this.setData({
-      'bgConfig.url': url
-    }, () => {
-      this.saveBgConfig();
-    });
+    this.setData({ 'bgConfig.url': url }, () => { this.saveBgConfig(); });
   },
 
   chooseBackground() {
@@ -554,7 +693,24 @@ Page({
   },
 
   onEndReminderToggle(e) {
-    this.setData({ 'newCourse.isEndReminderEnabled': e.detail.value });
+    const enabled = e.detail.value;
+    // VIP 门控：下课提醒需要 VIP
+    if (enabled && !this.data.isVip) {
+      this.setData({ 'newCourse.isEndReminderEnabled': false });
+      wx.showModal({
+        title: '解锁 VIP',
+        content: '下课提醒是 VIP 专属功能\n\n解锁内容：VIP 背景 + 下课提醒\n价格：¥6 永久解锁',
+        confirmText: '去解锁',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/profile/profile' });
+          }
+        }
+      });
+      return;
+    }
+    this.setData({ 'newCourse.isEndReminderEnabled': enabled });
   },
 
   onEndReminderTimeChange(e) {
@@ -638,7 +794,8 @@ Page({
       endTime,
       location,
       color: isEditing ? this.data.scheduleData[editingDay][editingIndex].color : this.data.colors[Math.floor(Math.random() * this.data.colors.length)],
-      reminderId: reminderId || null  // 保留已有提醒ID
+      reminderId: reminderId || null,  // 保留已有提醒ID
+      reminderMinutes: isEndReminderEnabled ? (this.data.reminderValues[this.data.reminderIndex] || 0) : undefined
     };
 
     if (isEditing) {
@@ -653,6 +810,12 @@ Page({
 
     // 如果开启了下课提醒，必须在用户点击事件的同步链中直接调用 requestSubscribeMessage
     if (isEndReminderEnabled) {
+      // 已有提醒ID，直接保存，不重复创建
+      if (reminderId) {
+        this._saveScheduleData(scheduleData, dayIdx, entry, isEditing, editingDay, editingIndex);
+        return;
+      }
+
       const REMINDER_TEMPLATE_ID = '4ulitsyR2Oor9s9pyBnD1uf7GQEwqeQMYIQdCDm7HwU';
       
       wx.requestSubscribeMessage({
@@ -736,6 +899,14 @@ Page({
    */
   async _createCourseReminder(entry, dayIdx, scheduleData) {
     try {
+      // 检查全局提醒开关
+      const { getConfig } = require('../../utils/config.js')
+      const config = await getConfig(0)
+      if (config && config.remindersEnabled === false) {
+        wx.showToast({ title: '提醒功能暂未开放', icon: 'none' })
+        return
+      }
+
       const userInfo = app.globalData && app.globalData.userInfo;
       const userName = (userInfo && userInfo.nickname) || '同学';
       
@@ -759,15 +930,24 @@ Page({
       console.log('[Reminder] created:', result);
       
       // 把 reminderId 存回课程数据
-      if (result && result.id) {
+      const newReminderId = result && (result.id || result.reminderId)
+      console.log('[Reminder] result fields:', result && Object.keys(result), 'reminderId:', newReminderId)
+      if (newReminderId) {
         const updatedSchedule = JSON.parse(JSON.stringify(this.data.scheduleData));
         const courses = updatedSchedule[dayIdx];
         const idx = courses.findIndex(c => c.name === entry.name && c.startTime === entry.startTime);
+        console.log('[Reminder] writing reminderId back, idx:', idx, 'entry:', entry.name, entry.startTime, 'reminderId:', newReminderId);
         if (idx !== -1) {
-          courses[idx].reminderId = result.id;
+          courses[idx].reminderId = newReminderId;
+          courses[idx].reminderMinutes = this.data.reminderValues[this.data.reminderIndex] || 0;
+          console.log('[Reminder] scheduleData after update:', JSON.stringify(courses[idx]));
           this.setData({ scheduleData: updatedSchedule }, () => {
             wx.setStorageSync('course_schedule', updatedSchedule);
+            console.log('[Reminder] saved to storage, reminderId:', updatedSchedule[dayIdx][idx].reminderId);
+            this.queueScheduleSync(300);
           });
+        } else {
+          console.warn('[Reminder] course not found in scheduleData! entry:', entry.name, entry.startTime, 'day courses:', JSON.stringify(courses.map(c => ({name: c.name, startTime: c.startTime}))));
         }
       }
       

@@ -1,4 +1,5 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "当前铁锅"
+  "navigationBarTitleText": "当前铁锅",
+  "navigationStyle": "custom"
 }

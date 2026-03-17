@@ -3,6 +3,53 @@
   min-height: 100vh;
   background-color: #FFE6A8;
   padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── 自定义导航栏 ── */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: #FFE6A8;
+  box-sizing: border-box;
+}
+
+.nav-back {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88rpx;
+  padding-left: 16rpx;
+  box-sizing: border-box;
+}
+
+.nav-back-arrow {
+  font-size: 60rpx;
+  color: #333;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.nav-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.nav-placeholder {
+  width: 88rpx;
 }
 
 .form-section {
@@ -24,7 +71,6 @@
   width: 200rpx;
   height: 200rpx;
   border-radius: 50%;
-  border: 4rpx solid #e0e0e0;
   margin-bottom: 20rpx;
   background-color: #f0f0f0;
   display: flex;
@@ -78,4 +124,94 @@
 .save-btn {
   margin-top: 40rpx;
 }
+
+/* ── VIP 区域 ── */
+.vip-section {
+  width: 82%;
+}
+
+/* 已是 VIP 的徽章 */
+.vip-badge {
+  background: linear-gradient(135deg, #2C2C2C, #4A3728);
+  border-radius: 30rpx;
+  padding: 36rpx 40rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.vip-crown {
+  width: 64rpx;
+  height: 64rpx;
+  flex-shrink: 0;
+}
+
+.vip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.vip-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #FDDE7F;
+}
+
+.vip-desc {
+  font-size: 24rpx;
+  color: #FDDE7F;
+}
+
+/* 未购买 VIP 的卡片 */
+.vip-card {
+  background: linear-gradient(135deg, #1A1A1A, #3D2B1F);
+  border-radius: 30rpx;
+  padding: 36rpx 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vip-card:active {
+  opacity: 0.85;
+}
+
+.vip-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.vip-card-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #FDDE7F;
+}
+
+.vip-card-desc {
+  font-size: 24rpx;
+  color: #FDDE7F;
+}
+
+.vip-card-price {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4rpx;
+}
+
+.vip-card-btn {
+  background: #FDDE7F;
+  color: #1A1A1A;
+  font-size: 26rpx;
+  font-weight: 700;
+  padding: 18rpx 32rpx;
+  border-radius: 40rpx;
+  white-space: nowrap;
+}
+
+.vip-card-btn.loading {
+  opacity: 0.6;
+}
+
 

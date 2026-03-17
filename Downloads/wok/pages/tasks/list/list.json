@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "他们在吃啥",
+  "navigationStyle": "custom",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "light",
   "usingComponents": {}

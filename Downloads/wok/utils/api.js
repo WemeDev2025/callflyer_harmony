@@ -392,6 +392,16 @@ export function cancelReminder(reminderId) {
 }
 
 /**
+ * 查询单条提醒状态（通过列表过滤）
+ */
+export function getReminderById(reminderId) {
+  return request('/reminders', 'GET').then(res => {
+    const list = (res && res.items) || res || []
+    return list.find(r => r.reminderId === reminderId || r.id === reminderId) || null
+  })
+}
+
+/**
  * 获取当前用户的课程表
  */
 export function getMySchedule() {
@@ -424,4 +434,38 @@ export function getScheduleTemplate(shareCode) {
  */
 export function cloneScheduleTemplate(shareCode) {
   return request(`/schedule/clone/${shareCode}`, 'POST')
+}
+
+// ─── VIP / 微信支付 ───────────────────────────────────────────────
+
+/**
+ * 查询当前用户 VIP 状态
+ * 返回 { is_vip: boolean }
+ */
+export function getVipStatus() {
+  return request('/vip/status', 'GET')
+}
+
+/**
+ * 创建微信支付订单
+ * 返回 { order_id, prepay_id }
+ */
+export function createPayOrder(openid) {
+  return request('/wechat/wxpay/create-order', 'POST', { openid })
+}
+
+/**
+ * 生成微信支付签名参数
+ * 返回 { timeStamp, nonceStr, package, signType, paySign }
+ */
+export function generatePaySign(prepayId) {
+  return request('/wechat/wxpay/generate-sign', 'POST', { prepay_id: prepayId })
+}
+
+/**
+ * 查询订单支付状态（可选轮询）
+ * 返回 { status, is_paid }
+ */
+export function queryPayOrder(orderId) {
+  return request(`/wechat/wxpay/query/${orderId}`, 'GET')
 }

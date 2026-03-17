@@ -29,14 +29,20 @@
     </view>
   </view>
 
-  <!-- 用户信息 - 页面左上角 -->
-  <view class="user-info" wx:if="{{userInfo}}">
-    <view class="user-info-left">
-      <view class="user-avatar" bindtap="goToProfile">
+  <!-- 用户信息 - 顶部对齐胶囊 -->
+  <view 
+    class="user-info" 
+    wx:if="{{userInfo}}" 
+    hover-class="none"
+    style="top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; right: {{menuButtonLeft}}px;"
+  >
+    <view class="user-info-left" hover-class="none" bindtap="goToProfile">
+      <view class="user-avatar" hover-class="none">
         <image wx:if="{{userInfo.avatar_url}}" class="avatar-image" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
         <text wx:else class="avatar-text">饿</text>
       </view>
-      <text class="user-nickname">{{userInfo.nickname || '怎么称呼'}}</text>
+      <text class="user-nickname" hover-class="none">{{userInfo.nickname || '怎么称呼'}}</text>
+      <image wx:if="{{userInfo.isVip}}" class="vip-icon" src="https://wemedev.com/wok/data/images/icon_vip.png" mode="aspectFit"></image>
     </view>
   </view>
 

@@ -45,10 +45,28 @@ Page({
     globalBannerConfig: null,  // 全局广告图配置（从 /api/config 获取）
     adImageShown: false,  // 是否已经显示过广告图（本次会话中，避免重复显示）
     // 订阅消息引导弹窗
-    showSubscribeGuide: false  // 是否显示订阅消息引导弹窗
+    showSubscribeGuide: false,  // 是否显示订阅消息引导弹窗
+    // 顶部安全区
+    statusBarHeight: 20,
+    menuButtonTop: 8,
+    menuButtonHeight: 32,
+    menuButtonLeft: 0   // 胶囊左边界
   },
 
   onLoad() {
+    // 获取系统信息，对齐胶囊按钮
+    try {
+      const sysInfo = wx.getSystemInfoSync()
+      const menuButton = wx.getMenuButtonBoundingClientRect()
+      this.setData({
+        statusBarHeight: sysInfo.statusBarHeight,
+        menuButtonTop: menuButton.top,       // 与胶囊 top 完全对齐
+        menuButtonHeight: menuButton.height, // 与胶囊同高
+        menuButtonLeft: menuButton.left      // 胶囊左边界，user-info 右边不超过这里
+      })
+    } catch (e) {
+      console.warn('[Index] 获取系统信息失败:', e)
+    }
     this.loadUserInfo()
     // 页面加载时启动动画
     this.startAnimation()

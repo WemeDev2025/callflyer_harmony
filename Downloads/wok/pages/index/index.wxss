@@ -6,7 +6,7 @@
   max-width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #FFFFFF;
+  background-color: #FFE6A8;
   overflow-x: hidden;
   box-sizing: border-box;
 }
@@ -242,6 +242,7 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  margin-top: 180rpx;
 }
 
 .wok-container {
@@ -520,28 +521,30 @@
 }
 
 .user-info {
+  position: absolute;
+  left: 0;
+  /* right 由内联 style 动态设置，对齐胶囊左边界 */
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 100%;
-  padding: 0 66rpx;
+  padding: 0 24rpx;
   box-sizing: border-box;
-  overflow: hidden;
+  z-index: 100;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .user-info-left {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 20rpx;
-  min-width: 0;
+  height: 100%;
+  gap: 16rpx;
+  padding-left: 16rpx;
 }
 
 .user-avatar {
-  width: 114rpx;
-  height: 114rpx;
+  width: 90rpx;
+  height: 90rpx;
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
@@ -551,6 +554,7 @@
   background-color: #f0f0f0;
   overflow: hidden;
   flex-shrink: 0;
+  margin-left: 18rpx;
 }
 
 .avatar-image {
@@ -567,12 +571,19 @@
 }
 
 .user-nickname {
-  font-size: 38rpx;
+  font-size: 57rpx;
   color: #353535;
   white-space: nowrap;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.vip-icon {
+  width: 66rpx;
+  height: 66rpx;
+  flex-shrink: 0;
+  margin-left: 8rpx;
 }
 
 /* 轮播文案卡片 */
@@ -634,17 +645,19 @@
   justify-content: center;
   width: 100%;
   height: 88rpx;
-  background-color:#000000;
+  background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 50%, #1a1a1a 100%);
   color: #fff;
   border-radius: 66rpx;
   font-size: 28rpx;
   white-space: nowrap;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.35);
 }
 
 .action-btn.primary-btn {
-  background-color:#000000;
+  background: linear-gradient(135deg, #111111 0%, #444444 50%, #111111 100%);
   font-weight: bold;
   font-size: 28rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.45);
 }
 
 .action-btn.test-btn {

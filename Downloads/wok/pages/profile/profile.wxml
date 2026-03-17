@@ -1,20 +1,28 @@
 <!--pages/profile/profile.wxml-->
 <view class="container">
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="height: {{navBarHeight}}px;">
+     <text class="nav-title" style="top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px;">个人资料</text>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <!-- 导航栏占位 -->
+  <view style="height: {{navBarHeight}}px;"></view>
+
   <view class="form-section">
     <view class="avatar-section">
       <view class="avatar" bindtap="chooseAvatar">
         <image wx:if="{{userInfo.avatar_url}}" class="avatar-image" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
-        <text wx:else class="avatar-text">饿</text>
+        <text wx:else class="avatar-text">我</text>
       </view>
       <view class="avatar-tip">点击更换头像</view>
     </view>
 
     <view class="form-item">
-      <text class="label">昵称</text>
-      <input 
-        class="input" 
-        type="text" 
-        placeholder="请输入昵称" 
+      <input
+        class="input"
+        type="text"
+        placeholder="请输入昵称"
         value="{{userInfo.nickname || ''}}"
         bindinput="onNicknameInput"
         maxlength="20"
@@ -25,5 +33,28 @@
       {{saving ? '保存中...' : '保存'}}
     </button>
   </view>
-</view>
 
+  <!-- VIP 区域 -->
+  <view class="vip-section">
+    <!-- 已是 VIP -->
+    <view wx:if="{{isVip}}" class="vip-badge">
+      <image class="vip-crown" src="https://wemedev.com/wok/data/images/icon_vip.png" mode="aspectFit"></image>
+      <view class="vip-info">
+        <text class="vip-title">VIP 已解锁</text>
+        <text class="vip-desc">VIP 背景 · 下课提醒 已全部开放</text>
+      </view>
+    </view>
+
+    <!-- 未购买 VIP -->
+    <view wx:else class="vip-card" bindtap="onBuyVip">
+      <view class="vip-card-left">
+        <text class="vip-card-title">解锁 VIP</text>
+        <text class="vip-card-desc">VIP 精品背景 + 下课提醒</text>
+        <text class="vip-card-price">¥6 · 一次付费永久解锁</text>
+      </view>
+      <view class="vip-card-btn {{purchasing ? 'loading' : ''}}">
+        <text>{{purchasing ? '...' : '立即解锁'}}</text>
+      </view>
+    </view>
+  </view>
+</view>

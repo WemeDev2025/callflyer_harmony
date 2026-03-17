@@ -8,6 +8,63 @@
   width: 100%;
 }
 
+/* ── 自定义导航栏 ── */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background-color: #FFE6A8;
+  box-sizing: border-box;
+}
+
+.nav-back {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140rpx;
+  padding-left: 16rpx;
+  box-sizing: border-box;
+}
+
+.nav-back-arrow {
+  font-size: 60rpx;
+  color: #333;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.nav-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.nav-home {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140rpx;
+  padding-left: 16rpx;
+  box-sizing: border-box;
+}
+
+.nav-home-icon {
+  width: 100rpx !important;
+  height: 100rpx !important;
+}
+
 /* 创建模式样式 */
 .form-item {
   margin-bottom: 40rpx;
