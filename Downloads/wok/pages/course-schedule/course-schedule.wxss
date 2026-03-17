@@ -273,49 +273,27 @@ button.action-btn::after {
   line-height: 1;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
 .home-entry-inline {
-  width: 70rpx;
-  height: 70rpx;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 35rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.12);
-  margin-top: -5rpx;
+  margin-top: 0;
 }
 
 .day-title-text {
-  font-size: 52rpx;
+  font-size: 57rpx;
   font-weight: 700;
-  margin-left: 18rpx;
+  margin-left: 0;
 }
 
-.home-icon {
-  position: relative;
-  width: 40rpx;
-  height: 35rpx;
-}
-
-.home-roof {
-  position: absolute;
-  left: 2rpx;
-  top: 0;
-  width: 0;
-  height: 0;
-  border-left: 18rpx solid transparent;
-  border-right: 18rpx solid transparent;
-  border-bottom: 18rpx solid #1A1A1A;
-}
-
-.home-body {
-  position: absolute;
-  left: 8rpx;
-  bottom: 0;
-  width: 24rpx;
-  height: 22rpx;
-  background: #1A1A1A;
-  border-radius: 2rpx;
+.home-icon-img {
+  display: block;
 }
 
 .voice-pulse {

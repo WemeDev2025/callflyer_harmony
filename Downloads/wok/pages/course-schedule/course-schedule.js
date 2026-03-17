@@ -62,12 +62,23 @@ Page({
     emptyImgTimestamp: Date.now(),
     isAdjustingBg: false,
     scrollTop: 0,
+    emptyImages: [
+      '/images/emo1.png',
+      '/images/emo2.png',
+      '/images/emo3.png',
+      '/images/emo4.png',
+      '/images/emo5.png',
+      '/images/icon_home.png',
+      '/images/icon_home.png'
+    ],
     scrollIntoView: '',
     shareCodeResult: '',
     shareLoading: false,
     shareCodeReady: false,
     shareDirty: false,
-    isSamsung: false
+    isSamsung: false,
+    menuButtonHeightRpx: 64,
+    iconSizeRpx: 58
   },
 
   onLoad(options) {
@@ -92,11 +103,15 @@ Page({
         statusBarHeight: info.statusBarHeight,
         menuButtonTop: menuButton.top,
         menuButtonHeight: menuButton.height,
+        menuButtonHeightRpx: menuButton.height * 2,
+        iconSizeRpx: Math.round(menuButton.height * 2 * 1.53),
         isSamsung: isSamsung
       });
     } catch (e) {
       this.setData({
         statusBarHeight: info.statusBarHeight,
+        menuButtonHeightRpx: 64,
+        iconSizeRpx: 99,
         isSamsung: isSamsung
       });
     }

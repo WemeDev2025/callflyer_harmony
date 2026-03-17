@@ -28,14 +28,13 @@
   <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" display-multiple-items="{{1}}" circular="{{false}}">
     <swiper-item wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
       <view class="day-content">
-        <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px; line-height: {{menuButtonHeight}}px; color: {{bgConfig.textColor}}">
-          <view class="home-entry-inline" bindtap="goBack">
-            <view class="home-icon">
-              <view class="home-roof"></view>
-              <view class="home-body"></view>
+        <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeightRpx}}rpx; color: {{bgConfig.textColor}}">
+          <view class="title-row" style="height: {{menuButtonHeightRpx}}rpx;">
+            <view class="home-entry-inline" bindtap="goBack" style="width: {{iconSizeRpx}}rpx; height: {{iconSizeRpx}}rpx;">
+              <image class="home-icon-img" src="{{emptyImages[dayIdx]}}" mode="aspectFit" style="width: {{iconSizeRpx}}rpx; height: {{iconSizeRpx}}rpx;"></image>
             </view>
+            <text class="day-title-text">{{item.name}}</text>
           </view>
-          <text class="day-title-text">{{item.name}}</text>
         </view>
         <scroll-view scroll-y class="day-scroll" show-scrollbar="{{false}}" enhanced="{{true}}" scroll-top="{{scrollTop}}" scroll-into-view="{{scrollIntoView}}" scroll-with-animation="{{true}}">
         <block wx:if="{{scheduleData[dayIdx] && scheduleData[dayIdx].length > 0}}">
