@@ -78,7 +78,12 @@ Page({
     shareDirty: false,
     isSamsung: false,
     menuButtonHeightRpx: 64,
-    iconSizeRpx: 58
+    iconSizeRpx: 58,
+    iconAnim: {},
+    iconLoadError: false,
+    iconVisible: true,
+    iconAnimKey: 0,
+    iconEntranceClass: ''
   },
 
   onLoad(options) {
@@ -88,6 +93,8 @@ Page({
     this.setData({
       currentDayIndex: this.getTodayIndex()
     });
+    console.log('[Schedule] emptyImages:', this.data.emptyImages);
+    this.playIconEntrance();
     this.loadScheduleFromServer();
 
     this.fetchVipBackgrounds();
@@ -106,6 +113,8 @@ Page({
         menuButtonHeightRpx: menuButton.height * 2,
         iconSizeRpx: Math.round(menuButton.height * 2 * 1.53),
         isSamsung: isSamsung
+      }, () => {
+        console.log('[Schedule] iconSizeRpx:', this.data.iconSizeRpx);
       });
     } catch (e) {
       this.setData({
@@ -192,7 +201,27 @@ Page({
 
   onSwiperChange(e) {
     this.setData({
-      currentDayIndex: e.detail.current
+      currentDayIndex: e.detail.current,
+      iconLoadError: false
+    });
+    // 等待 swiper 滑动过渡完成后再播放动画
+    setTimeout(() => {
+      this.playIconEntrance();
+    }, 50);
+  },
+
+  playIconEntrance() {
+    // 先移除 class，下一帧重新加上，触发 CSS 动画重播
+    this.setData({ iconEntranceClass: '' });
+    setTimeout(() => {
+      this.setData({ iconEntranceClass: 'play-entrance' });
+    }, 20);
+  },
+
+  onIconError(e) {
+    console.warn('[Schedule] icon load error:', e);
+    this.setData({
+      iconLoadError: true
     });
   },
 

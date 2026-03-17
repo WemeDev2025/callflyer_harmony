@@ -296,6 +296,35 @@ button.action-btn::after {
   display: block;
 }
 
+.home-icon-img.play-entrance {
+  animation: iconEntrance 2s ease-out forwards;
+}
+
+@keyframes iconEntrance {
+  0% {
+    transform: scale(0.5);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.fallback-icon {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fallback-icon-text {
+  font-size: 36rpx;
+  line-height: 1;
+}
+
 .voice-pulse {
   position: absolute;
   top: 0;
