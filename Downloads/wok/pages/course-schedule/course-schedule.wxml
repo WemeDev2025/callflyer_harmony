@@ -31,7 +31,7 @@
         <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeightRpx}}rpx; color: {{bgConfig.textColor}}">
           <view class="title-row" style="height: {{menuButtonHeightRpx}}rpx;">
             <view class="home-entry-inline" bindtap="goBack" style="width: {{iconSizeRpx}}rpx; height: {{iconSizeRpx}}rpx;">
-              <image class="home-icon-img {{iconEntranceClass}}" src="{{emptyImages[dayIdx]}}" mode="aspectFit" style="width: {{iconSizeRpx}}rpx; height: {{iconSizeRpx}}rpx;"></image>
+              <image class="home-icon-img" src="{{emptyImages[dayIdx]}}" mode="aspectFit" style="width: {{iconSizeRpx}}rpx; height: {{iconSizeRpx}}rpx;"></image>
             </view>
             <text class="day-title-text">{{item.name}}</text>
           </view>

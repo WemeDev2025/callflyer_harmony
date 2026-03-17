@@ -84,8 +84,6 @@ Page({
     iconAnim: {},
     iconLoadError: false,
     iconVisible: true,
-    iconAnimKey: 0,
-    iconEntranceClass: ''
   },
 
   onLoad(options) {
@@ -99,7 +97,6 @@ Page({
       renderMax: Math.min(6, todayIdx + 1)
     });
     console.log('[Schedule] emptyImages:', this.data.emptyImages);
-    this.playIconEntrance();
     this.loadScheduleFromServer();
 
     this.fetchVipBackgrounds();
@@ -209,22 +206,12 @@ Page({
     this.setData({
       currentDayIndex: idx,
       iconLoadError: false,
-      // 只保留当前页 ±1 的渲染范围
       renderMin: Math.max(0, idx - 1),
       renderMax: Math.min(6, idx + 1)
     });
-    setTimeout(() => {
-      this.playIconEntrance();
-    }, 50);
   },
 
-  playIconEntrance() {
-    // 先移除 class，下一帧重新加上，触发 CSS 动画重播
-    this.setData({ iconEntranceClass: '' });
-    setTimeout(() => {
-      this.setData({ iconEntranceClass: 'play-entrance' });
-    }, 20);
-  },
+  playIconEntrance() {},
 
   onIconError(e) {
     console.warn('[Schedule] icon load error:', e);
