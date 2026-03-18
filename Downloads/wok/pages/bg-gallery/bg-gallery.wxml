@@ -1,4 +1,11 @@
-<view class="container">
+<view>
+  <view wx:if="{{loading}}" class="loading-mask">
+    <view class="loading-spinner">
+      <view class="spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+  <view wx:if="{{!loading}}" class="container">
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="height: {{navBarHeight}}px;">
     <view class="nav-inner" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px;">
@@ -36,4 +43,5 @@
     </view>
     <view class="bottom-spacer"></view>
   </scroll-view>
+  </view>
 </view>

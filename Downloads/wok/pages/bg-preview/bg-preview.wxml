@@ -1,0 +1,15 @@
+<view class="preview-container">
+  <view class="preview-header" style="top: {{menuButtonTop}}px; height: {{menuButtonHeight}}px;">
+    <text class="preview-page">{{current+1}} / {{images.length}}</text>
+    <view class="preview-close" bindtap="goBack">✕</view>
+  </view>
+    <view class="preview-footer">
+      <view class="preview-btn" bindtap="onDownload">下载</view>
+      <view class="preview-btn" bindtap="onUse">使用</view>
+    </view>
+  <swiper class="preview-swiper" current="{{current}}" circular="true" indicator-dots="false" bindchange="onSwiperChange">
+    <swiper-item wx:for="{{images}}" wx:key="index">
+      <image class="preview-img" src="{{item}}" mode="aspectFit"></image>
+    </swiper-item>
+  </swiper>
+</view>

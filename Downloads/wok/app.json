@@ -6,7 +6,8 @@
     "pages/tasks/list/list",
     "pages/webview/webview",
     "pages/course-schedule/course-schedule",
-    "pages/bg-gallery/bg-gallery"
+    "pages/bg-gallery/bg-gallery",
+    "pages/bg-preview/bg-preview"
   ],
   "window": {
     "backgroundTextStyle": "light",

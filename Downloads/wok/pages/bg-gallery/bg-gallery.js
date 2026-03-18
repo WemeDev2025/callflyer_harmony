@@ -49,48 +49,27 @@ try {
 } catch (e) {}
 
 Page({
-  data: {
-    backgrounds: _cachedList || [],
-    isVip: _isVip,
-    ..._navBar,
+    data: {
+      backgrounds: [], // 页面初始不直接用缓存
+      isVip: _isVip,
+      loading: true,
+      ..._navBar,
   },
 
   onLoad() {
     const t0 = Date.now();
-    this._unloaded = false
+    this._unloaded = false;
+    this.setData({ loading: true, backgrounds: [] });
     console.log('[Gallery] onLoad START, data ready:', {
       backgrounds: this.data.backgrounds.length,
       navBarHeight: this.data.navBarHeight,
       isVip: this.data.isVip
-    })
-
-    // 修复历史缓存/接口偶发重复：仅在检测到需要修正时才 setData，避免无意义重渲染
-    if (this.data.backgrounds && this.data.backgrounds.length > 0 && app && typeof app.normalizeBgList === 'function') {
-      const normalized = app.normalizeBgList(this.data.backgrounds)
-      const needFix = normalized.length !== this.data.backgrounds.length || !normalized[0] || !normalized[0].__key
-      if (needFix) {
-        console.warn('[Gallery] normalized backgrounds:', this.data.backgrounds.length, '->', normalized.length)
-        this.setData({ backgrounds: normalized })
-        app.globalData.bgList = normalized
-        _cachedList = normalized
-        try { wx.setStorageSync(BG_CACHE_KEY_V2, { ts: Date.now(), items: normalized }) } catch (e) {}
-        try { wx.setStorageSync(BG_CACHE_KEY_LEGACY, normalized) } catch (e) {}
-      }
-    }
-
-    // 同步到 globalData
-    if (this.data.backgrounds.length > 0 && !app.globalData.bgList) {
-      app.globalData.bgList = this.data.backgrounds;
-    }
-    if (!app.globalData._navBar) {
-      app.globalData._navBar = _navBar;
-    }
-
-    // 统一链路：从 App.getBgList() 取（含 in-flight 锁 + storage/memory 缓存 + 后台刷新）
-    this._ensureBgList(false)
-    
+    });
+    console.log('[Gallery] loading:', this.data.loading);
+    // 每次进入都强制刷新图库接口数据
+    this._ensureBgList(true);
     const t1 = Date.now();
-    console.log('[Gallery] onLoad DONE, duration:', t1 - t0, 'ms')
+    console.log('[Gallery] onLoad DONE, duration:', t1 - t0, 'ms');
   },
 
   onShow() {
@@ -116,16 +95,34 @@ Page({
     console.log('[Gallery] ensure bgList...', { forceRefresh: !!forceRefresh })
     app.getBgList({ forceRefresh: !!forceRefresh, backgroundRefresh: true })
       .then((list) => {
-        if (this._unloaded) return
-        if (!Array.isArray(list) || list.length === 0) return
-        const cur = this.data.backgrounds || []
-        const needUpdate =
-          cur.length === 0 ||
-          cur.length !== list.length ||
-          (!!cur[0] && !!list[0] && cur[0].__key !== list[0].__key)
-        if (needUpdate) this.setData({ backgrounds: list })
+        if (this._unloaded) return;
+        if (!Array.isArray(list) || list.length === 0) {
+          setTimeout(() => {
+            this.setData({ loading: false, backgrounds: [] });
+            console.log('[Gallery] loading:false (empty list)');
+          }, 1200);
+          return;
+        }
+        // 优化排序：按 createAt/timestamp 降序排列
+        const sortedList = list.slice().sort((a, b) => {
+          const ta = a.createAt || a.timestamp || 0;
+          const tb = b.createAt || b.timestamp || 0;
+          return tb - ta;
+        });
+        setTimeout(() => {
+          this.setData({ backgrounds: sortedList, loading: false });
+          console.log('[Gallery] loading:false (data ready), backgrounds:', sortedList.length);
+          app.globalData.bgList = sortedList;
+          try { wx.setStorageSync(BG_CACHE_KEY_V2, { ts: Date.now(), items: sortedList }); } catch (e) {}
+          try { wx.setStorageSync(BG_CACHE_KEY_LEGACY, sortedList); } catch (e) {}
+        }, 1200);
       })
-      .catch(() => {})
+      .catch(() => {
+        setTimeout(() => {
+          this.setData({ loading: false, backgrounds: [] })
+          console.log('[Gallery] loading:false (catch)')
+        }, 1200);
+      })
       .finally(() => { this._fetching = false })
   },
 
@@ -151,10 +148,8 @@ Page({
       return;
     }
 
-    wx.previewImage({
-      current: list[index].url,
-      urls: list.map(item => item.url),
-      showmenu: true,
+    wx.navigateTo({
+      url: `/pages/bg-preview/bg-preview?images=${encodeURIComponent(JSON.stringify(list.map(item => item.url)))}&current=${index}`
     });
   },
 
