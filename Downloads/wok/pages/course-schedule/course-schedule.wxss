@@ -286,6 +286,10 @@ recycle-item {
 .empty-img-container {
   /* 容器负责：淡入 + 升起 (只执行一次) */
   animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-right: 55rpx;
 }
 
 .empty-img {

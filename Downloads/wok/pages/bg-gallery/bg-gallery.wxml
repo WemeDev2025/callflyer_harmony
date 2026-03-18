@@ -6,7 +6,7 @@
         <view class="refresher-dot"></view>
         <view class="refresher-dot"></view>
       </view>
-      <text class="loading-text">加载中...</text>
+      <text class="loading-text"></text>
     </view>
   </view>
   <view wx:if="{{!loading}}" class="container">
