@@ -110,7 +110,7 @@
   <view class="bottom-section">
     <view class="actions">
       <button class="action-btn primary-btn" bindtap="createTask">投票</button>
-      <button class="action-btn" bindtap="goToTasksList">更多</button>
+      <button class="action-btn" bindtap="goToTasksList">看热闹</button>
       <button class="action-btn test-btn" bindtap="goToCourseSchedule">课程表</button>
     </view>
   </view>
