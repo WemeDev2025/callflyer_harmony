@@ -1,5 +1,6 @@
 <!--pages/index/index.wxml-->
 <view class="container">
+    <!-- ...existing code... -->
   <!-- 广告图遮罩 -->
   <view class="ad-image-mask {{adImageAnimating ? 'show' : ''}}" bindtap="closeAdImage" wx:if="{{showAdImage && adImagePath}}">
     <view class="ad-image-container {{adImageAnimating ? 'animating' : ''}}">

@@ -88,6 +88,7 @@
 }
 
 .course-card {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -918,4 +919,16 @@ button.action-btn::after {
 .submit-btn:active {
   transform: scale(0.95);
   opacity: 0.8;
+}
+
+.reminder-bell {
+  position: absolute;
+  top: 8rpx;
+  right: 12rpx;
+  z-index: 2;
+}
+
+.bell-icon {
+  width: 32rpx;
+  height: 32rpx;
 }

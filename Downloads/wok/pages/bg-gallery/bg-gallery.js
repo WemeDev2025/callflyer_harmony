@@ -53,7 +53,16 @@ Page({
       backgrounds: [], // 页面初始不直接用缓存
       isVip: _isVip,
       loading: true,
+      refreshing: false,
       ..._navBar,
+  },
+  onPullDownRefresh() {
+    this.setData({ refreshing: true });
+    this._ensureBgList(true);
+    setTimeout(() => {
+      this.setData({ refreshing: false });
+      wx.stopPullDownRefresh && wx.stopPullDownRefresh();
+    }, 1200);
   },
 
   onLoad() {

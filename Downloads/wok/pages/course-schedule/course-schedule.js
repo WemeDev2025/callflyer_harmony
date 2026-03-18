@@ -387,33 +387,51 @@ Page({
   },
 
   _updateRecycleList(allowRetry) {
-    const comp = this.selectComponent('#course-recycle');
-    if (!comp) {
-      if (allowRetry) {
-        if (this._recycleRetryTimer) clearTimeout(this._recycleRetryTimer);
-        this._recycleRetryTimer = setTimeout(() => {
-          this._recycleRetryTimer = null;
-          this._updateRecycleList(false);
-        }, 50);
+    console.log('[测试] _updateRecycleList 被调用');
+    // 遍历所有 dayIdx 的 recycle-view
+    for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+      const comp = this.selectComponent(`#course-recycle-${dayIdx}`);
+      if (!comp) {
+        console.log(`[调试] selectComponent #course-recycle-${dayIdx} 为空`);
+        continue;
       }
-      return;
-    }
-    if (!this._recycleCtx) {
-      this._initRecycleView();
-      return;
-    }
-    const list = this._buildRecycleList();
-    try {
-      // 先同步一次 dataKey，避免组件尚未完成内部计算时空白
-      this.setData({ recycleList: list });
-      this._recycleCtx.update(0, list);
-    } catch (e) {
-      console.warn('[Schedule] recycle-view update failed:', e && e.message);
-      // 兜底：至少让列表显示出来
-      this.setData({ recycleList: list });
-      if (allowRetry) {
-        this._recycleCtx = null;
+      if (!this._recycleCtx) {
+        console.log('[调试] _recycleCtx 为空，尝试初始化');
         this._initRecycleView();
+        continue;
+      }
+      const list = (this.data.scheduleData && this.data.scheduleData[dayIdx]) || [];
+      console.log('[调试] list:', list, '当前 dayIdx:', dayIdx, 'scheduleData:', this.data.scheduleData);
+      if (!Array.isArray(list) || list.length === 0) {
+        console.log('[调试] list 为空，未遍历课程');
+      }
+      list.forEach((course, idx) => {
+        const show = !!(course && course.reminderId);
+        console.log('[铃铛判断]', JSON.stringify({
+          name: course && course.name,
+          reminderId: course && course.reminderId,
+          reminderIdType: typeof (course && course.reminderId),
+          reminderIdRaw: course && course.reminderId,
+          show,
+          idx,
+          id: `course-${dayIdx}-${idx}`,
+          courseObj: course
+        }));
+      });
+      try {
+        // 先同步一次 dataKey，避免组件尚未完成内部计算时空白
+        this.setData({ [`recycleList[${dayIdx}]`]: list });
+        if (this._recycleCtx && this._recycleCtx.update) {
+          this._recycleCtx.update(0, list);
+        }
+      } catch (e) {
+        console.warn('[Schedule] recycle-view update failed:', e && e.message);
+        // 兜底：至少让列表显示出来
+        this.setData({ [`recycleList[${dayIdx}]`]: list });
+        if (this._recycleCtx && this._recycleCtx.update) {
+          this._recycleCtx = null;
+          this._initRecycleView();
+        }
       }
     }
   },
@@ -1463,5 +1481,19 @@ Page({
     });
   },
 
-  stopPropagation() {}
+  stopPropagation() {},
+
+  // 用于wxml判断和打印log
+  logBell(course) {
+    const show = !!(course && course.reminderId);
+    console.log('[铃铛判断]', {
+      name: course && course.name,
+      reminderId: course && course.reminderId,
+      show
+    });
+    return show;
+  }
 });
+
+// 全局文件加载测试
+  console.log('[全局测试] course-schedule.js 已加载');

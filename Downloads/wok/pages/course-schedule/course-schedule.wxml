@@ -49,6 +49,9 @@
                   data-index="{{courseIdx}}"
                   id="course-{{dayIdx}}-{{courseIdx}}">
               <view class="course-card">
+                <view class="reminder-bell" wx:if="{{logBell(course)}}">
+                  <image src="/images/icon_bell.png" class="bell-icon"></image>
+                </view>
                 <view class="course-time">
                   <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
                   <view class="time-line" style="background: {{bgConfig.textColor}}; opacity: 0.3"></view>

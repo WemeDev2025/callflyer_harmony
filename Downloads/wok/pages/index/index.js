@@ -60,35 +60,23 @@ Page({
       const menuButton = wx.getMenuButtonBoundingClientRect()
       this.setData({
         statusBarHeight: sysInfo.statusBarHeight,
-        menuButtonTop: menuButton.top,       // 与胶囊 top 完全对齐
-        menuButtonHeight: menuButton.height, // 与胶囊同高
-        menuButtonLeft: menuButton.left      // 胶囊左边界，user-info 右边不超过这里
+        menuButtonTop: menuButton.top,
+        menuButtonHeight: menuButton.height,
+        menuButtonLeft: menuButton.left
       })
     } catch (e) {
       console.warn('[Index] 获取系统信息失败:', e)
     }
     this.loadUserInfo()
-    // 页面加载时启动动画
     this.startAnimation()
-    // 加载进行中的任务参与者
     this.loadActiveParticipants()
-    // 开始轮询任务状态
     this.startPolling()
-    // 检查是否有选中的结果文字
     this.loadSelectedResult()
-    // 重置广告图显示标记（新页面加载时重置）
-    this.setData({
-      adImageShown: false
-    })
-    // 加载广告配置（首次加载时强制刷新，确保获取最新配置）
+    this.setData({ adImageShown: false })
     this.loadAdConfig(true)
-    // 预加载 tips 图片（每次启动都重新从服务器加载）
     this.preloadTipsImage()
-    // 延迟显示订阅消息引导弹窗（延迟2秒，等待页面加载完成）
-    // 暂时注释掉，确保开关入口能正常授权
-    // setTimeout(() => {
-    //   this.showSubscribeMessageGuide()
-    // }, 2000)
+
+    // ...existing code...
   },
 
   onShow() {

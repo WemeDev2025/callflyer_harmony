@@ -1,7 +1,11 @@
 <view>
   <view wx:if="{{loading}}" class="loading-mask">
     <view class="loading-spinner">
-      <view class="spinner"></view>
+      <view class="refresher-dot-group">
+        <view class="refresher-dot"></view>
+        <view class="refresher-dot"></view>
+        <view class="refresher-dot"></view>
+      </view>
       <text class="loading-text">加载中...</text>
     </view>
   </view>
@@ -23,6 +27,11 @@
     style="top: {{navBarHeight}}px;"
     enhanced="{{false}}"
     show-scrollbar="{{false}}"
+    enablePullDownRefresh="true"
+    refresher-enabled="true"
+    refresher-background="#fff"
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onPullDownRefresh"
   >
     <view class="gallery-grid">
       <view
