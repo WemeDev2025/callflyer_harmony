@@ -100,10 +100,11 @@ Page({
     this.initDate();
     this.initVoiceManager();
     const todayIdx = this.getTodayIndex();
+    const lastIdx = Math.max(0, (this.data.weekDays || []).length - 1);
     this.setData({
       currentDayIndex: todayIdx,
       renderMin: Math.max(0, todayIdx - 2),
-      renderMax: Math.min(6, todayIdx + 2),
+      renderMax: Math.min(lastIdx, todayIdx + 2),
       isVip: !!(app.globalData && app.globalData.isVip),
       _lastSwiperIndex: todayIdx
     });
@@ -213,8 +214,9 @@ Page({
     // emptyImgTimestamp 仅在“可见范围内存在空状态”时更新，避免返回页时无意义的大范围重绘
     try {
       const schedule = this.data.scheduleData || []
-      const min = Math.max(0, this.data.renderMin || 0)
-      const max = Math.min(6, this.data.renderMax || 6)
+      const min = Math.max(0, this.data.renderMin || 0);
+      const lastIdx = Math.max(0, (this.data.weekDays || []).length - 1);
+      const max = Math.min(lastIdx, this.data.renderMax || lastIdx);
       let hasEmptyVisibleDay = false
       for (let i = min; i <= max; i++) {
         const day = schedule[i]
@@ -468,8 +470,9 @@ Page({
     if (this._swiperChangeTimer) clearTimeout(this._swiperChangeTimer);
     this._swiperChangeTimer = setTimeout(() => {
       this._swiperChangeTimer = null;
+      const lastIdx = Math.max(0, (this.data.weekDays || []).length - 1);
       const nearMin = Math.max(0, idx - 1);
-      const nearMax = Math.min(6, idx + 1);
+      const nearMax = Math.min(lastIdx, idx + 1);
       const updates = {};
 
       if (idx !== this.data.currentDayIndex) {
@@ -504,8 +507,9 @@ Page({
       if (this._renderExpandTimer) clearTimeout(this._renderExpandTimer);
       this._renderExpandTimer = setTimeout(() => {
         this._renderExpandTimer = null;
+        const lastIdx = Math.max(0, (this.data.weekDays || []).length - 1);
         const farMin = Math.max(0, idx - 2);
-        const farMax = Math.min(6, idx + 2);
+        const farMax = Math.min(lastIdx, idx + 2);
         if (this.data.renderMin !== farMin || this.data.renderMax !== farMax) {
           this.setData({ renderMin: farMin, renderMax: farMax });
         }
