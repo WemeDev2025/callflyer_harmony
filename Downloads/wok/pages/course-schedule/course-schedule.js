@@ -111,6 +111,7 @@ Page({
     if (!app.globalData.isVip) {
       this._fetchVipStatus();
     }
+    this._recycleListCache = {}; // cache 当前可复用的 recycle-view 列表数据
     this.loadScheduleFromServer();
 
     this.fetchVipBackgrounds();
@@ -345,12 +346,29 @@ Page({
     }
   },
 
+  _invalidateRecycleCache() {
+    this._recycleListCache = {};
+  },
+
   _buildRecycleList(dayIdx, dir, animKey) {
     const idx = typeof dayIdx === 'number' ? dayIdx : (this.data.currentDayIndex || 0);
-    const list = (this.data.scheduleData && this.data.scheduleData[idx]) || [];
     const useDir = dir || this.data.swipeDir;
     const useAnimKey = typeof animKey === 'number' ? animKey : this.data.cardAnimKey;
-    return list.map((item, index) => Object.assign({}, item, { __index__: index, __dir__: useDir, __anim__: useAnimKey }));
+    const cacheKey = `${idx}:${useDir}:${useAnimKey}`;
+
+    if (!this._recycleListCache) {
+      this._recycleListCache = {};
+    }
+
+    const cached = this._recycleListCache[cacheKey];
+    if (cached) {
+      return cached;
+    }
+
+    const list = (this.data.scheduleData && this.data.scheduleData[idx]) || [];
+    const mapped = list.map((item, index) => Object.assign({}, item, { __index__: index, __dir__: useDir, __anim__: useAnimKey }));
+    this._recycleListCache[cacheKey] = mapped;
+    return mapped;
   },
 
   _getListAnimName(dir, animKey) {
@@ -404,7 +422,7 @@ Page({
     const idx = e.detail.current;
     const prev = typeof this.data._lastSwiperIndex === 'number' ? this.data._lastSwiperIndex : this.data.currentDayIndex;
     const dir = idx > prev ? 'left' : 'right';
-    
+
     // 节流：同一帧内多次触发只处理最后一次
     if (this._swiperChangeTimer) clearTimeout(this._swiperChangeTimer);
     this._swiperChangeTimer = setTimeout(() => {
@@ -412,32 +430,36 @@ Page({
       const nearMin = Math.max(0, idx - 1);
       const nearMax = Math.min(6, idx + 1);
       const updates = {};
-      if (idx !== this.data.currentDayIndex) updates.currentDayIndex = idx;
-      if (this.data.renderMin !== nearMin) updates.renderMin = nearMin;
-      if (this.data.renderMax !== nearMax) updates.renderMax = nearMax;
-      if (this.data.iconLoadError) updates.iconLoadError = false;
+
       if (idx !== this.data.currentDayIndex) {
+        updates.currentDayIndex = idx;
         console.log('[Schedule] swipe', { prev, idx, dir });
         updates.swipeDir = dir;
         updates.cardAnimKey = (this.data.cardAnimKey + 1) % 2;
         updates._lastSwiperIndex = idx;
       }
+
+      if (this.data.renderMin !== nearMin) updates.renderMin = nearMin;
+      if (this.data.renderMax !== nearMax) updates.renderMax = nearMax;
+      if (this.data.iconLoadError) updates.iconLoadError = false;
+
       const nextDir = typeof updates.swipeDir === 'string' ? updates.swipeDir : this.data.swipeDir;
       const nextAnimKey = typeof updates.cardAnimKey === 'number' ? updates.cardAnimKey : this.data.cardAnimKey;
       updates.listAnimName = this._getListAnimName(nextDir, nextAnimKey);
+
       const nextList = this._buildRecycleList(idx, nextDir, nextAnimKey);
+
       if (Object.keys(updates).length > 0) {
         this.setData(Object.assign({}, updates, { recycleList: nextList }), () => {
-          this._recycleCtx = null;
           wx.nextTick(() => this._updateRecycleList(true));
         });
       } else {
         this.setData({ recycleList: nextList }, () => {
-          this._recycleCtx = null;
           wx.nextTick(() => this._updateRecycleList(true));
         });
       }
 
+      // 逐步扩展渲染范围：先 +1，后续按需扩展到 +2
       if (this._renderExpandTimer) clearTimeout(this._renderExpandTimer);
       this._renderExpandTimer = setTimeout(() => {
         this._renderExpandTimer = null;
@@ -537,7 +559,8 @@ Page({
           if (courses[index]) {
             courses[index].reminderId = null
             courses[index].reminderMinutes = undefined
-            this.setData({ scheduleData: updatedSchedule }, () => {
+            this._invalidateRecycleCache();
+          this.setData({ scheduleData: updatedSchedule }, () => {
               this._updateRecycleList();
               wx.setStorageSync('course_schedule', updatedSchedule)
               this.queueScheduleSync(300)
@@ -665,6 +688,7 @@ Page({
    */
   applyScheduleContent(content, persistLocal) {
     const normalized = this.normalizeScheduleContent(content);
+    this._invalidateRecycleCache();
     this.setData({
       scheduleData: normalized.scheduleData,
       bgConfig: normalized.bgConfig,
@@ -1007,6 +1031,7 @@ Page({
    * @param {Function} callback 保存成功后的回调，参数为最终的 entry
    */
   _saveScheduleData(scheduleData, dayIdx, entry, isEditing, editingDay, editingIndex, callback) {
+    this._invalidateRecycleCache();
     const targetIndex = scheduleData[dayIdx].findIndex(c => 
       c.name === entry.name && c.startTime === entry.startTime
     );
@@ -1162,7 +1187,7 @@ Page({
           }
           
           scheduleData[editingDay].splice(editingIndex, 1);
-          
+          this._invalidateRecycleCache();
           this.setData({
             scheduleData: scheduleData,
             showModal: false,
@@ -1207,6 +1232,7 @@ Page({
         });
 
         const cleared = [[], [], [], [], [], [], []];
+        this._invalidateRecycleCache();
         this.setData({
           scheduleData: cleared
         }, () => {
