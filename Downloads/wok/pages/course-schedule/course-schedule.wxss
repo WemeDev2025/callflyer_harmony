@@ -70,14 +70,15 @@
   flex: 1;
   height: 0;
   /* 增加底部内边距，避免底部按钮遮挡内容（兼容安全区） */
-  padding: 50rpx 40rpx 360rpx;
+  /* 使用 safe-area 并增加基准值以保证更大间隙 */
+  padding: 50rpx 40rpx calc(420rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background-color: transparent;
 }
 
 .bottom-spacer {
   /* 增加底部占位高度，确保滚动内容不会被底部操作栏遮挡 */
-  height: 360rpx; /* 96rpx 按钮高度 + 40rpx 上内边距 + safe area 预留 */
+  height: calc(420rpx + env(safe-area-inset-bottom)); /* 更大基准 + 安全区预留 */
   width: 100%;
 }
 
