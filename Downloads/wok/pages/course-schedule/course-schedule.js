@@ -21,9 +21,9 @@ Page({
       { name: '星期六', shortName: '周六' },
       { name: '星期日', shortName: '周日' }
     ],
-    scheduleData: [
-      [], [], [], [], [], [], [] // 7 days
-    ],
+      scheduleData: [
+        [], [], [], [], [], [], [], [], [] // 9 days
+      ],
     showModal: false,
     isRecording: false,
     isEditing: false,
