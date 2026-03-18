@@ -146,6 +146,13 @@ Page({
   onReady() {
     this._initRecycleView();
     this._updateRecycleList(true);
+    // 额外 selectComponent 静态 id，debug
+    const debugComp = this.selectComponent('#course-recycle-debug');
+    if (debugComp) {
+      console.log('[DEBUG] 成功 selectComponent #course-recycle-debug:', debugComp);
+    } else {
+      console.warn('[DEBUG] selectComponent #course-recycle-debug 失败');
+    }
   },
 
   onShareAppMessage() {
@@ -317,8 +324,21 @@ Page({
 
   _initRecycleView() {
     if (this._recycleCtx) return;
-    const comp = this.selectComponent('#course-recycle');
-    if (!comp) {
+    // 尝试找到任意一个可用的 recycle-view 实例（支持 debug id 或按 dayIdx 的 id）
+    let foundId = null;
+    const tryIds = ['#course-recycle', '#course-recycle-debug'];
+    for (let i = 0; i < 7; i++) tryIds.push(`#course-recycle-${i}`);
+
+    for (const sel of tryIds) {
+      const c = this.selectComponent(sel);
+      if (c) {
+        foundId = sel.replace(/^#/, '');
+        console.log('[Schedule] found recycle-view component:', sel);
+        break;
+      }
+    }
+
+    if (!foundId) {
       if (this._recycleInitTimer) clearTimeout(this._recycleInitTimer);
       this._recycleInitTimer = setTimeout(() => {
         this._recycleInitTimer = null;
@@ -326,9 +346,10 @@ Page({
       }, 50);
       return;
     }
+
     try {
       this._recycleCtx = new RecycleContext({
-        id: 'course-recycle',
+        id: foundId,
         dataKey: 'recycleList',
         page: this,
         itemSize: function () {
@@ -341,6 +362,8 @@ Page({
       if (this._recycleCtx && this._recycleCtx.page && this._recycleCtx.page._recycleViewportChange) {
         this._recycleCtx.page._recycleViewportChange = this._recycleCtx.page._recycleViewportChange.bind(this._recycleCtx.page);
       }
+      this._recycleCompId = foundId;
+      console.log('[Schedule] recycle-view initialized with id:', foundId);
     } catch (e) {
       console.warn('[Schedule] recycle-view init failed:', e && e.message);
     }
@@ -398,7 +421,7 @@ Page({
       if (!this._recycleCtx) {
         console.log('[调试] _recycleCtx 为空，尝试初始化');
         this._initRecycleView();
-        continue;
+        // 不再 continue，让后续 setData 仍然尝试更新列表（若 _recycleCtx 尚未就绪，更新会走 setData 路径）
       }
       const list = (this.data.scheduleData && this.data.scheduleData[dayIdx]) || [];
       console.log('[调试] list:', list, '当前 dayIdx:', dayIdx, 'scheduleData:', this.data.scheduleData);
@@ -712,6 +735,7 @@ Page({
       bgConfig: normalized.bgConfig,
       shareDirty: false
     }, () => {
+      console.log('[DEBUG] scheduleData after applyScheduleContent:', JSON.stringify(this.data.scheduleData && this.data.scheduleData.map((d, i) => ({day: i, len: (d && d.length) || 0, sample: (d && d.slice(0,3)) || []}))))
       this._updateRecycleList();
     });
 

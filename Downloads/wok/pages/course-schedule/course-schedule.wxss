@@ -98,6 +98,27 @@
   box-sizing: border-box;
 }
 
+/* 铃铛图标：右上角定位，确保可点击且可见 */
+.reminder-bell {
+  position: absolute !important;
+  top: 12rpx !important;
+  right: 20rpx !important;
+  width: 64rpx !important;
+  height: 64rpx !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 200 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+.bell-icon {
+  width: 44rpx;
+  height: 44rpx;
+  display: block;
+}
+
 /* 切换天时整体列表动画 */
 .list-anim {
   width: 100%;
@@ -227,6 +248,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  position: relative; /* for reminder-bell absolute positioning */
   box-shadow: 0 4rpx 15rpx rgba(0, 0, 0, 0.02);
   box-sizing: border-box;
 }
@@ -921,14 +943,4 @@ button.action-btn::after {
   opacity: 0.8;
 }
 
-.reminder-bell {
-  position: absolute;
-  top: 8rpx;
-  right: 12rpx;
-  z-index: 2;
-}
-
-.bell-icon {
-  width: 32rpx;
-  height: 32rpx;
-}
+/* keep single reminder-bell definition above; remove duplicate to avoid overrides */

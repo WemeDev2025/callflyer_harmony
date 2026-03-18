@@ -37,7 +37,7 @@
             <text class="day-title-text" style="color: {{bgConfig.textColor}}">{{item.name}}</text>
           </view>
         </view>
-        <recycle-view id="course-recycle-{{dayIdx}}" scroll-y class="day-scroll" batch="{{batchSetRecycleData}}">
+        <recycle-view id="{{dayIdx === 0 ? 'course-recycle-debug' : 'course-recycle-' + dayIdx}}" scroll-y class="day-scroll" batch="{{batchSetRecycleData}}">
           <block wx:if="{{scheduleData[dayIdx].length > 0}}">
             <recycle-item 
                   wx:for="{{scheduleData[dayIdx]}}" 
@@ -49,9 +49,6 @@
                   data-index="{{courseIdx}}"
                   id="course-{{dayIdx}}-{{courseIdx}}">
               <view class="course-card">
-                <view class="reminder-bell" wx:if="{{logBell(course)}}">
-                  <image src="/images/icon_bell.png" class="bell-icon"></image>
-                </view>
                 <view class="course-time">
                   <text class="start-time" style="color: {{bgConfig.textColor}}">{{course.startTime}}</text>
                   <view class="time-line" style="background: {{bgConfig.textColor}}; opacity: 0.3"></view>
@@ -60,6 +57,9 @@
                 <view class="course-info" style="background: {{course.color || '#F0F3FF'}}">
                   <text class="course-name">{{course.name}}</text>
                   <text class="course-location">{{course.location || '暂无备注'}}</text>
+                  <view class="reminder-bell" wx:if="{{course.reminderId}}">
+                    <image src="/images/icon_bell.png" class="bell-icon"></image>
+                  </view>
                 </view>
               </view>
             </recycle-item>
