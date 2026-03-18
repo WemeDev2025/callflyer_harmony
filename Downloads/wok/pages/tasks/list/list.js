@@ -3,23 +3,30 @@ import { getTasks, getTaskDetail } from '../../../utils/api.js'
 
 Page({
   data: {
+    pageTitle: '看热闹',
     tasks: [],
     loading: false,
     loadingMore: false,
     hasMore: true,
     page: 0,
     pageSize: 20,
-    navBarHeight: 88  // 默认导航栏高度，onLoad 时用 API 算准确值
+    navBarHeight: 88,  // 默认导航栏高度，onLoad 时用 API 算准确值
+    menuButtonTop: 0,
+    menuButtonHeight: 0
   },
 
   onLoad() {
-    // 全屏模式：计算状态栏 + 胶囊高度，给列表留出顶部空间
+    // 全屏模式：计算状态栏 + 胶囊高度，给列表留出顶部空间，并设置 title 居中
     try {
       const sysInfo = wx.getSystemInfoSync()
       const menuButton = wx.getMenuButtonBoundingClientRect()
       // 导航栏高度 = 胶囊底部 + 8rpx 间距
       const navBarHeight = menuButton.bottom + 8
-      this.setData({ navBarHeight })
+      this.setData({
+        navBarHeight,
+        menuButtonTop: menuButton.top,
+        menuButtonHeight: menuButton.height
+      })
     } catch (e) {
       console.warn('[List] 获取系统信息失败:', e)
     }

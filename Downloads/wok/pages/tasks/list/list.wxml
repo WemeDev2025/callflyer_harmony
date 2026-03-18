@@ -1,5 +1,8 @@
 <!--pages/tasks/list/list.wxml-->
 <view class="container">
+  <view class="header" style="position:relative; height:{{menuButtonHeight}}px; margin-bottom:20rpx; padding-top:{{menuButtonTop}}px; display:flex; align-items:center; justify-content:center;">
+    <text class="title" style="color:#222; display:inline-block; white-space:nowrap;">{{pageTitle}}</text>
+  </view>
   <view class="task-list" style="padding-top: {{navBarHeight}}px;">
     <view class="task-item" wx:for="{{tasks}}" wx:key="taskId">
       <view class="task-header">
@@ -21,7 +24,7 @@
       <view class="task-content">
         <view class="task-title-wrapper">
           <image class="task-title-icon" src="/images/icon_task.png" mode="aspectFit"></image>
-          <text class="task-title">{{item.title || '今天吃什么？'}}</text>
+          <text class="task-title">{{item.title}}</text>
         </view>
         
         <!-- 菜品列表 -->
@@ -60,5 +63,6 @@
       <text>没有更多了</text>
     </view>
   </view>
+
 </view>
 
