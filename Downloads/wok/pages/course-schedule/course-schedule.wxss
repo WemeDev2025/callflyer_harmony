@@ -69,13 +69,15 @@
 .day-scroll {
   flex: 1;
   height: 0;
-  padding: 50rpx 40rpx 20rpx;
+  /* 增加底部内边距，避免底部按钮遮挡内容（兼容安全区） */
+  padding: 50rpx 40rpx 360rpx;
   box-sizing: border-box;
   background-color: transparent;
 }
 
 .bottom-spacer {
-  height: 240rpx; /* 增加高度以留出底部按钮区的位置 */
+  /* 增加底部占位高度，确保滚动内容不会被底部操作栏遮挡 */
+  height: 360rpx; /* 96rpx 按钮高度 + 40rpx 上内边距 + safe area 预留 */
   width: 100%;
 }
 
