@@ -158,7 +158,7 @@
   <view class="actions {{showActionsAnimation ? 'animate-in' : ''}}">
     <!-- 创建模式按钮 -->
     <button wx:if="{{mode === 'create'}}" class="common-btn create-btn" bindtap="createTask" loading="{{creating}}">
-      {{creating ? '创建中...' : '炒起来'}}
+      {{creating ? '创建中...' : '发起投票'}}
     </button>
     
     <!-- 详情模式按钮 -->

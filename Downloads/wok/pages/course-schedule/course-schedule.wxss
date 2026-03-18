@@ -71,7 +71,7 @@
   height: 0;
   /* 增加底部内边距，避免底部按钮遮挡内容（兼容安全区） */
   /* 使用 safe-area 并增加基准值以保证更大间隙 */
-  padding: 50rpx 40rpx calc(420rpx + env(safe-area-inset-bottom));
+  padding: 50rpx 40rpx calc(400rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background-color: transparent;
 }
