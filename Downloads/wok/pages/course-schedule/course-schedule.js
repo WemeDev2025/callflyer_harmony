@@ -327,7 +327,7 @@ Page({
     // 尝试找到任意一个可用的 recycle-view 实例（支持 debug id 或按 dayIdx 的 id）
     let foundId = null;
     const tryIds = ['#course-recycle', '#course-recycle-debug'];
-    for (let i = 0; i < 7; i++) tryIds.push(`#course-recycle-${i}`);
+    for (let i = 0; i < 9; i++) tryIds.push(`#course-recycle-${i}`);
 
     for (const sel of tryIds) {
       const c = this.selectComponent(sel);
@@ -412,7 +412,7 @@ Page({
   _updateRecycleList(allowRetry) {
     console.log('[测试] _updateRecycleList 被调用');
     // 遍历所有 dayIdx 的 recycle-view
-    for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+    for (let dayIdx = 0; dayIdx < 9; dayIdx++) {
       const comp = this.selectComponent(`#course-recycle-${dayIdx}`);
       if (!comp) {
         console.log(`[调试] selectComponent #course-recycle-${dayIdx} 为空`);
