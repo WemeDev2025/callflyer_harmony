@@ -416,8 +416,8 @@ Page({
           
           const finalX = Math.max(20, Math.min(80, x)) // 限制在 20-80% 范围内
           const finalY = Math.max(20, Math.min(80, y)) // 限制在 20-80% 范围内
-          const finalDelay = Math.random() * 3 // 0-3秒的随机延迟（增加随机范围）
-          const finalDuration = 4 + Math.random() * 2 // 4-6秒的随机动画时长（每个头像不同）
+          const finalDelay = Math.random() * 2 // 0-2秒的随机延迟
+          const finalDuration = 2.6 + Math.random() * 1.4 // 2.6-4秒的随机动画时长
           
           return {
             avatar_url: p.avatar_url || p.avatarUrl || '',

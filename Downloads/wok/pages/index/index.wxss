@@ -272,7 +272,7 @@
 
 /* 炒菜动画：模拟真实的旋绕运动轨迹 */
 .wok-image.cooking {
-  animation: wokCooking 2s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+  animation: wokCooking 1.6s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -288,55 +288,55 @@
  */
 @keyframes wokCooking {
   0% {
-    transform: translate(0, 0) rotate(0deg) scale(1);
+    transform: translate(0, 0) rotate(0deg);
   }
   6.25% {
-    transform: translate(10rpx, -15rpx) rotate(1.5deg) scale(1.008);
+    transform: translate(10rpx, -15rpx) rotate(1.5deg);
   }
   12.5% {
-    transform: translate(15rpx, -20rpx) rotate(3deg) scale(1.015);
+    transform: translate(15rpx, -20rpx) rotate(3deg);
   }
   18.75% {
-    transform: translate(18rpx, -15rpx) rotate(4deg) scale(1.018);
+    transform: translate(18rpx, -15rpx) rotate(4deg);
   }
   25% {
-    transform: translate(20rpx, -10rpx) rotate(5deg) scale(1.02);
+    transform: translate(20rpx, -10rpx) rotate(5deg);
   }
   31.25% {
-    transform: translate(18rpx, -5rpx) rotate(4deg) scale(1.018);
+    transform: translate(18rpx, -5rpx) rotate(4deg);
   }
   37.5% {
-    transform: translate(15rpx, 2rpx) rotate(3deg) scale(1.015);
+    transform: translate(15rpx, 2rpx) rotate(3deg);
   }
   43.75% {
-    transform: translate(10rpx, 5rpx) rotate(1.5deg) scale(1.008);
+    transform: translate(10rpx, 5rpx) rotate(1.5deg);
   }
   50% {
-    transform: translate(0, 6rpx) rotate(0deg) scale(1);
+    transform: translate(0, 6rpx) rotate(0deg);
   }
   56.25% {
-    transform: translate(-10rpx, 5rpx) rotate(-1.5deg) scale(1.008);
+    transform: translate(-10rpx, 5rpx) rotate(-1.5deg);
   }
   62.5% {
-    transform: translate(-15rpx, 2rpx) rotate(-3deg) scale(1.015);
+    transform: translate(-15rpx, 2rpx) rotate(-3deg);
   }
   68.75% {
-    transform: translate(-18rpx, -2rpx) rotate(-4deg) scale(1.018);
+    transform: translate(-18rpx, -2rpx) rotate(-4deg);
   }
   75% {
-    transform: translate(-20rpx, -10rpx) rotate(-5deg) scale(1.02);
+    transform: translate(-20rpx, -10rpx) rotate(-5deg);
   }
   81.25% {
-    transform: translate(-18rpx, -15rpx) rotate(-4deg) scale(1.018);
+    transform: translate(-18rpx, -15rpx) rotate(-4deg);
   }
   87.5% {
-    transform: translate(-15rpx, -20rpx) rotate(-3deg) scale(1.015);
+    transform: translate(-15rpx, -20rpx) rotate(-3deg);
   }
   93.75% {
-    transform: translate(-10rpx, -15rpx) rotate(-1.5deg) scale(1.008);
+    transform: translate(-10rpx, -15rpx) rotate(-1.5deg);
   }
   100% {
-    transform: translate(0, 0) rotate(0deg) scale(1);
+    transform: translate(0, 0) rotate(0deg);
   }
 }
 
@@ -362,58 +362,24 @@
   border: 2rpx solid rgba(255, 255, 255, 0.9);
   background-color: #f0f0f0;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.3);
-  animation: particleFloat 5s ease-in-out infinite;
+  animation: particleFloat 3.3s linear infinite;
   will-change: transform;
   transform-origin: center center;
-  /* 动画时长和延迟通过内联样式动态设置 */
 }
 
-/* 随机粒子浮动动画 - 模拟在锅中大乱翻炒 */
+/* 随机粒子浮动动画 - 平滑椭圆轨迹 */
 @keyframes particleFloat {
-  0% {
-    transform: translate(0, 0) rotate(0deg) scale(1);
-    opacity: 0.7;
-  }
-  10% {
-    transform: translate(25rpx, -30rpx) rotate(36deg) scale(1.1);
-    opacity: 1;
-  }
-  20% {
-    transform: translate(-30rpx, 20rpx) rotate(72deg) scale(0.9);
-    opacity: 0.9;
-  }
-  30% {
-    transform: translate(30rpx, 25rpx) rotate(108deg) scale(1.05);
-    opacity: 1;
-  }
-  40% {
-    transform: translate(-20rpx, -25rpx) rotate(144deg) scale(0.95);
-    opacity: 0.85;
-  }
-  50% {
-    transform: translate(25rpx, -20rpx) rotate(180deg) scale(1.05);
-    opacity: 1;
-  }
-  60% {
-    transform: translate(-30rpx, 25rpx) rotate(216deg) scale(0.9);
-    opacity: 0.9;
-  }
-  70% {
-    transform: translate(20rpx, 30rpx) rotate(252deg) scale(1.1);
-    opacity: 1;
-  }
-  80% {
-    transform: translate(-25rpx, -30rpx) rotate(288deg) scale(0.95);
-    opacity: 0.9;
-  }
-  90% {
-    transform: translate(15rpx, -15rpx) rotate(324deg) scale(1.02);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(0, 0) rotate(360deg) scale(1);
-    opacity: 0.7;
-  }
+  0%   { transform: translate(0rpx,    -20rpx) rotate(0deg);   opacity: 0.8; }
+  10%  { transform: translate(12rpx,   -16rpx) rotate(36deg);  opacity: 0.9; }
+  20%  { transform: translate(20rpx,   -6rpx)  rotate(72deg);  opacity: 1;   }
+  30%  { transform: translate(18rpx,    6rpx)  rotate(108deg); opacity: 0.9; }
+  40%  { transform: translate(8rpx,    16rpx)  rotate(144deg); opacity: 0.85;}
+  50%  { transform: translate(-4rpx,   20rpx)  rotate(180deg); opacity: 0.9; }
+  60%  { transform: translate(-15rpx,  14rpx)  rotate(216deg); opacity: 1;   }
+  70%  { transform: translate(-20rpx,   2rpx)  rotate(252deg); opacity: 0.9; }
+  80%  { transform: translate(-16rpx, -10rpx)  rotate(288deg); opacity: 0.85;}
+  90%  { transform: translate(-6rpx,  -18rpx)  rotate(324deg); opacity: 0.9; }
+  100% { transform: translate(0rpx,   -20rpx)  rotate(360deg); opacity: 0.8; }
 }
 
 /* 文字粒子动画 - 没有任务时显示 */
@@ -436,60 +402,26 @@
   font-weight: bold;
   color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
-  animation: textFloat 5s ease-in-out infinite;
+  animation: textFloat 3.3s linear infinite;
   will-change: transform;
   transform-origin: center center;
-  /* 支持 emoji 显示 */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
   line-height: 1.2;
 }
 
-/* 文字浮动动画 - 模拟在锅中大乱翻炒 */
+/* 文字浮动动画 - 平滑椭圆轨迹，半径略大 */
 @keyframes textFloat {
-  0% {
-    transform: translate(0, 0) rotate(0deg) scale(1);
-    opacity: 0.8;
-  }
-  10% {
-    transform: translate(30rpx, -35rpx) rotate(36deg) scale(1.15);
-    opacity: 1;
-  }
-  20% {
-    transform: translate(-35rpx, 25rpx) rotate(72deg) scale(0.9);
-    opacity: 0.9;
-  }
-  30% {
-    transform: translate(35rpx, 30rpx) rotate(108deg) scale(1.1);
-    opacity: 1;
-  }
-  40% {
-    transform: translate(-25rpx, -30rpx) rotate(144deg) scale(0.95);
-    opacity: 0.85;
-  }
-  50% {
-    transform: translate(30rpx, -25rpx) rotate(180deg) scale(1.1);
-    opacity: 1;
-  }
-  60% {
-    transform: translate(-35rpx, 30rpx) rotate(216deg) scale(0.9);
-    opacity: 0.9;
-  }
-  70% {
-    transform: translate(25rpx, 35rpx) rotate(252deg) scale(1.15);
-    opacity: 1;
-  }
-  80% {
-    transform: translate(-30rpx, -35rpx) rotate(288deg) scale(0.95);
-    opacity: 0.9;
-  }
-  90% {
-    transform: translate(20rpx, -20rpx) rotate(324deg) scale(1.05);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(0, 0) rotate(360deg) scale(1);
-    opacity: 0.8;
-  }
+  0%   { transform: translate(0rpx,    -24rpx) rotate(0deg);   opacity: 0.85; }
+  10%  { transform: translate(15rpx,   -19rpx) rotate(36deg);  opacity: 0.95; }
+  20%  { transform: translate(24rpx,   -7rpx)  rotate(72deg);  opacity: 1;    }
+  30%  { transform: translate(21rpx,    7rpx)  rotate(108deg); opacity: 0.95; }
+  40%  { transform: translate(9rpx,    19rpx)  rotate(144deg); opacity: 0.88; }
+  50%  { transform: translate(-5rpx,   24rpx)  rotate(180deg); opacity: 0.92; }
+  60%  { transform: translate(-18rpx,  17rpx)  rotate(216deg); opacity: 1;    }
+  70%  { transform: translate(-24rpx,   2rpx)  rotate(252deg); opacity: 0.95; }
+  80%  { transform: translate(-19rpx, -12rpx)  rotate(288deg); opacity: 0.88; }
+  90%  { transform: translate(-7rpx,  -21rpx)  rotate(324deg); opacity: 0.92; }
+  100% { transform: translate(0rpx,   -24rpx)  rotate(360deg); opacity: 0.85; }
 }
 
 .welcome {
