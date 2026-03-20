@@ -3,7 +3,7 @@ import { getTasks, getTaskDetail } from '../../../utils/api.js'
 
 Page({
   data: {
-    pageTitle: '看热闹',
+    pageTitle: '看更多',
     tasks: [],
     loading: false,
     loadingMore: false,

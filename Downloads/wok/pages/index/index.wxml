@@ -40,9 +40,9 @@
     <view class="user-info-left" hover-class="none" bindtap="goToProfile">
       <view class="user-avatar" hover-class="none">
         <image wx:if="{{userInfo.avatar_url}}" class="avatar-image" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
-        <text wx:else class="avatar-text">饿</text>
+        <image wx:else class="avatar-image" src="/images/icon_my.png" mode="aspectFill"></image>
       </view>
-      <text class="user-nickname" hover-class="none">{{userInfo.nickname || '怎么称呼'}}</text>
+      <text class="user-nickname" hover-class="none">{{userInfo.nickname || '我的昵称'}}</text>
       <image wx:if="{{userInfo.isVip}}" class="vip-icon" src="https://wemedev.com/wok/data/images/icon_vip.png" mode="aspectFit"></image>
     </view>
   </view>
@@ -110,7 +110,7 @@
   <view class="bottom-section">
     <view class="actions">
       <button class="action-btn primary-btn" bindtap="createTask">投票</button>
-      <button class="action-btn" bindtap="goToTasksList">看热闹</button>
+      <button class="action-btn" bindtap="goToTasksList">看更多</button>
       <button class="action-btn test-btn" bindtap="goToCourseSchedule">课程表</button>
     </view>
   </view>

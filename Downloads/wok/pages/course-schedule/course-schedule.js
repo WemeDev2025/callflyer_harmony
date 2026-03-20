@@ -3,7 +3,7 @@ const app = getApp();
 const RecycleContext = require('miniprogram-recycle-view');
 const plugin = requirePlugin('WechatSI');
 const manager = plugin.getRecordRecognitionManager();
-const { createReminder, cancelReminder, getReminderById, getMySchedule, saveMySchedule, createScheduleTemplate, cloneScheduleTemplate } = require('../../utils/api.js');
+const { createReminder, cancelReminder, getReminderById, getMySchedule, saveMySchedule, createScheduleTemplate, cloneScheduleTemplate, getMyScheduleTemplate } = require('../../utils/api.js');
 
 Page({
   data: {
@@ -93,6 +93,9 @@ Page({
     listAnimName: 'listInFromRight',
     _lastSwiperIndex: 0,
     swiperAnimating: false,
+    isLandscape: false,
+    activeBtn: '',
+    showVoiceTip: false,
   },
 
   onLoad(options) {
@@ -116,6 +119,8 @@ Page({
     this.loadScheduleFromServer();
 
     this.fetchVipBackgrounds();
+
+    this._initLandscapeDetector();
 
     // 获取系统状态栏高度及胶囊按钮位置
     const info = wx.getSystemInfoSync();
@@ -154,11 +159,18 @@ Page({
     } else {
       console.warn('[DEBUG] selectComponent #course-recycle-debug 失败');
     }
+
+    // 首次进入提示语音功能
+    if (!wx.getStorageSync('voice_tip_shown')) {
+      setTimeout(() => {
+        this.setData({ showVoiceTip: true });
+      }, 800);
+    }
   },
 
   onShareAppMessage() {
     const shareCode = this.data.shareCodeResult || wx.getStorageSync('course_share_code') || '';
-    const title = shareCode ? '欢迎使用我的课程表' : '我的课程表';
+    const title = shareCode ? '咱班儿课程表 一起使用吧～' : '我的课程表';
     const path = shareCode ? `/pages/course-schedule/course-schedule?shareCode=${shareCode}` : '/pages/course-schedule/course-schedule';
 
     return {
@@ -170,7 +182,7 @@ Page({
 
   onShareTimeline() {
     const shareCode = this.data.shareCodeResult || wx.getStorageSync('course_share_code') || '';
-    const title = shareCode ? '欢迎使用我的课程表' : '我的课程表';
+    const title = shareCode ? '咱班儿课程表 一起使用吧～' : '我的课程表';
     const query = shareCode ? `shareCode=${shareCode}` : '';
 
     return {
@@ -183,6 +195,19 @@ Page({
   onShow() {
     const t0 = Date.now();
     console.log('[Schedule] onShow START')
+
+    // 处理分享链接带来的 shareCode（页面在栈中时点分享链接走 onShow 而非 onLoad）
+    try {
+      const pages = getCurrentPages();
+      const currentPage = pages[pages.length - 1];
+      const opts = currentPage && currentPage.options;
+      const shareCode = opts && opts.shareCode;
+      if (shareCode) {
+        this._loadOptions = Object.assign({}, this._loadOptions, { shareCode });
+        this.ensureLoginThenImport(shareCode);
+        return;
+      }
+    } catch (e) {}
     
     // VIP 状态同步（同步执行，不延迟）
     const isVip = !!(app.globalData && app.globalData.isVip);
@@ -261,9 +286,27 @@ Page({
     }
   },
 
+  /**
+   * 页面加载时拉取已有分享码，解决换设备/清缓存后分享码丢失的问题
+   */
+  async _fetchMyShareCode() {
+    try {
+      const result = await getMyScheduleTemplate();
+      const code = result && result.shareCode;
+      if (code) {
+        wx.setStorageSync('course_share_code', String(code));
+        this.setData({ shareCodeResult: String(code), shareCodeReady: true });
+        console.log('[Schedule] 已恢复分享码:', code);
+      }
+    } catch (e) {
+      // 静默失败，不影响主流程
+    }
+  },
+
   onUnload() {
     // 页面卸载时停止识别
     manager.stop();
+    this._destroyLandscapeDetector();
     if (this._scheduleSyncTimer) {
       clearTimeout(this._scheduleSyncTimer);
       this._scheduleSyncTimer = null;
@@ -293,6 +336,40 @@ Page({
       this._shareCodeTimer = null;
     }
   },
+
+  // ── Landscape Detector ──────────────────────────────────────────────────────
+
+  _initLandscapeDetector() {
+    let isLandscape = false;
+    try {
+      const info = wx.getWindowInfo();
+      isLandscape = info.windowWidth > info.windowHeight;
+    } catch (e) {
+      isLandscape = false;
+    }
+    this.setData({ isLandscape });
+
+    this._onResizeHandler = ({ size }) => {
+      const landscape = size.windowWidth > size.windowHeight;
+      if (landscape !== this.data.isLandscape) {
+        this.setData({ isLandscape: landscape });
+      }
+    };
+    wx.onWindowResize(this._onResizeHandler);
+  },
+
+  _destroyLandscapeDetector() {
+    if (this._onResizeHandler) {
+      wx.offWindowResize(this._onResizeHandler);
+      this._onResizeHandler = null;
+    }
+  },
+
+  toggleLandscapeDebug() {
+    this.setData({ isLandscape: !this.data.isLandscape });
+  },
+
+  // ────────────────────────────────────────────────────────────────────────────
 
   initDate() {
     const now = new Date();
@@ -530,6 +607,11 @@ Page({
     });
   },
 
+  hideVoiceTip() {
+    this.setData({ showVoiceTip: false });
+    wx.setStorageSync('voice_tip_shown', true);
+  },
+
   showAddModal() {
     const dayIdx = this.data.currentDayIndex;
     const { startTime, endTime } = this._calcNextCourseTime(dayIdx);
@@ -666,11 +748,19 @@ Page({
           bgConfig: result.bgConfig
         };
         this.applyScheduleContent(serverContent, true);
+        this._fetchMyShareCode();
         return;
       }
     } catch (error) {
       if (error && error.message && error.message.includes('资源不存在')) {
         console.log('[Schedule] server has no schedule, fallback to local');
+      } else if (error && error.message && (error.message.includes('过期') || error.message.includes('登录'))) {
+        // token 过期或用户被删除（401），清空本地缓存，不 fallback 旧数据
+        console.warn('[Schedule] session expired or user deleted, clearing local cache. msg:', error.message);
+        wx.removeStorageSync('course_schedule');
+        wx.removeStorageSync('course_bg_config');
+        this.applyScheduleContent({ scheduleData: null, bgConfig: null }, false);
+        return;
       } else {
         console.warn('[Schedule] load from server failed, fallback to local:', error && error.message);
       }
@@ -1285,6 +1375,7 @@ Page({
           wx.setStorageSync('course_schedule', cleared);
           this.queueScheduleSync(200);
         });
+        this.hideAddModal();
       }
     });
   },
@@ -1369,13 +1460,14 @@ Page({
         title: '导入成功',
         icon: 'success'
       });
+      // 克隆成功后，服务端已有正确数据，不触发 queueScheduleSync/queueShareCodeRefresh
+      // 避免用本地旧数据覆盖刚克隆的服务端数据
       this.setData({
-        shareDirty: true,
+        shareDirty: false,
         shareCodeReady: false,
         shareCodeResult: ''
       });
       wx.removeStorageSync('course_share_code');
-      this.queueShareCodeRefresh(800);
       if (this._loadOptions) {
         this._loadOptions = Object.assign({}, this._loadOptions, { shareCode: '' });
       }
@@ -1525,3 +1617,16 @@ Page({
 
 // 全局文件加载测试
   console.log('[全局测试] course-schedule.js 已加载');
+
+/**
+ * Pure function: compute landscape orientation from window dimensions.
+ * Exported for property-based testing.
+ * @param {number} width
+ * @param {number} height
+ * @returns {boolean}
+ */
+function computeIsLandscape(width, height) {
+  return width > height;
+}
+
+module.exports = { computeIsLandscape };

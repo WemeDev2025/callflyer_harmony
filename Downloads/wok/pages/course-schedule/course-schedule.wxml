@@ -25,8 +25,32 @@
     </view>
   </view>
   
+  <!-- 横屏全览视图 -->
+  <view class="landscape-overview" wx:if="{{isLandscape}}">
+    <view class="landscape-grid">
+      <view class="landscape-col" wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
+        <view class="landscape-col-header">{{item.shortName}}</view>
+        <scroll-view scroll-y class="landscape-col-scroll">
+          <block wx:if="{{scheduleData[dayIdx].length > 0}}">
+            <view
+              class="landscape-card"
+              wx:for="{{scheduleData[dayIdx]}}"
+              wx:key="index"
+              wx:for-item="course"
+              style="background: {{course.color || '#F0F3FF'}}"
+            >
+              <text class="landscape-card-name">{{course.name}}</text>
+              <text class="landscape-card-time">{{course.startTime}}</text>
+            </view>
+          </block>
+          <view wx:else class="landscape-empty">—</view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+
   <!-- 课程表主体 - 使用 swiper 实现左右滑动 -->
-  <swiper class="schedule-swiper" current="{{currentDayIndex}}" bindchange="onSwiperChange" bindanimationfinish="onSwiperAnimationFinish" display-multiple-items="{{1}}" circular="{{false}}" skip-hidden-item-layout="{{true}}" duration="{{300}}">
+  <swiper class="schedule-swiper" wx:if="{{!isLandscape}}" current="{{currentDayIndex}}" bindchange="onSwiperChange" bindanimationfinish="onSwiperAnimationFinish" display-multiple-items="{{1}}" circular="{{false}}" skip-hidden-item-layout="{{true}}" duration="{{300}}">
     <swiper-item wx:for="{{weekDays}}" wx:key="index" wx:for-index="dayIdx">
       <view class="day-content" wx:if="{{dayIdx >= renderMin && dayIdx <= renderMax}}">
         <view class="day-title-overlay" style="margin-top: {{menuButtonTop}}px; height: {{menuButtonHeightRpx}}rpx;">
@@ -78,7 +102,7 @@
   </swiper>
 
   <!-- 底部操作栏 - 统一样式，三个圆角拉满的按钮 -->
-  <view class="bottom-bar {{isSamsung ? 'samsung-offset' : ''}}">
+  <view class="bottom-bar {{isSamsung ? 'samsung-offset' : ''}}" wx:if="{{!isLandscape}}">
     <!-- 语音按钮 -->
     <view class="action-btn voice-btn-action {{isRecording ? 'recording' : ''}}" 
           bindtouchstart="startVoice" 
@@ -242,6 +266,15 @@
     </view>
   </view>
 
-
+  <!-- 语音功能首次引导提示 -->
+  <view class="voice-tip-mask" wx:if="{{showVoiceTip}}" bindtap="hideVoiceTip">
+    <view class="voice-tip-card" catchtap="stopPropagation">
+      <text class="voice-tip-emoji">🎙️</text>
+      <text class="voice-tip-title">试试语音输入</text>
+      <text class="voice-tip-desc">长按语音按钮说话，松手即可录入课程名称 ：)</text>
+      <view class="voice-tip-btn" bindtap="hideVoiceTip">知道了</view>
+    </view>
+  </view>
 
 </view>
+

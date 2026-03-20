@@ -543,15 +543,13 @@
 }
 
 .user-avatar {
-  width: 90rpx;
-  height: 90rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f0f0f0;
   overflow: hidden;
   flex-shrink: 0;
   margin-left: 18rpx;

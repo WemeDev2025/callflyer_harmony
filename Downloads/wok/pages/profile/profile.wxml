@@ -13,7 +13,7 @@
     <view class="avatar-section">
       <view class="avatar" bindtap="chooseAvatar">
         <image wx:if="{{userInfo.avatar_url}}" class="avatar-image" src="{{userInfo.avatar_url}}" mode="aspectFill"></image>
-        <text wx:else class="avatar-text">我</text>
+        <image wx:else class="avatar-image" src="/images/icon_my.png" mode="aspectFill"></image>
       </view>
       <view class="avatar-tip">点击更换头像</view>
     </view>

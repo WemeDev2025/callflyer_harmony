@@ -423,6 +423,13 @@ export function createScheduleTemplate(data) {
 }
 
 /**
+ * 获取当前用户已有的分享码（换设备/清缓存后恢复用）
+ */
+export function getMyScheduleTemplate() {
+  return request('/schedule/my/template', 'GET')
+}
+
+/**
  * 获取课程表分享模板
  */
 export function getScheduleTemplate(shareCode) {
