@@ -15,6 +15,7 @@ import { PilotCard, PilotCardData } from '../components/PilotCard';
 import http from '@ohos.net.http';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import fileIo from '@ohos.file.fs';
+import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
 
 // 防抖标记：确保每次启动只上报一次访问
 let visitReported = false;
@@ -212,6 +213,16 @@ struct Index {
   // 保存网络图片到本地相册
   async saveImageToGallery(imageUrl: string): Promise<void> {
     try {
+      // 请求相册写入权限
+      const context = getContext(this);
+      const atManager = abilityAccessCtrl.createAtManager();
+      const result = await atManager.requestPermissionsFromUser(context, ['ohos.permission.WRITE_IMAGEVIDEO']);
+      console.info('【保存图片】权限请求结果: ' + JSON.stringify(result));
+      if (result.authResults[0] !== 0) {
+        promptAction.showToast({ message: '需要相册权限才能保存' });
+        return;
+      }
+
       console.info('【保存图片】开始下载: ' + imageUrl);
       // 从URL提取文件扩展名
       const urlPath = imageUrl.split('?')[0];
