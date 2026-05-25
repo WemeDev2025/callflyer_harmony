@@ -1,5 +1,5 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit } from '../service/ApiService';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
 import type { Context } from '@kit.AbilityKit';
@@ -11,6 +11,10 @@ import { imagePreview } from '../components/imagepreview/ImagePreview';
 import window from '@ohos.window';
 import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
 import { LengthMetrics } from '@kit.ArkUI';
+import { PilotCard, PilotCardData } from '../components/PilotCard';
+
+// 防抖标记：确保每次启动只上报一次访问
+let visitReported = false;
 
 interface FeatureCardParam {
   title: string;
@@ -64,8 +68,15 @@ struct Index {
 
   aboutToAppear() {
     this.loadBanner();
-    // 先等待登录完成再加载飞手（需要token）
+    // 先等待登录完成再上报访问（每次启动只上报一次）
     this.handleLogin().then(() => {
+      if (!visitReported) {
+        visitReported = true;
+        const user = AuthService.getCurrentUser();
+        reportVisit(user?.openId || '').catch((e: Error) => {
+          console.info('【访问上报失败】', e.message);
+        });
+      }
       this.loadPilots();
       this.loadOrders();
     });
@@ -389,7 +400,12 @@ struct Index {
                     .objectFit(ImageFit.Cover)
                     .borderRadius(12)
                     .onClick(() => {
-                      if ((item.clickType === 'h5' || item.clickType === 'url') && item.clickUrl) {
+                      if (item.clickPage === '/pages/pilot-map/index') {
+                        const token = AuthService.getAuthToken() || '';
+                        const mapUrl = 'https://wetofly.com/map?token=' + encodeURIComponent(token);
+                        console.info('【地图跳转】token: ' + (token ? '有值' : '空') + ', url: ' + mapUrl);
+                        router.pushUrl({ url: 'pages/WebView', params: { url: mapUrl, title: '地图' } });
+                      } else if ((item.clickType === 'h5' || item.clickType === 'url') && item.clickUrl) {
                         router.pushUrl({ url: 'pages/WebView', params: { url: item.clickUrl, title: item.clickPage || '网页' } });
                       }
                     })
@@ -418,7 +434,9 @@ struct Index {
                 title: '搜索飞手',
                 subtitle: '打造飞手库',
                 iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
-                onClick: () => {}
+                onClick: () => {
+                  router.pushUrl({ url: 'pages/CertifiedUsers' });
+                }
               })
 
               this.FeatureCard({
@@ -667,224 +685,34 @@ struct Index {
       List() {
         ForEach(this.pilots, (pilot: PilotItem) => {
           ListItem() {
-            Column() {
-              // 头部：头像 + 昵称 + 认证
-              Row() {
-                Image(pilot.avatar)
-                  .width(56)
-                  .height(56)
-                  .borderRadius(28)
-                  .backgroundColor('#dfe4ec')
-                  .onClick(() => {
-                    imagePreview.show([pilot.avatar], {
-        showIndex: false
-      });
-                  })
-
-                Column() {
-                  Text(pilot.nickname)
-                    .fontSize(18)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor('#14233a')
-                    .fontFamily('DouyinSansBold')
-                    .margin({ top: 4 })
-                  if (pilot.pilotCode) {
-                    Row() {
-                      Image($r('app.media.icon_banner'))
-                        .width(22)
-                        .height(22)
-                        .objectFit(ImageFit.Contain)
-                      Text(pilot.pilotCode)
-                        .fontSize(12)
-                        .fontColor('#6f7c90')
-                        .margin({ left: 4 })
-                    }
-                    .margin({ top: 4 })
-                  }
-                }
-                .alignItems(HorizontalAlign.Start)
-                .justifyContent(FlexAlign.Center)
-                .height(56)
-                .margin({ left: 14 })
-              }
-              .width('100%')
-              .alignItems(VerticalAlign.Center)
-
-              // 分隔线
-              Divider()
-                .color('rgba(99, 105, 117, 0.15)')
-                .margin({ top: 12, bottom: 12 })
-
-              // 最近活跃
-              Row() {
-                Text('最近活跃')
-                  .fontSize(15)
-                  .fontColor('#455066')
-                  .fontWeight(FontWeight.Medium)
-                Text(pilot.recentActiveText)
-                  .fontSize(15)
-                  .fontColor('#1f2a3a')
-                  .fontWeight(FontWeight.Medium)
-              }
-              .width('100%')
-              .justifyContent(FlexAlign.SpaceBetween)
-
-              // 认证状态
-              Row() {
-                Text('认证状态')
-                  .fontSize(15)
-                  .fontColor('#455066')
-                  .fontWeight(FontWeight.Medium)
-                Row() {
-                  if (pilot.licenseType) {
-                    Text(pilot.licenseType.toUpperCase())
-                      .fontSize(10)
-                      .fontColor('#FFFFFF')
-                      .backgroundColor(pilot.licenseType.toLowerCase() === 'utc' ? '#007DFF' : '#07C160')
-                      .borderRadius(3)
-                      .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-                      .margin({ right: 12 })
-                  }
-                  Text(pilot.licenseStatus)
-                    .fontSize(15)
-                    .fontColor('#1f2a3a')
-                    .fontWeight(FontWeight.Medium)
-                }
-              }
-              .width('100%')
-              .justifyContent(FlexAlign.SpaceBetween)
-              .margin({ top: 9 })
-
-              // 所在城市
-              if (pilot.city) {
-                Row() {
-                  Text('所在城市')
-                    .fontSize(15)
-                    .fontColor('#455066')
-                    .fontWeight(FontWeight.Medium)
-                  Text(pilot.city)
-                    .fontSize(15)
-                    .fontColor('#1f2a3a')
-                    .fontWeight(FontWeight.Medium)
-                }
-                .width('100%')
-                .justifyContent(FlexAlign.SpaceBetween)
-                .margin({ top: 9 })
-              }
-
-              // 主营业务
-              if (pilot.businessScopeText) {
-                Row() {
-                  Text('主营业务')
-                    .fontSize(15)
-                    .fontColor('#455066')
-                    .fontWeight(FontWeight.Medium)
-                  Text(pilot.businessScopeText)
-                    .fontSize(15)
-                    .fontColor('#1f2a3a')
-                    .fontWeight(FontWeight.Medium)
-                }
-                .width('100%')
-                .justifyContent(FlexAlign.SpaceBetween)
-                .margin({ top: 9 })
-              }
-
-              // 常用机型
-              if (pilot.droneModel && pilot.droneModel !== '--') {
-                Row() {
-                  Text('常用机型')
-                    .fontSize(15)
-                    .fontColor('#455066')
-                    .fontWeight(FontWeight.Medium)
-                  Text(pilot.droneModel)
-                    .fontSize(15)
-                    .fontColor('#1f2a3a')
-                    .fontWeight(FontWeight.Medium)
-                }
-                .width('100%')
-                .justifyContent(FlexAlign.SpaceBetween)
-                .margin({ top: 9 })
-              }
-
-              // 电话
-              if (pilot.phone) {
-                Row() {
-                  Text('电话')
-                    .fontSize(15)
-                    .fontColor('#455066')
-                    .fontWeight(FontWeight.Medium)
-                  Text(pilot.phone)
-                    .fontSize(15)
-                    .fontColor('#1f2a3a')
-                    .fontWeight(FontWeight.Medium)
-                }
-                .width('100%')
-                .justifyContent(FlexAlign.SpaceBetween)
-                .margin({ top: 9 })
-              }
-
-              // 微信
-              if (pilot.wechatId) {
-                Row() {
-                  Text('微信')
-                    .fontSize(15)
-                    .fontColor('#455066')
-                    .fontWeight(FontWeight.Medium)
-                  Text(pilot.wechatId)
-                    .fontSize(15)
-                    .fontColor('#1f2a3a')
-                    .fontWeight(FontWeight.Medium)
-                }
-                .width('100%')
-                .justifyContent(FlexAlign.SpaceBetween)
-                .margin({ top: 9 })
-              }
-
-              // 分隔线
-              Divider()
-                .color('rgba(99, 105, 117, 0.15)')
-                .margin({ top: 12 })
-
-              // 操作按钮行：距离 + 拨号 + 微信
-              Row() {
-                if (pilot.distanceText) {
-                  Text(pilot.distanceText)
-                    .fontSize(12)
-                    .fontColor('#FFFFFF')
-                    .backgroundColor('#07C160')
-                    .borderRadius(3)
-                    .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-                }
-                Blank().layoutWeight(1)
-                Column() {
-                  Image($r('app.media.iconwechat'))
-                    .width(44)
-                    .height(44)
-                    .onClick(() => {
-                      this.onIconWechat(pilot);
-                    })
-                }
-                .alignItems(HorizontalAlign.Center)
-                Column() {
-                  Image($r('app.media.iconcall'))
-                    .width(44)
-                    .height(44)
-                    .onClick(() => {
-                      this.onIconCall(pilot);
-                    })
-                }
-                .alignItems(HorizontalAlign.Center)
-                .margin({ left: 16 })
-              }
-              .width('100%')
-              .alignItems(VerticalAlign.Center)
-              .margin({ top: 12 })
-            }
-            .width('100%')
-            .padding(24)
-            .backgroundColor('#FFFFFF')
-            .borderRadius(14)
-            .margin({ bottom: 12 })
+            PilotCard({
+              user: {
+                openid: pilot.openid,
+                nickname: pilot.nickname,
+                avatar: pilot.avatar,
+                city: pilot.city,
+                userRole: '',
+                roleLabel: pilot.roleLabel,
+                licenseType: pilot.licenseType,
+                licenseStatus: pilot.licenseStatus,
+                pilotCode: pilot.pilotCode,
+                company: pilot.company,
+                position: pilot.position,
+                droneModel: pilot.droneModel,
+                businessScopeText: pilot.businessScopeText,
+                recentActiveText: pilot.recentActiveText,
+                likeCount: pilot.likeCount,
+                likedByMe: false,
+                phone: pilot.phone,
+                wechatId: pilot.wechatId,
+                distanceText: pilot.distanceText,
+                isNew: pilot.isNew,
+              },
+              showDistance: true,
+              showActions: true,
+              onWechatClick: () => { this.onIconWechat(pilot); },
+              onCallClick: () => { this.onIconCall(pilot); }
+            })
           }
         })
       }
