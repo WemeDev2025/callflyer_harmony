@@ -12,6 +12,9 @@ import window from '@ohos.window';
 import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
 import { LengthMetrics } from '@kit.ArkUI';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
+import http from '@ohos.net.http';
+import photoAccessHelper from '@ohos.file.photoAccessHelper';
+import fileIo from '@ohos.file.fs';
 
 // 防抖标记：确保每次启动只上报一次访问
 let visitReported = false;
@@ -204,6 +207,55 @@ struct Index {
     return [
       { uid: '1', src: 'https://wetofly.com/data/banner/banner1.png', isVideoBanner: false, videoUrl: '', clickType: 'none', clickPage: '', clickUrl: '' }
     ];
+  }
+
+  // 保存网络图片到本地相册
+  async saveImageToGallery(imageUrl: string): Promise<void> {
+    try {
+      console.info('【保存图片】开始下载: ' + imageUrl);
+      // 从URL提取文件扩展名
+      const urlPath = imageUrl.split('?')[0];
+      const extMatch = urlPath.match(/\.(\w+)(\?.*)?$/);
+      const extension = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+      const validExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
+      const finalExt = validExts.includes(extension) ? extension : 'jpg';
+
+      const httpRequest = http.createHttp();
+      const response = await httpRequest.request(imageUrl, {
+        method: http.RequestMethod.GET,
+        connectTimeout: 30000,
+        readTimeout: 30000
+      });
+      if (response.responseCode === 200) {
+        const imageData = response.result as ArrayBuffer;
+        const helper = photoAccessHelper.getPhotoAccessHelper(getContext(this));
+        const createOptions: photoAccessHelper.CreateOptions = {
+          title: '轮播图_' + Date.now()
+        };
+        const uri = await helper.createAsset(photoAccessHelper.PhotoType.IMAGE, finalExt, createOptions);
+        console.info('【保存图片】创建资产成功: ' + uri);
+        // 写入图片数据
+        const file = fileIo.openSync(uri, fileIo.OpenMode.READ_WRITE);
+        fileIo.writeSync(file.fd, imageData);
+        fileIo.closeSync(file.fd);
+        console.info('【保存图片】成功');
+        promptAction.showToast({ message: '已保存到相册' });
+      } else {
+        console.error('【保存图片】下载失败: ' + response.responseCode);
+        promptAction.showToast({ message: '保存失败' });
+      }
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : JSON.stringify(e);
+      console.error('【保存图片】异常: ' + errMsg);
+      promptAction.showToast({ message: '保存失败' });
+    }
+  }
+
+  // 判断轮播图是否可点击（是否有有效跳转）
+  hasValidClick(item: BannerItem): boolean {
+    return !!(item.clickType && item.clickType !== 'none') ||
+           !!(item.clickPage && item.clickPage.trim() !== '') ||
+           !!(item.clickUrl && item.clickUrl.trim() !== '');
   }
 
   // 获取联系方式（可能来自本地或远程）
@@ -407,6 +459,9 @@ struct Index {
                         router.pushUrl({ url: 'pages/WebView', params: { url: mapUrl, title: '地图' } });
                       } else if ((item.clickType === 'h5' || item.clickType === 'url') && item.clickUrl) {
                         router.pushUrl({ url: 'pages/WebView', params: { url: item.clickUrl, title: item.clickPage || '网页' } });
+                      } else if (!this.hasValidClick(item)) {
+                        // 配置参数为空，保存图片到相册
+                        this.saveImageToGallery(item.src);
                       }
                     })
                 })
