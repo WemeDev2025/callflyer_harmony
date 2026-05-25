@@ -1,0 +1,56 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "storeFile": "/Users/zhaojing/Downloads/callflyerDebug.p12",
+          "storePassword": "000000186A2D7C212022BF34F78D3B4B58BAEBCCE5150A1F1AA3A3B896518C81B8767F8AD3C183A9",
+          "keyAlias": "callflyerDebug",
+          "keyPassword": "00000018C5AD11E1749B5EF21590610D2569999B74F32D91297A73D6A5129F3D1CF1AEC337C868DF",
+          "signAlg": "SHA256withECDSA",
+          "profile": "/Users/zhaojing/Downloads/callflyerDebugDebug.p7b",
+          "certpath": "/Users/zhaojing/Downloads/callflyer.cer"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "targetSdkVersion": "5.1.0(18)",
+        "compatibleSdkVersion": "5.1.0(18)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

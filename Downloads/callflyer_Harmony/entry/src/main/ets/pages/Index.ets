@@ -19,6 +19,10 @@ interface FeatureCardParam {
   onClick: () => void;
 }
 
+interface SystemBarStyleInterface {
+  statusBarContentColor?: string;
+}
+
 /**
  * 首页 - 轮播图 + 附近飞手 + 最新任务
  */
@@ -405,7 +409,7 @@ struct Index {
             .width('100%')
             .height(200)
             .padding({ left: 18, right: 18, top: 0, bottom: 0 })
-            .margin({ top: -20 })
+            .margin({ top: -100 })
             .opacity(this.bannerLoaded ? 1 : 0)
 
             // 功能卡片行：职业飞手库 + 个人中心
@@ -466,31 +470,13 @@ struct Index {
         .scrollBar(BarState.Off)
         .edgeEffect(EdgeEffect.Spring)
         .clip(false)
-        .onScroll(() => {
-          // 滚动时设置状态栏颜色（高频）
-          window.getLastWindow(getContext(this)).then((win) => {
-            win.setWindowSystemBarProperties({
-              statusBarColor: '#00000000',
-              statusBarContentColor: '#14233a'
-            });
-          });
-        })
-        .onScrollStop(() => {
-          // 滚动停止时再次确保设置
-          window.getLastWindow(getContext(this)).then((win) => {
-            win.setWindowSystemBarProperties({
-              statusBarColor: '#00000000',
-              statusBarContentColor: '#14233a'
-            });
-          });
-        })
         .expandSafeArea([SafeAreaType.SYSTEM])
       }
       .width('100%')
       .height('100%')
       .hideBackButton(true)
       .titleBar({
-        enableComponentSafeArea: false,
+        enableComponentSafeArea: true,
         style: {
           scrollEffectOpts: {
             enableScrollEffect: true,
@@ -500,12 +486,12 @@ struct Index {
           },
           originalStyle: {
             backgroundStyle: {
-              backgroundColor: '#FFFFFF',
+              backgroundColor: '#000000',
             }
           },
           scrollEffectStyle: {
             backgroundStyle: {
-              backgroundColor: '#E7F8FC',
+              backgroundColor: '#40FFFFFF',
             }
           }
         },
@@ -513,6 +499,10 @@ struct Index {
           title: { mainTitle: '' },
         }
       })
+      .systemBarStyle(
+        { statusBarContentColor: '#E5020202' },
+        { statusBarContentColor: '#E5020202' }
+      )
       .titleMode(HdsNavigationTitleMode.MINI)
       .bindToScrollable([this.scroller])
       .expandSafeArea([SafeAreaType.SYSTEM])
