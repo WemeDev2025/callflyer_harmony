@@ -72,9 +72,10 @@ struct Index {
         const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
         this.statusBarHeight = px2vp(avoidArea.topRect.height);
         console.info('状态栏高度:', this.statusBarHeight, 'vp');
-        // 状态栏透明
+        // 状态栏透明 + 黑色文字
         win.setWindowSystemBarProperties({
-          statusBarColor: '#00000000'
+          statusBarColor: '#00000000',
+          statusBarContentColor: '#14233a'
         });
       });
     } catch (e) {
@@ -404,7 +405,7 @@ struct Index {
             .width('100%')
             .height(200)
             .padding({ left: 18, right: 18, top: 0, bottom: 0 })
-            .margin({ top: -10 })
+            .margin({ top: -20 })
             .opacity(this.bannerLoaded ? 1 : 0)
 
             // 功能卡片行：职业飞手库 + 个人中心
@@ -465,23 +466,51 @@ struct Index {
         .scrollBar(BarState.Off)
         .edgeEffect(EdgeEffect.Spring)
         .clip(false)
+        .onScroll(() => {
+          // 滚动时设置状态栏颜色（高频）
+          window.getLastWindow(getContext(this)).then((win) => {
+            win.setWindowSystemBarProperties({
+              statusBarColor: '#00000000',
+              statusBarContentColor: '#14233a'
+            });
+          });
+        })
+        .onScrollStop(() => {
+          // 滚动停止时再次确保设置
+          window.getLastWindow(getContext(this)).then((win) => {
+            win.setWindowSystemBarProperties({
+              statusBarColor: '#00000000',
+              statusBarContentColor: '#14233a'
+            });
+          });
+        })
         .expandSafeArea([SafeAreaType.SYSTEM])
       }
       .width('100%')
       .height('100%')
       .hideBackButton(true)
       .titleBar({
-        enableComponentSafeArea: true,
+        enableComponentSafeArea: false,
         style: {
           scrollEffectOpts: {
             enableScrollEffect: true,
             scrollEffectType: ScrollEffectType.GRADIENT_BLUR,
             blurEffectiveStartOffset: LengthMetrics.vp(0),
             blurEffectiveEndOffset: LengthMetrics.vp(20)
+          },
+          originalStyle: {
+            backgroundStyle: {
+              backgroundColor: '#FFFFFF',
+            }
+          },
+          scrollEffectStyle: {
+            backgroundStyle: {
+              backgroundColor: '#E7F8FC',
+            }
           }
         },
         content: {
-          title: { mainTitle: '呼叫飞手' },
+          title: { mainTitle: '' },
         }
       })
       .titleMode(HdsNavigationTitleMode.MINI)
