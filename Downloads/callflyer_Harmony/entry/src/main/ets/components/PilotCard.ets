@@ -1,6 +1,7 @@
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
+import vibrator from '@ohos.vibrator';
 import { imagePreview } from './imagepreview/ImagePreview';
 import { likeProfile, unlikeProfile } from '../service/ApiService';
 import AuthService from '../service/AuthService';
@@ -73,6 +74,11 @@ export struct PilotCard {
   }
 
   async handleLikeClick() {
+    // 震动反馈
+    try {
+      vibrator.startVibration({ type: 'time', duration: 30 }, { usage: 'touch' });
+    } catch (e) {}
+
     const token = AuthService.getAuthToken();
     if (!token) {
       promptAction.showToast({ message: '请先登录' });

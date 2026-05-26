@@ -264,7 +264,7 @@ struct CertifiedUsers {
 
               if (this.searchText && this.searchText.trim() !== '') {
                 SymbolGlyph($r('sys.symbol.xmark'))
-                  .fontSize(28)
+                  .fontSize(20)
                   .fontColor(['#999999'])
                   .margin({ right: 12 })
                   .onClick(() => {

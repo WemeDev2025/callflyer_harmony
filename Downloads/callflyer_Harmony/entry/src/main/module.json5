@@ -43,6 +43,9 @@
           "abilities": ["EntryAbility"],
           "when": "always"
         }
+      },
+      {
+        "name": "ohos.permission.VIBRATE"
       }
     ]
   }
