@@ -779,7 +779,7 @@ struct Index {
                 businessScopeText: pilot.businessScopeText,
                 recentActiveText: pilot.recentActiveText,
                 likeCount: pilot.likeCount,
-                likedByMe: false,
+                likedByMe: pilot.likedByMe,
                 phone: pilot.phone,
                 wechatId: pilot.wechatId,
                 distanceText: pilot.distanceText,

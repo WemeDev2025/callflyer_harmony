@@ -1,0 +1,1309 @@
+import http from '@ohos.net.http';
+
+/**
+ * API服务
+ */
+
+const BASE_URL = 'https://wetofly.com';
+
+// 通用HTTP响应
+export interface HttpResponse<T> {
+  code: number;
+  data: T;
+}
+
+// HTTP请求头
+interface HttpHeader {
+  key: string;
+  value: string;
+}
+
+// ============ 轮播图 ============
+
+export interface BannerItem {
+  uid: string;
+  src: string;
+  isVideoBanner: boolean;
+  videoUrl: string;
+  clickType: string;
+  clickPage: string;
+  clickUrl: string;
+}
+
+interface RawConfig {
+  carousel: RawBannerItem[];
+}
+
+interface RawBannerItem {
+  image_url: string;
+  click_type: string;
+  click_page: string;
+  click_url: string;
+  video_url: string;
+  order: number;
+  enabled: boolean;
+  position: string;
+}
+
+export async function fetchBanners(): Promise<BannerItem[]> {
+  return new Promise<BannerItem[]>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/config`;
+    console.info('【接口请求】url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: [{ 'Content-Type': 'application/json' }],
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchBanners:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        if (data.result) {
+          console.info('【接口返回】fetchBanners:', data.result as string);
+          try {
+            const response = JSON.parse(data.result as string) as RawConfig;
+            const banners = parseBanners(response);
+            resolve(banners);
+          } catch (parseErr) {
+            reject(parseErr);
+          }
+        } else {
+          resolve([]);
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+function parseBanners(response: RawConfig): BannerItem[] {
+  if (!response.carousel || !Array.isArray(response.carousel)) {
+    return [];
+  }
+  const result: BannerItem[] = [];
+  const timestamp = Date.now();
+  for (let i = 0; i < response.carousel.length; i++) {
+    const item = response.carousel[i];
+    if (item.enabled && item.position === 'homepage_banner' && item.image_url) {
+      result.push({
+        uid: `banner_${i}_${timestamp}`,
+        src: item.image_url,
+        isVideoBanner: !!item.video_url,
+        videoUrl: item.video_url || '',
+        clickType: item.click_type || 'none',
+        clickPage: item.click_page || '',
+        clickUrl: item.click_url || ''
+      });
+    }
+  }
+  return result;
+}
+
+// ============ 附近飞手 ============
+
+export interface NearbyPilotsResult {
+  pilots: PilotItem[];
+  hasMore: boolean;
+}
+
+export interface PilotItem {
+  openid: string;
+  nickname: string;
+  avatar: string;
+  city: string;
+  licenseType: string;
+  licenseStatus: string;
+  droneModel: string;
+  businessScope: string;
+  businessScopeText: string;
+  distanceText: string;
+  recentActiveText: string;
+  phone: string;
+  wechatId: string;
+  pilotCode: string;
+  company: string;
+  position: string;
+  likeCount: number;
+  likedByMe: boolean;
+  isVipSlot: boolean;
+  vipRadiusKm: number;
+  vipLabel: string;
+  latitude: number;
+  longitude: number;
+  score: string;
+  licenseUrl: string;
+  channelsId: string;
+  isNew: boolean;
+  licenseStatusClass: string;
+  roleLabel: string;
+}
+
+interface NearbyPilotsResponse {
+  items: RawPilot[];
+  total: number;
+  has_more?: boolean;
+}
+
+interface RawPilotLocation {
+  coordinates?: number[];
+}
+
+interface RawPilot {
+  openid: string;
+  openId?: string;
+  open_id?: string;
+  nickname?: string;
+  avatarUrl?: string;
+  avatar_url?: string;
+  city?: string;
+  license_type?: string;
+  licenseType?: string;
+  license_status?: string;
+  licenseStatus?: string;
+  drone_model?: string;
+  droneModel?: string;
+  business_scope?: string[];
+  businessScope?: string[];
+  distance_meters?: number;
+  days_since_update?: number;
+  daysSinceUpdate?: number;
+  recent_active_days?: number;
+  recentActiveDays?: number;
+  phone?: string;
+  wechat_id?: string;
+  wechatId?: string;
+  pilot_code?: string;
+  pilotCode?: string;
+  company?: string;
+  position?: string;
+  like_count?: number;
+  likeCount?: number;
+  liked_by_me?: boolean;
+  likedByMe?: boolean;
+  is_vip_slot?: boolean;
+  isNew?: boolean;
+  is_new?: boolean;
+  vip_radius_km?: number;
+  vip_label?: string;
+  latitude?: number;
+  longitude?: number;
+  location?: RawPilotLocation;
+  score?: number;
+  license_url?: string;
+  licenseUrl?: string;
+  channels_id?: string;
+  channelsId?: string;
+  user_role?: string;
+  userRole?: string;
+}
+
+export async function fetchNearbyPilots(lat?: number, lng?: number, page: number = 1, pageSize: number = 50): Promise<NearbyPilotsResult> {
+  return new Promise<NearbyPilotsResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    let url = `${BASE_URL}/api/pilots/nearby?page=${page}&page_size=${pageSize}`;
+    if (lat !== undefined && lng !== undefined) {
+      url = url + `&lat=${lat}&lng=${lng}`;
+    }
+    console.info('【接口请求】url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: [{ 'Content-Type': 'application/json' }],
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchNearbyPilots:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        if (data.result) {
+          console.info('【接口返回】fetchNearbyPilots:', data.result as string);
+          try {
+            const response = JSON.parse(data.result as string) as NearbyPilotsResponse;
+            const pilots: PilotItem[] = [];
+            if (response.items) {
+              for (let i = 0; i < response.items.length; i++) {
+                const p = response.items[i];
+                const distanceM = p.distance_meters != null ? p.distance_meters : null;
+                const distanceText = distanceM != null
+                  ? (distanceM < 1000 ? `${Math.round(distanceM)}m` : `${(distanceM / 1000).toFixed(0)}km`)
+                  : '';
+                const businessScopeArr = p.business_scope || p.businessScope || [];
+                const businessScopeText = businessScopeArr.join(' · ');
+                const daysSinceUpdateRaw = p.days_since_update != null ? p.days_since_update
+                  : p.daysSinceUpdate != null ? p.daysSinceUpdate
+                  : p.recent_active_days != null ? p.recent_active_days
+                  : p.recentActiveDays;
+                const daysSinceUpdate = daysSinceUpdateRaw != null ? `${daysSinceUpdateRaw}` : '';
+                let recentActiveText = '--';
+                if (daysSinceUpdate !== '') {
+                  if (daysSinceUpdate === '0') {
+                    recentActiveText = '今天';
+                  } else {
+                    recentActiveText = `${daysSinceUpdate} 天前`;
+                  }
+                }
+                const userRole = p.user_role || p.userRole || 'pilot';
+                const roleLabel = userRole === 'pilot' ? '飞手' : userRole === 'employer' ? '雇主' : '飞手';
+                const licenseStatusClass = p.license_status || p.licenseStatus ? 'status-success' : '';
+                const scoreRaw = p.score;
+                const score = scoreRaw != null ? `${scoreRaw.toFixed(2).replace(/\.?0+$/, '')}%` : '--';
+                const locationCoords = p.location?.coordinates || [];
+                const longitude = locationCoords[0] || null;
+                const latitude = locationCoords[1] || null;
+                const item: PilotItem = {
+                  openid: p.openid || p.openId || p.open_id || '',
+                  nickname: p.nickname || '匿名飞手',
+                  avatar: p.avatarUrl || p.avatar_url || 'https://wetofly.com/data/image/avatar_placeholder.webp',
+                  city: p.city || '',
+                  licenseType: (p.license_type || p.licenseType || '').toLowerCase(),
+                  licenseStatus: p.license_status || p.licenseStatus || '',
+                  droneModel: p.drone_model || p.droneModel || '--',
+                  businessScope: businessScopeArr.join('、'),
+                  businessScopeText: businessScopeText,
+                  distanceText: distanceText,
+                  recentActiveText: recentActiveText,
+                  phone: p.phone || '',
+                  wechatId: p.wechat_id || p.wechatId || '',
+                  pilotCode: p.pilot_code || p.pilotCode || '',
+                  company: p.company || '',
+                  position: p.position || '',
+                  likeCount: p.like_count || p.likeCount || 0,
+                  likedByMe: !!(p.liked_by_me || p.likedByMe),
+                  isVipSlot: !!(p.is_vip_slot),
+                  vipRadiusKm: p.vip_radius_km || 0,
+                  vipLabel: p.vip_label || '',
+                  latitude: p.latitude != null ? p.latitude : (latitude != null ? latitude : 0),
+                  longitude: p.longitude != null ? p.longitude : (longitude != null ? longitude : 0),
+                  score: score,
+                  licenseUrl: p.license_url || p.licenseUrl || '',
+                  channelsId: p.channels_id || p.channelsId || '',
+                  isNew: !!(p.isNew || p.is_new),
+                  licenseStatusClass: licenseStatusClass,
+                  roleLabel: roleLabel
+                };
+                pilots.push(item);
+              }
+            }
+            const hasMore = !!(response.has_more);
+            const result: NearbyPilotsResult = { pilots, hasMore };
+            resolve(result);
+          } catch (parseErr) {
+            reject(parseErr);
+          }
+        } else {
+          const result: NearbyPilotsResult = { pilots: [], hasMore: false };
+          resolve(result);
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// ============ 飞手联系方式 ============
+
+export interface PilotContact {
+  phone: string;
+  wechatId: string;
+}
+
+export async function fetchPilotContact(openid: string, token?: string): Promise<PilotContact> {
+  return new Promise<PilotContact>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/profiles/${openid}/contact`;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        if (data.result) {
+          try {
+            const response: Record<string, string> = JSON.parse(data.result as string);
+            resolve({
+              phone: response['phone'] || '',
+              wechatId: response['wechat_id'] || response['wechatId'] || ''
+            });
+          } catch (parseErr) {
+            reject(parseErr);
+          }
+        } else {
+          resolve({ phone: '', wechatId: '' });
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// ============ 最新任务 ============
+
+// 任务类型中文映射
+const TASK_CATEGORY_MAP: Record<string, string> = {
+  'hoisting': '吊运',
+  'inspection': '巡检',
+  'mapping': '测绘',
+  'plant_protection': '植保',
+  'emergency': '应急',
+  'logistics': '物流',
+  'aerial_media': '航拍',
+  'security': '安防',
+  'construction': '施工',
+  'monitoring': '监测',
+  'education': '教育',
+  'exploration': '勘探',
+  'remote_sensing': '遥感',
+  'entertainment': '娱乐',
+  'lift_pv': '吊运-光伏',
+  'lift_material': '吊运-建筑材料',
+  'lift_wood': '吊运-木材',
+  'inspection_mapping': '巡检/测绘',
+  'crop_spraying': '植保喷洒',
+  'mountain_transport': '高山运输',
+  'others': '其他'
+};
+
+function mapTaskCategory(category: string): string {
+  return TASK_CATEGORY_MAP[category] || category || '其他';
+}
+
+// 距离标签映射
+const DISTANCE_LABELS: Record<string, string> = {
+  'lt_200m': '<200m',
+  '200_500m': '200-500m',
+  '500_1000m': '500-1000m',
+  '1_4km': '1-4km',
+  'gt_4km': '>4km'
+};
+
+// 垂直落差标签映射
+const VERTICAL_DROP_LABELS: Record<string, string> = {
+  'lt_50m': '<50m',
+  '50_150m': '50-150m',
+  'gt_150m': '>150m'
+};
+
+// 载重标签映射
+const PAYLOAD_LABELS: Record<string, string> = {
+  'lt_100kg': '<100kg',
+  '100_300kg': '100-300kg',
+  '300_600kg': '300-600kg',
+  'gt_600kg': '>600kg'
+};
+
+function mapDistanceLabel(label: string): string {
+  return DISTANCE_LABELS[label] || label || '';
+}
+
+function mapVerticalDropLabel(label: string): string {
+  if (!label) return '';
+  return VERTICAL_DROP_LABELS[label] || label;
+}
+
+function mapPayloadLabel(label: string): string {
+  if (!label) return '';
+  return PAYLOAD_LABELS[label] || label;
+}
+
+export interface OrderItem {
+  orderId: string;
+  publisherOpenid: string;
+  taskCategory: string;
+  taskCategoryDisplay: string;
+  distanceText: string;
+  distanceLabel: string;
+  verticalDrop: number;
+  verticalDropLabel: string;
+  payloadKg: number;
+  payloadLabel: string;
+  totalOrders: number;
+  status: string;
+  createdAt: string;
+  city: string;
+  price: string;
+  budgetAmount: number;
+  budgetUnit: string;
+  notes: string;
+  profile: OrderProfile;
+  customer: OrderCustomer;
+  rating: OrderRating;
+  expanded: boolean;
+}
+
+export interface OrderProfile {
+  openid: string;
+  nickname: string;
+  avatarUrl: string;
+  city: string;
+  company: string;
+  position: string;
+  phone: string;
+  wechatId: string;
+}
+
+export interface OrderCustomer {
+  name: string;
+  city: string;
+  phone: string;
+  company: string;
+}
+
+export interface OrderRating {
+  score: number;
+  comment: string;
+}
+
+interface OrdersResponse {
+  items: RawOrder[];
+  total: number;
+}
+
+interface RawOrder {
+  order_id: string;
+  task_category: string;
+  task_category_display?: string;
+  distance_km?: number;
+  distance_label?: string;
+  vertical_drop?: number;
+  vertical_drop_label?: string;
+  payload_kg?: number;
+  payload_kg_label?: string;
+  total_orders?: number;
+  status: string;
+  created_at?: string;
+  city?: string;
+  city_label?: string;
+  per_trip_price?: number;
+  total_price?: number;
+  notes?: string;
+  publisher_openid?: string;
+  publisherOpenid?: string;
+  profile?: RawOrderProfile;
+  customer?: RawOrderCustomer;
+  rating?: RawOrderRating;
+  budget?: RawBudget;
+  quote?: RawQuote;
+  quote_params?: RawQuote;
+}
+
+interface RawOrderProfile {
+  openid?: string;
+  openId?: string;
+  nickname?: string;
+  avatar?: string;
+  avatar_url?: string;
+  avatarUrl?: string;
+  city?: string;
+  company?: string;
+  position?: string;
+  phone?: string;
+  wechat_id?: string;
+  wechatId?: string;
+}
+
+interface RawOrderCustomer {
+  name?: string;
+  city?: string;
+  city_label?: string;
+  phone?: string;
+  company?: string;
+}
+
+interface RawOrderRating {
+  score?: number;
+  comment?: string;
+}
+
+interface RawBudget {
+  amount?: number;
+  unit?: string;
+}
+
+interface RawQuote {
+  task_category?: string;
+  task_category_display?: string;
+  distance_km?: number;
+  distance_label?: string;
+  vertical_drop?: number;
+  vertical_drop_label?: string;
+  payload_kg?: number;
+  payload_kg_label?: string;
+  total_orders?: number;
+  total_orders_label?: string;
+  city?: string;
+  city_label?: string;
+  total_price?: number;
+  per_trip_price?: number;
+}
+
+export async function fetchPublicOrders(): Promise<OrderItem[]> {
+  return new Promise<OrderItem[]>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/orders/public`;
+    console.info('【接口请求】url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: [{ 'Content-Type': 'application/json' }],
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchPublicOrders:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        if (data.result) {
+          console.info('【接口返回】fetchPublicOrders:', data.result as string);
+          try {
+            const response = JSON.parse(data.result as string) as OrdersResponse;
+            const orders: OrderItem[] = [];
+            if (response.items) {
+              for (let i = 0; i < response.items.length; i++) {
+                const o = response.items[i];
+                // 优先使用 quote_params，其次 quote
+                const quote = o.quote_params || o.quote;
+                const profile = o.profile;
+                const customer = o.customer;
+                const rating = o.rating;
+                const budget = o.budget;
+                // 任务类型显示
+                const taskCategoryDisplay = quote?.task_category_display
+                  || o.task_category_display
+                  || mapTaskCategory(o.task_category);
+                // 距离
+                const distanceKm = quote?.distance_km ?? o.distance_km;
+                const distanceLabelRaw = quote?.distance_label || o.distance_label || '';
+                const distanceLabel = mapDistanceLabel(distanceLabelRaw);
+                const distanceText = distanceKm ? `${distanceKm}km` : distanceLabel;
+                // 垂直落差
+                const verticalDrop = quote?.vertical_drop ?? o.vertical_drop ?? 0;
+                const verticalDropLabelRaw = quote?.vertical_drop_label || o.vertical_drop_label || '';
+                const verticalDropLabel = mapVerticalDropLabel(verticalDropLabelRaw) || (verticalDrop ? `${verticalDrop}m` : '');
+                // 单次载重
+                const payloadKg = quote?.payload_kg ?? o.payload_kg ?? 0;
+                const payloadLabelRaw = quote?.payload_kg_label || o.payload_kg_label || '';
+                const payloadLabel = mapPayloadLabel(payloadLabelRaw) || (payloadKg ? `${payloadKg}kg` : '');
+                // 总单数
+                const totalOrders = quote?.total_orders ?? o.total_orders ?? 0;
+                // 预算
+                const budgetAmount = budget?.amount ?? quote?.total_price ?? o.total_price ?? 0;
+                const budgetUnit = budget?.unit || 'total';
+                // 任务预算
+                const price = budgetAmount ? `¥${budgetAmount}` : '';
+                // 城市
+                const city = quote?.city_label || quote?.city || o.city_label || o.city || '';
+                const item: OrderItem = {
+                  orderId: o.order_id,
+                  publisherOpenid: o.publisher_openid || o.publisherOpenid || '',
+                  taskCategory: mapTaskCategory(o.task_category),
+                  taskCategoryDisplay: taskCategoryDisplay,
+                  distanceText: distanceText,
+                  distanceLabel: distanceLabel,
+                  verticalDrop: verticalDrop,
+                  verticalDropLabel: verticalDropLabel,
+                  payloadKg: payloadKg,
+                  payloadLabel: payloadLabel,
+                  totalOrders: totalOrders,
+                  status: o.status || 'pending',
+                  createdAt: o.created_at || '',
+                  city: city,
+                  price: price,
+                  budgetAmount: budgetAmount,
+                  budgetUnit: budgetUnit,
+                  notes: o.notes || '',
+                  profile: {
+                    openid: profile?.openid || profile?.openId || '',
+                    nickname: profile?.nickname || '匿名',
+                    avatarUrl: profile?.avatar_url || profile?.avatarUrl || profile?.avatar || 'https://wetofly.com/data/image/avatar_placeholder.webp',
+                    city: profile?.city || '',
+                    company: profile?.company || '',
+                    position: profile?.position || '',
+                    phone: profile?.phone || '',
+                    wechatId: profile?.wechat_id || profile?.wechatId || ''
+                  },
+                  customer: {
+                    name: customer?.name || '',
+                    city: customer?.city_label || customer?.city || '',
+                    phone: customer?.phone || '',
+                    company: customer?.company || ''
+                  },
+                  rating: {
+                    score: rating?.score ?? 0,
+                    comment: rating?.comment || ''
+                  },
+                  expanded: false
+                };
+                orders.push(item);
+              }
+            }
+            resolve(orders);
+          } catch (parseErr) {
+            reject(parseErr);
+          }
+        } else {
+          resolve([]);
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// ============ 华为账号Token兑换 ============
+
+export interface HuaweiTokenResponse {
+  openid: string;
+  token: string;
+  expire_at: string;
+  unionid: string;
+}
+
+export async function exchangeHuaweiToken(openId: string, unionId: string): Promise<HttpResponse<HuaweiTokenResponse>> {
+  return new Promise<HttpResponse<HuaweiTokenResponse>>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/huawei/login`;
+    console.info('【接口请求】exchangeHuaweiToken url:', url);
+
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: [{ 'Content-Type': 'application/json' }],
+        extraData: { openid: openId, unionid: unionId },
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】exchangeHuaweiToken:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口响应】exchangeHuaweiToken:', JSON.stringify(data.result));
+        try {
+          const resp = JSON.parse(data.result as string) as HuaweiTokenResponse;
+          resolve({ code: data.responseCode, data: resp });
+        } catch (parseErr) {
+          reject(parseErr);
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// ============ 个人资料 ============
+
+export interface ProfileForm {
+  openid: string;
+  nickname: string;
+  avatarUrl: string;
+  phone: string;
+  wechatId: string;
+  douyinId: string;
+  channelsId: string;
+  company: string;
+  position: string;
+  city: string;
+  userRole: string;
+  pilotCode: string;
+  droneModels: string[];
+  businessScope: string[];
+  licenseUrl: string;
+  licenseStatus: string;
+  licenseVerified: boolean;
+  licenseRejected: boolean;
+  licenseReason: string;
+  orgCode: string;
+  workMu: number | null;
+  workKg: number | null;
+  droneImages: string[];
+}
+
+export async function fetchProfile(openid: string, token?: string): Promise<ProfileForm | null> {
+  return new Promise<ProfileForm | null>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/profiles/${openid}`;
+    console.info('【接口请求】fetchProfile url:', url, ' token:', token ? '有' : '无');
+    const reqHeaders: Record<string, string> = token
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+      : { 'Content-Type': 'application/json' };
+    console.info('【DEBUG fetchProfile header:', JSON.stringify(reqHeaders));
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: reqHeaders,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchProfile:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        if (data.result) {
+          console.info('【接口返回】fetchProfile:', data.result as string);
+          try {
+            const p = JSON.parse(data.result as string) as Record<string, string | number | boolean | null>;
+            const getStr = (key: string, fallback: string): string => {
+              const v = p[key];
+              return typeof v === 'string' ? v : fallback;
+            };
+            const getNum = (key: string): number | null => {
+              const v = p[key];
+              return typeof v === 'number' ? v : null;
+            };
+            const profile: ProfileForm = {
+              openid: getStr('openid', getStr('openId', openid)),
+              nickname: getStr('nickname', ''),
+              avatarUrl: getStr('avatar_url', getStr('avatarUrl', '')),
+              phone: getStr('phone', ''),
+              wechatId: getStr('wechat_id', getStr('wechatId', '')),
+              douyinId: getStr('douyin_id', getStr('douyinId', '')),
+              channelsId: getStr('channels_id', getStr('channelsId', '')),
+              company: getStr('company', ''),
+              position: getStr('position', ''),
+              city: getStr('city', ''),
+              userRole: getStr('user_role', getStr('userRole', 'employer')),
+              pilotCode: getStr('pilotCode', getStr('pilot_code', '')),
+              droneModels: parseArrayField(getStr('drone_model', getStr('droneModel', ''))),
+              businessScope: parseArrayField(getStr('business_scope', getStr('businessScope', ''))),
+              licenseUrl: getStr('license_url', getStr('licenseUrl', '')),
+              licenseStatus: getStr('license_type', getStr('licenseType', getStr('license_status', getStr('licenseStatus', '')))),
+              licenseVerified: !!(p['license_verified'] || p['licenseVerified']),
+              licenseRejected: isRejected(getStr('license_status', getStr('licenseStatus', ''))),
+              licenseReason: getStr('license_reason', getStr('licenseReason', '')),
+              orgCode: getStr('institution_id', getStr('institutionId', getStr('org_code', ''))),
+              workMu: getNum('workStatsMu') ?? getNum('work_stats_mu'),
+              workKg: getNum('workStatsKg') ?? getNum('work_stats_kg'),
+              droneImages: parseArrayField(getStr('drone_images', getStr('droneImages', '')))
+            };
+            resolve(profile);
+          } catch (parseErr) {
+            reject(parseErr);
+          }
+        } else {
+          resolve(null);
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+export async function updateProfile(payload: ProfileForm, token?: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/profiles`;
+    console.info('【接口请求】updateProfile url:', url, ' token:', token ? '有' : '无');
+    const reqHeaders: Record<string, string> = token
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+      : { 'Content-Type': 'application/json' };
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.PUT,
+        header: reqHeaders,
+        extraData: payload,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】updateProfile:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】updateProfile:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 201) {
+          resolve();
+        } else {
+          reject(new Error('更新失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+export interface UploadAvatarResult {
+  url: string;
+}
+
+export async function uploadAvatar(buffer: ArrayBuffer, token?: string): Promise<UploadAvatarResult> {
+  const authToken = token || '';
+
+  return new Promise<UploadAvatarResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/upload/avatar`;
+    const boundary = '----AvatarBoundary' + Date.now();
+
+    const headerParts: string[] = [];
+    headerParts.push(`--${boundary}\r\n`);
+    headerParts.push('Content-Disposition: form-data; name="file"; filename="avatar.jpg"\r\n');
+    headerParts.push('Content-Type: image/jpeg\r\n\r\n');
+
+    const headerStr = headerParts.join('');
+    const footerStr = `\r\n--${boundary}--\r\n`;
+    const headerBytes = new Uint8Array(headerStr.length);
+    for (let i = 0; i < headerStr.length; i++) {
+      headerBytes[i] = headerStr.charCodeAt(i);
+    }
+    const footerBytes = new Uint8Array(footerStr.length);
+    for (let i = 0; i < footerStr.length; i++) {
+      footerBytes[i] = footerStr.charCodeAt(i);
+    }
+
+    const totalSize = headerBytes.length + buffer.byteLength + footerBytes.length;
+    const bodyBuffer = new ArrayBuffer(totalSize);
+    const bodyView = new Uint8Array(bodyBuffer);
+    let offset = 0;
+    bodyView.set(headerBytes, offset);
+    offset += headerBytes.length;
+    const bufferView = new Uint8Array(buffer);
+    bodyView.set(bufferView, offset);
+    offset += buffer.byteLength;
+    bodyView.set(footerBytes, offset);
+
+    const headers: Record<string, string> = {
+      'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      'Authorization': `Bearer ${authToken}`
+    };
+
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: headers,
+        extraData: bodyBuffer,
+        connectTimeout: 15000,
+        readTimeout: 15000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【头像上传失败】', JSON.stringify(err));
+          reject(new Error('上传失败'));
+          return;
+        }
+        console.info('【头像上传响应】', data.result as string);
+        try {
+          const resultObj = JSON.parse(data.result as string) as Record<string, string>;
+          resolve({ url: resultObj.url || '' });
+        } catch (parseErr) {
+          reject(new Error('解析响应失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+function parseArrayField(value: string | string[] | undefined): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  return value.split('/').map(s => s.trim()).filter(s => s);
+}
+
+// ============ 认证用户列表 ============
+
+export interface CertifiedUser {
+  openid: string;
+  nickname: string;
+  avatar: string;
+  city: string;
+  userRole: string;
+  roleLabel: string;
+  licenseType: string;
+  licenseStatus: string;
+  licenseStatusClass: string;
+  pilotCode: string;
+  company: string;
+  position: string;
+  droneModel: string;
+  businessScope: string[];
+  businessScopeText: string;
+  recentActiveText: string;
+  likeCount: number;
+  likedByMe: boolean;
+  phone: string;
+  wechatId: string;
+  latitude: number;
+  longitude: number;
+  channelsId: string;
+  workMu: number | null;
+  workKg: number | null;
+  droneImages: string[];
+  isVipSlot: boolean;
+  vipLabel: string;
+  isNew: boolean;
+}
+
+export interface CertifiedProfilesResult {
+  items: CertifiedUser[];
+  count: number;
+  hasMore: boolean;
+}
+
+export interface CertifiedProfilesParams {
+  limit: number;
+  skip: number;
+  search?: string;
+  liked_by_me?: boolean;
+  role?: string;
+}
+
+interface RawCertifiedLocation {
+  coordinates?: number[];
+}
+
+interface RawCertifiedProfile {
+  openid?: string;
+  openId?: string;
+  open_id?: string;
+  nickname?: string;
+  avatarUrl?: string;
+  avatar_url?: string;
+  city?: string;
+  userRole?: string;
+  user_role?: string;
+  licenseType?: string;
+  license_type?: string;
+  licenseStatus?: string;
+  license_status?: string;
+  pilotCode?: string;
+  pilot_code?: string;
+  company?: string;
+  position?: string;
+  droneModel?: string;
+  drone_model?: string;
+  businessScope?: string[];
+  business_scope?: string[];
+  likeCount?: number;
+  like_count?: number;
+  likedByMe?: boolean;
+  liked_by_me?: boolean;
+  phone?: string;
+  wechatId?: string;
+  wechat_id?: string;
+  latitude?: number;
+  longitude?: number;
+  location?: RawCertifiedLocation;
+  channelsId?: string;
+  channels_id?: string;
+  workMu?: number;
+  work_mu?: number;
+  workKg?: number;
+  work_kg?: number;
+  droneImages?: string[];
+  drone_images?: string[];
+  isVipSlot?: boolean;
+  is_vip_slot?: boolean;
+  vipLabel?: string;
+  vip_label?: string;
+  isNew?: boolean;
+  is_new?: boolean;
+  daysSinceUpdate?: string;
+  days_since_update?: string;
+  recentActiveDays?: string;
+  recent_active_days?: string;
+}
+
+interface RawCertifiedResponse {
+  items?: RawCertifiedProfile[];
+  count?: number;
+  has_more?: boolean;
+}
+
+function getRawStr(value: string | undefined, fallback: string): string {
+  return value !== undefined ? value : fallback;
+}
+
+function getRawNum(value: number | undefined): number | null {
+  return value !== undefined ? value : null;
+}
+
+export async function fetchCertifiedProfiles(params: CertifiedProfilesParams, token?: string): Promise<CertifiedProfilesResult> {
+  return new Promise<CertifiedProfilesResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const queryParts: string[] = [];
+    if (params.limit !== undefined) queryParts.push(`limit=${params.limit}`);
+    if (params.skip !== undefined) queryParts.push(`skip=${params.skip}`);
+    if (params.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
+    if (params.liked_by_me) queryParts.push('liked_by_me=true');
+    if (params.role && params.role !== 'all') queryParts.push(`role=${params.role}`);
+    const query = queryParts.length > 0 ? '?' + queryParts.join('&') : '';
+    const url = `${BASE_URL}/api/profiles/certified${query}`;
+    console.info('【接口请求】fetchCertifiedProfiles url:', url);
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchCertifiedProfiles:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        if (data.result) {
+          console.info('【接口返回】fetchCertifiedProfiles:', data.result as string);
+          try {
+            const res = JSON.parse(data.result as string) as RawCertifiedResponse;
+            const items: CertifiedUser[] = [];
+            if (res.items) {
+              for (let i = 0; i < res.items.length; i++) {
+                const p = res.items[i];
+                const userRole = getRawStr(p.userRole || p.user_role, 'pilot');
+                const roleLabel = userRole === 'pilot' ? '飞手' : userRole === 'employer' ? '雇主' : '';
+                const licenseType = (getRawStr(p.licenseType || p.license_type, '')).toLowerCase();
+                const licenseStatus = getRawStr(p.licenseStatus || p.license_status, 'PASS');
+                const businessScopeArr: string[] = [];
+                const bsRaw = p.businessScope || p.business_scope;
+                if (bsRaw) {
+                  for (let j = 0; j < bsRaw.length; j++) {
+                    const s = bsRaw[j];
+                    if (s !== undefined) {
+                      businessScopeArr.push(s);
+                    }
+                  }
+                }
+                const recentActiveDaysRaw = getRawStr(p.daysSinceUpdate || p.days_since_update, '');
+                let recentActiveText = '';
+                if (recentActiveDaysRaw !== '') {
+                  const days = parseInt(recentActiveDaysRaw, 10);
+                  if (!isNaN(days)) {
+                    recentActiveText = days === 0 ? '今日' : `${days} 天前`;
+                  }
+                }
+                const droneModelRaw = getRawStr(p.droneModel || p.drone_model, '');
+                const coords = p.location?.coordinates || [];
+                const avatarStr = getRawStr(p.avatarUrl || p.avatar_url, 'https://wetofly.com/data/image/avatar_placeholder.webp');
+                const droneImagesRaw = p.droneImages || p.drone_images;
+                const droneImagesArr: string[] = [];
+                if (droneImagesRaw) {
+                  for (let j = 0; j < droneImagesRaw.length; j++) {
+                    const img = droneImagesRaw[j];
+                    if (img !== undefined) {
+                      droneImagesArr.push(img);
+                    }
+                  }
+                }
+                items.push({
+                  openid: getRawStr(p.openid || p.openId || p.open_id, ''),
+                  nickname: getRawStr(p.nickname, '匿名飞手'),
+                  avatar: avatarStr,
+                  city: getRawStr(p.city, ''),
+                  userRole: userRole,
+                  roleLabel: roleLabel,
+                  licenseType: licenseType,
+                  licenseStatus: licenseStatus,
+                  licenseStatusClass: licenseStatus === 'PASS' ? 'status-success' : '',
+                  pilotCode: getRawStr(p.pilotCode || p.pilot_code, ''),
+                  company: getRawStr(p.company, ''),
+                  position: getRawStr(p.position, ''),
+                  droneModel: droneModelRaw || '--',
+                  businessScope: businessScopeArr,
+                  businessScopeText: businessScopeArr.join(' · '),
+                  recentActiveText: recentActiveText,
+                  likeCount: getRawNum(p.likeCount || p.like_count) || 0,
+                  likedByMe: !!(p.likedByMe || p.liked_by_me),
+                  phone: getRawStr(p.phone, ''),
+                  wechatId: getRawStr(p.wechatId || p.wechat_id, ''),
+                  latitude: coords[1] || getRawNum(p.latitude) || 0,
+                  longitude: coords[0] || getRawNum(p.longitude) || 0,
+                  channelsId: getRawStr(p.channelsId || p.channels_id, ''),
+                  workMu: getRawNum(p.workMu || p.work_mu),
+                  workKg: getRawNum(p.workKg || p.work_kg),
+                  droneImages: droneImagesArr,
+                  isVipSlot: !!(p.isVipSlot || p.is_vip_slot),
+                  vipLabel: getRawStr(p.vipLabel || p.vip_label, ''),
+                  isNew: !!(p.isNew || p.is_new)
+                });
+              }
+            }
+            resolve({
+              items,
+              count: res.count || 0,
+              hasMore: !!(res.has_more)
+            });
+          } catch (parseErr) {
+            reject(parseErr);
+          }
+        } else {
+          resolve({ items: [], count: 0, hasMore: false });
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// ============ 访问上报 ============
+
+export async function reportVisit(code: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/wx/visit`;
+    console.info('【接口请求】reportVisit url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: [{ 'Content-Type': 'application/json' }],
+        extraData: { openid: code },
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】reportVisit:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】reportVisit:', data.result as string);
+        httpRequest.destroy();
+        resolve();
+      }
+    );
+  });
+}
+
+function isRejected(status: string): boolean {
+  return status.includes('未通过') || status.includes('不通过');
+}
+
+// ============ 点赞功能 ============
+
+export interface LikeResult {
+  like_count: number;
+  liked_by_me: boolean;
+}
+
+export async function likeProfile(openid: string, token: string): Promise<LikeResult> {
+  return new Promise<LikeResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/profiles/${openid}/like`;
+    console.info('【接口请求】likeProfile url:', url);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】likeProfile:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】likeProfile:', data.result as string);
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string' && data.result.length > 0) {
+          try {
+            const res: Record<string, Object> = JSON.parse(data.result as string);
+            const likeCountVal = res['like_count'];
+            const finalCount = typeof likeCountVal === 'number' ? likeCountVal : (typeof likeCountVal === 'string' ? parseInt(likeCountVal as string, 10) : 0);
+            resolve({
+              like_count: finalCount,
+              liked_by_me: true
+            });
+          } catch (e) {
+            console.error('【likeProfile解析失败】', JSON.stringify(e));
+            reject(err);
+          }
+        } else {
+          reject(err);
+        }
+      }
+    );
+  });
+}
+
+export async function unlikeProfile(openid: string, token: string): Promise<LikeResult> {
+  return new Promise<LikeResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/profiles/${openid}/like`;
+    console.info('【接口请求】unlikeProfile url:', url);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.DELETE,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        console.info('【unlikeProfile响应码】', data.responseCode);
+        if (err) {
+          console.error('【接口错误】unlikeProfile:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】unlikeProfile:', data.result as string);
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string' && data.result.length > 0) {
+          try {
+            const res: Record<string, Object> = JSON.parse(data.result as string);
+            const likeCountVal = res['like_count'];
+            const finalCount = typeof likeCountVal === 'number' ? likeCountVal : (typeof likeCountVal === 'string' ? parseInt(likeCountVal as string, 10) : 0);
+            resolve({
+              like_count: finalCount,
+              liked_by_me: false
+            });
+          } catch (e) {
+            console.error('【unlikeProfile解析失败】', JSON.stringify(e));
+            reject(err);
+          }
+        } else {
+          reject(err);
+          reject(err);
+        }
+      }
+    );
+  });
+}
