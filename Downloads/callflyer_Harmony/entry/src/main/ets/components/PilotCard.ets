@@ -327,35 +327,41 @@ export struct PilotCard {
           .margin({ top: 12 })
 
         Row() {
-          if (this.showDistance && this.user.distanceText) {
-            Text(this.user.distanceText)
-              .fontSize(12)
-              .fontColor('#FFFFFF')
-              .backgroundColor('#07C160')
-              .borderRadius(3)
-              .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-          }
-          Blank().layoutWeight(1)
-          if (this.showActions) {
-            Column() {
-              Image($r('app.media.iconwechat'))
-                .width(44)
-                .height(44)
-                .onClick(() => this.onWechatClick?.(this.user.openid))
+          Row() {
+            if (this.showDistance && this.user.distanceText) {
+              Text(this.user.distanceText)
+                .fontSize(12)
+                .fontColor('#FFFFFF')
+                .backgroundColor('#07C160')
+                .borderRadius(3)
+                .padding({ left: 8, right: 8, top: 4, bottom: 4 })
             }
-            .alignItems(HorizontalAlign.Center)
-            Column() {
-              Image($r('app.media.iconcall'))
-                .width(44)
-                .height(44)
-                .onClick(() => this.onCallClick?.(this.user.openid))
+            if (this.showActions) {
+              Column() {
+                Image($r('app.media.iconwechat'))
+                  .width(44)
+                  .height(44)
+                  .onClick(() => this.onWechatClick?.(this.user.openid))
+              }
+              .alignItems(HorizontalAlign.Center)
+              .margin({ left: 12 })
+
+              Column() {
+                Image($r('app.media.iconcall'))
+                  .width(44)
+                  .height(44)
+                  .onClick(() => this.onCallClick?.(this.user.openid))
+              }
+              .alignItems(HorizontalAlign.Center)
+              .margin({ left: 16 })
             }
-            .alignItems(HorizontalAlign.Center)
-            .margin({ left: 16 })
           }
+          .backgroundColor('#f7f7f7')
+          .borderRadius(11)
+          .padding({ left: 16, right: 16, top: 11, bottom: 11 })
+          .alignItems(VerticalAlign.Center)
         }
         .width('100%')
-        .alignItems(VerticalAlign.Center)
         .margin({ top: 12 })
       }
     }

@@ -1,7 +1,9 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken } from '../service/ApiService';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
+import { pushService } from '@kit.PushKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 import type { Context } from '@kit.AbilityKit';
 import promptAction from '@ohos.promptAction';
 import call from '@ohos.telephony.call';
@@ -123,9 +125,23 @@ struct Index {
       );
       if (tokenResult.token) {
         console.info('【登录】业务token:', tokenResult.token);
+        // 上报Push Token到服务端
+        this.reportPushTokenAfterLogin(tokenResult.token);
       }
     } else {
       console.error('【登录】失败:', result.error);
+    }
+  }
+
+  private async reportPushTokenAfterLogin(authToken: string): Promise<void> {
+    try {
+      const token = await pushService.getToken();
+      console.info('【Push Token】获取成功:', token);
+      const res = await registerPushToken(token, authToken);
+      console.info('【Push Token】上报结果:', JSON.stringify(res));
+    } catch (err) {
+      const error = err as BusinessError;
+      console.error('【Push Token】上报失败:', error.code, error.message);
     }
   }
 
@@ -507,8 +523,8 @@ struct Index {
             .margin({ top: -100 })
             .opacity(this.bannerLoaded ? 1 : 0)
 
-            // 功能卡片行：职业飞手库 + 个人中心
-            Row() {
+            // 功能卡片行：搜索飞手 + 个人中心 + 覆盖城市
+            Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween }) {
               this.FeatureCard({
                 title: '搜索飞手',
                 subtitle: '打造飞手库',
@@ -526,31 +542,49 @@ struct Index {
                   router.pushUrl({ url: 'pages/Profile' });
                 }
               })
+
+              Column() {
+                this.FeatureCard({
+                  title: '覆盖城市',
+                  subtitle: '开通城市',
+                  iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
+                  onClick: () => {
+                    router.pushUrl({ url: 'pages/CityCoverage' });
+                  }
+                })
+              }
+              .margin({ top: 12 })
             }
             .width('100%')
             .padding({ left: 18, right: 18, top: 16, bottom: 16 })
-            .justifyContent(FlexAlign.SpaceBetween)
 
             // Tab切换
-            Row() {
-              Text('附近飞手')
-                .fontSize(17)
-                .fontWeight(this.currentTab === 'pilots' ? FontWeight.Bold : FontWeight.Medium)
-                .fontColor(this.currentTab === 'pilots' ? '#14233a' : '#999999')
-                .fontFamily('DouyinSansBold')
-                .onClick(() => { this.currentTab = 'pilots'; })
-                .margin({ right: 16 })
+            Flex({ alignItems: ItemAlign.Center }) {
+              Column() {
+                Text('附近飞手')
+                  .fontSize(17)
+                  .fontWeight(this.currentTab === 'pilots' ? FontWeight.Bold : FontWeight.Medium)
+                  .fontColor(this.currentTab === 'pilots' ? '#14233a' : '#999999')
+                  .fontFamily('DouyinSansBold')
+              }
+              .height(44)
+              .justifyContent(FlexAlign.Center)
+              .onClick(() => { this.currentTab = 'pilots'; })
 
-              Text('最新任务')
-                .fontSize(17)
-                .fontWeight(this.currentTab === 'orders' ? FontWeight.Bold : FontWeight.Medium)
-                .fontColor(this.currentTab === 'orders' ? '#14233a' : '#999999')
-                .fontFamily('DouyinSansBold')
-                .onClick(() => { this.currentTab = 'orders'; })
+              Column() {
+                Text('最新任务')
+                  .fontSize(17)
+                  .fontWeight(this.currentTab === 'orders' ? FontWeight.Bold : FontWeight.Medium)
+                  .fontColor(this.currentTab === 'orders' ? '#14233a' : '#999999')
+                  .fontFamily('DouyinSansBold')
+              }
+              .height(44)
+              .justifyContent(FlexAlign.Center)
+              .margin({ left: 12 })
+              .onClick(() => { this.currentTab = 'orders'; })
             }
             .width('100%')
-            .alignItems(VerticalAlign.Center)
-            .padding({ left: 18, top: 6, bottom: 22 })
+            .padding({ left: 18, top: 6, bottom: 6 })
 
             // 列表内容
             if (this.currentTab === 'pilots') {
@@ -929,23 +963,27 @@ struct Index {
               // 头部：头像 + 昵称 + 公司/职位
               Row() {
                 Image(order.profile.avatarUrl || 'https://wetofly.com/data/image/avatar_placeholder.webp')
-                  .width(56)
-                  .height(56)
-                  .borderRadius(28)
+                  .width(45)
+                  .height(45)
+                  .borderRadius(22.5)
                   .backgroundColor('#dfe4ec')
 
                 Column() {
                   Text(order.profile.nickname || '匿名')
-                    .fontSize(18)
+                    .fontSize(15)
                     .fontWeight(FontWeight.Bold)
                     .fontColor('#14233a')
                     .fontFamily('DouyinSansBold')
                     .margin({ top: 4 })
+                    .maxLines(1)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
                   if (order.profile.company || order.profile.position) {
                     Text((order.profile.company || '') + (order.profile.company && order.profile.position ? '｜' : '') + (order.profile.position || ''))
                       .fontSize(12)
                       .fontColor('#6f7c90')
                       .margin({ top: 4 })
+                      .maxLines(1)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
                   } else {
                     Text('雇主')
                       .fontSize(12)
@@ -957,6 +995,7 @@ struct Index {
                 .justifyContent(FlexAlign.Center)
                 .height(56)
                 .margin({ left: 14 })
+                .constraintSize({ maxWidth: 200 })
               }
               .width('100%')
               .alignItems(VerticalAlign.Center)

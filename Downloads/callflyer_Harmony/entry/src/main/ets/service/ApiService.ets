@@ -1307,3 +1307,151 @@ export async function unlikeProfile(openid: string, token: string): Promise<Like
     );
   });
 }
+
+// ============ Push Token 注册 ============
+
+export interface PushTokenResponse {
+  success: boolean;
+  message: string;
+}
+
+export async function registerPushToken(pushToken: string, token?: string): Promise<PushTokenResponse> {
+  return new Promise<PushTokenResponse>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/push/token`;
+    console.info('【接口请求】registerPushToken:', url, ' token:', token ? '有' : '无');
+
+    const headers: Record<string, string> = token
+      ? { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+      : { 'Content-Type': 'application/json' };
+    console.info('【DEBUG registerPushToken header:', JSON.stringify(headers));
+
+    const body = JSON.stringify({ push_token: pushToken });
+
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: headers,
+        extraData: body,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】registerPushToken:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】registerPushToken:', data.result as string);
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string') {
+          try {
+            const res = JSON.parse(data.result as string) as PushTokenResponse;
+            resolve(res);
+          } catch (e) {
+            reject(err);
+          }
+        } else {
+          reject(err);
+        }
+      }
+    );
+  });
+}
+
+export async function unregisterPushToken(token?: string): Promise<PushTokenResponse> {
+  return new Promise<PushTokenResponse>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/push/token`;
+    console.info('【接口请求】unregisterPushToken:', url);
+
+    const header: HttpHeader[] = [{ key: 'Content-Type', value: 'application/json' }];
+    if (token) {
+      header.push({ key: 'Authorization', value: `Bearer ${token}` });
+    }
+
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.DELETE,
+        header: header,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】unregisterPushToken:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】unregisterPushToken:', data.result as string);
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string') {
+          try {
+            const res = JSON.parse(data.result as string) as PushTokenResponse;
+            resolve(res);
+          } catch (e) {
+            reject(err);
+          }
+        } else {
+          reject(err);
+        }
+      }
+    );
+  });
+}
+
+// ============ 城市覆盖 ============
+
+export interface CityCoverageSummary {
+  total_cities: number;
+  lit_cities: number;
+  unlit_cities: number;
+  coverage_pct: number;
+}
+
+export interface CityItem {
+  city: string;
+  province: string;
+  lit: boolean;
+  pilot_count: number;
+}
+
+export interface CityCoverageResponse {
+  summary: CityCoverageSummary;
+  cities: CityItem[];
+}
+
+export async function fetchCityCoverage(): Promise<CityCoverageResponse> {
+  return new Promise<CityCoverageResponse>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    httpRequest.request(
+      `${BASE_URL}/api/cities/pilot-coverage`,
+      {
+        method: http.RequestMethod.GET,
+        header: { 'Content-Type': 'application/json' },
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchCityCoverage:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string') {
+          try {
+            const res = JSON.parse(data.result as string) as CityCoverageResponse;
+            resolve(res);
+          } catch (e) {
+            reject(err);
+          }
+        } else {
+          reject(err);
+        }
+      }
+    );
+  });
+}
