@@ -60,6 +60,8 @@ export struct PilotCard {
   showDistance: boolean = false;
   // 是否显示操作按钮（拨号/微信）
   showActions: boolean = false;
+  // 是否显示最近活跃
+  showRecentActive: boolean = true;
   // 点赞状态（内部管理）
   @State internalLikeCount: number = 0;
   @State internalLikedByMe: boolean = false;
@@ -67,6 +69,8 @@ export struct PilotCard {
   onWechatClick?: (openid: string) => void;
   // 电话点击回调
   onCallClick?: (openid: string) => void;
+  // 点赞状态变化回调
+  onLikeChanged?: (likeCount: number, likedByMe: boolean) => void;
 
   aboutToAppear() {
     this.internalLikeCount = this.user.likeCount ?? 0;
@@ -103,6 +107,9 @@ export struct PilotCard {
       // 更新最终状态
       this.internalLikedByMe = res.liked_by_me;
       this.internalLikeCount = res.like_count;
+      // 强制触发UI更新
+      this.user.likedByMe = res.liked_by_me;
+      this.onLikeChanged?.(res.like_count, res.liked_by_me);
     } catch (err) {
       // 失败回滚
       this.internalLikedByMe = prevLiked;
@@ -196,18 +203,21 @@ export struct PilotCard {
         .margin({ top: 12, bottom: 12 })
 
       // 最近活跃
-      Row() {
-        Text('最近活跃')
-          .fontSize(14)
-          .fontColor('#455066')
-          .fontWeight(FontWeight.Medium)
-        Text(this.user.recentActiveText || '--')
-          .fontSize(14)
-          .fontColor('#1f2a3a')
-          .fontWeight(FontWeight.Medium)
+      if (this.showRecentActive) {
+        Row() {
+          Text('最近活跃')
+            .fontSize(14)
+            .fontColor('#455066')
+            .fontWeight(FontWeight.Medium)
+          Text(this.user.recentActiveText || '--')
+            .fontSize(14)
+            .fontColor('#1f2a3a')
+            .fontWeight(FontWeight.Medium)
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.SpaceBetween)
+        .margin({ top: 9 })
       }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
 
       // 认证状态
       Row() {
@@ -287,38 +297,38 @@ export struct PilotCard {
       }
 
       // 电话
-      if (this.user.phone) {
-        Row() {
-          Text('电话')
-            .fontSize(14)
-            .fontColor('#455066')
-            .fontWeight(FontWeight.Medium)
-          Text(this.user.phone)
-            .fontSize(14)
-            .fontColor('#1f2a3a')
-            .fontWeight(FontWeight.Medium)
-        }
-        .width('100%')
-        .justifyContent(FlexAlign.SpaceBetween)
-        .margin({ top: 9 })
-      }
+      // if (this.user.phone) {
+      //   Row() {
+      //     Text('电话')
+      //       .fontSize(14)
+      //       .fontColor('#455066')
+      //       .fontWeight(FontWeight.Medium)
+      //     Text(this.user.phone)
+      //       .fontSize(14)
+      //       .fontColor('#1f2a3a')
+      //       .fontWeight(FontWeight.Medium)
+      //   }
+      //   .width('100%')
+      //   .justifyContent(FlexAlign.SpaceBetween)
+      //   .margin({ top: 9 })
+      // }
 
       // 微信
-      if (this.user.wechatId) {
-        Row() {
-          Text('微信')
-            .fontSize(14)
-            .fontColor('#455066')
-            .fontWeight(FontWeight.Medium)
-          Text(this.user.wechatId)
-            .fontSize(14)
-            .fontColor('#1f2a3a')
-            .fontWeight(FontWeight.Medium)
-        }
-        .width('100%')
-        .justifyContent(FlexAlign.SpaceBetween)
-        .margin({ top: 9 })
-      }
+      // if (this.user.wechatId) {
+      //   Row() {
+      //     Text('微信')
+      //       .fontSize(14)
+      //       .fontColor('#455066')
+      //       .fontWeight(FontWeight.Medium)
+      //     Text(this.user.wechatId)
+      //       .fontSize(14)
+      //       .fontColor('#1f2a3a')
+      //       .fontWeight(FontWeight.Medium)
+      //   }
+      //   .width('100%')
+      //   .justifyContent(FlexAlign.SpaceBetween)
+      //   .margin({ top: 9 })
+      // }
 
       // 底部操作区域
       if (this.showActions || this.showDistance) {
@@ -336,6 +346,7 @@ export struct PilotCard {
                 .borderRadius(3)
                 .padding({ left: 8, right: 8, top: 4, bottom: 4 })
             }
+            Blank()
             if (this.showActions) {
               Column() {
                 Image($r('app.media.iconwechat'))
@@ -356,6 +367,7 @@ export struct PilotCard {
               .margin({ left: 16 })
             }
           }
+          .width('100%')
           .backgroundColor('#f7f7f7')
           .borderRadius(11)
           .padding({ left: 16, right: 16, top: 11, bottom: 11 })

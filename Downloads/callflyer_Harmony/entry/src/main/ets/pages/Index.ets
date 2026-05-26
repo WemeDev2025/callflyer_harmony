@@ -1,5 +1,6 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem } from '../service/ApiService';
+import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
 import { pushService } from '@kit.PushKit';
@@ -67,6 +68,16 @@ struct Index {
   // Tab
   @State currentTab: string = 'pilots';
 
+  // 今日有空
+  @State standbyItems: StandbyItem[] = [];
+  @State expandedStandbyItem: StandbyItem | null = null;
+  @State expandedPilotCardData: PilotCardData | null = null;
+  @State showExpandedStandby: boolean = false;
+  @State showCopySuccess: boolean = false;
+  @State screenWidth: number = 360;
+  @State screenHeight: number = 780;
+  @State navBarHeight: number = 0;
+
   // 登录状态
   @State isLoggedIn: boolean = false;
   @State userInfo: HuaweiUserInfo | null = null;
@@ -86,6 +97,7 @@ struct Index {
       }
       this.loadPilots();
       this.loadOrders();
+      this.loadStandby();
     });
 
     // 获取状态栏高度
@@ -189,6 +201,118 @@ struct Index {
     }
     this.ordersLoading = false;
     this.stopOrdersSkeletonShimmer();
+  }
+
+  async loadStandby() {
+    try {
+      const result = await fetchStandby();
+      this.standbyItems = result.items;
+      console.info('【今日有空】加载成功，数量:', this.standbyItems.length);
+    } catch (err) {
+      console.error('【今日有空】加载失败:', JSON.stringify(err));
+      this.standbyItems = [];
+    }
+    // 获取屏幕尺寸（转换为vp）
+    try {
+      const d = display.getDefaultDisplaySync();
+      this.screenWidth = px2vp(d.width);
+      this.screenHeight = px2vp(d.height);
+    } catch (e) {}
+  }
+
+  onStandbyCardTap(item: StandbyItem) {
+    this.expandedStandbyItem = item;
+    const p = item.profile;
+    this.expandedPilotCardData = {
+      openid: p.openid,
+      nickname: p.nickname,
+      avatar: p.avatarUrl || '',
+      city: p.city,
+      userRole: p.userRole || '',
+      roleLabel: p.roleLabel || '',
+      licenseType: p.licenseType || '',
+      licenseStatus: p.licenseStatus || '',
+      pilotCode: p.pilotCode || '',
+      company: p.company || '',
+      position: p.position || '',
+      droneModel: p.droneModel || '',
+      businessScopeText: p.businessScopeText || '',
+      recentActiveText: p.recentActiveText || '',
+      likeCount: item.likeCount ?? 0,
+      likedByMe: false,
+      phone: p.phone || '',
+      wechatId: p.wechatId || '',
+      distanceText: '',
+      isNew: p.isNew,
+    };
+    this.showExpandedStandby = true;
+  }
+
+  closeExpandedStandbyDialog() {
+    this.showExpandedStandby = false;
+    this.expandedStandbyItem = null;
+    this.expandedPilotCardData = null;
+    this.showCopySuccess = false;
+  }
+
+  @Builder
+  buildExpandedPilotCard() {
+    if (this.expandedPilotCardData) {
+      PilotCard({
+        user: this.expandedPilotCardData,
+        showDistance: false,
+        showRecentActive: false,
+        showActions: true,
+        onWechatClick: (_openid: string) => {
+          const wechatId = this.expandedPilotCardData?.wechatId || '';
+          if (wechatId) {
+            const pasteData = pasteboard.createData('text/plain', wechatId);
+            const systemPasteboard = pasteboard.getSystemPasteboard();
+            systemPasteboard.setData(pasteData);
+            this.showCopySuccess = true;
+            setTimeout(() => { this.showCopySuccess = false; }, 1500);
+          }
+        },
+        onCallClick: (_openid: string) => {
+          const phone = this.expandedPilotCardData?.phone || '';
+          if (phone) {
+            call.makeCall(phone, (err) => {
+              if (err) {
+                console.error('拨号失败:', JSON.stringify(err));
+              }
+            });
+          }
+        },
+        onLikeChanged: (likeCount: number, likedByMe: boolean) => {
+          // 同步更新 standbyItems
+          const idx = this.standbyItems.findIndex(item => item.openid === this.expandedStandbyItem?.openid);
+          if (idx >= 0) {
+            this.standbyItems[idx].likeCount = likeCount;
+          }
+          // 同步更新 expandedStandbyItem
+          if (this.expandedStandbyItem) {
+            this.expandedStandbyItem.likeCount = likeCount;
+          }
+          // 同步更新 expandedPilotCardData
+          if (this.expandedPilotCardData) {
+            this.expandedPilotCardData.likeCount = likeCount;
+            this.expandedPilotCardData.likedByMe = likedByMe;
+          }
+        }
+      });
+    }
+  }
+
+  async copyWechatId(wechatId: string) {
+    try {
+      const pasteData = pasteboard.createData('text/plain', wechatId);
+      const systemPasteboard = pasteboard.getSystemPasteboard();
+      systemPasteboard.setData(pasteData);
+      this.showCopySuccess = true;
+      setTimeout(() => { this.showCopySuccess = false; }, 1500);
+    } catch (err) {
+      promptAction.showToast({ message: '微信号: ' + wechatId });
+    }
   }
 
   startSkeletonShimmer() {
@@ -466,6 +590,163 @@ struct Index {
     })
   }
 
+  @Builder
+  StandbyList() {
+    if (this.standbyItems.length === 0) {
+      Blank()
+        .height(12)
+    } else {
+    Column() {
+      // 标题栏 - 在白色容器外
+      Row() {
+        Text('今日有空')
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor('#14233a')
+          .fontFamily('DouyinSansBold')
+      }
+      .width('100%')
+      .padding({ left: 18 })
+      .margin({ bottom: 12, top: 22 })
+
+      // 白色圆角容器
+      Column() {
+        // 横向滚动卡片列表
+        List() {
+          ForEach(this.standbyItems, (item: StandbyItem) => {
+            ListItem() {
+              Column() {
+                // 头像 + 昵称 + 城市
+                Row() {
+                  Image(item.profile.avatarUrl || 'https://wetofly.com/data/image/avatar_placeholder.webp')
+                    .width(32)
+                    .height(32)
+                    .borderRadius(18)
+                    .backgroundColor('#dfe4ec')
+
+                  Column() {
+                    Text(item.profile.nickname)
+                      .fontSize(14)
+                      .fontWeight(700)
+                      .fontColor('#1d2b3a')
+                      .maxLines(1)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    if (item.profile.city) {
+                      Text(item.profile.city)
+                        .fontSize(12)
+                        .fontColor('#8a96a8')
+                        .maxLines(1)
+                        .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    }
+                  }
+                  .alignItems(HorizontalAlign.Start)
+                  .layoutWeight(1)
+                  .margin({ left: 8 })
+                }
+                .width('100%')
+                .alignItems(VerticalAlign.Center)
+
+                // 底部：点赞星 + 浏览次数
+                Row() {
+                  Row() {
+                    Image(item.profile.isNew ? $r('app.media.icon_star2') : $r('app.media.icon_star1'))
+                      .width(14)
+                      .height(14)
+                      .objectFit(ImageFit.Contain)
+                    Text(item.likeCount > 0 ? String(item.likeCount) : '')
+                      .fontSize(10)
+                      .fontColor('#b0b8c8')
+                      .fontWeight(600)
+                      .margin({ left: 3 })
+                  }
+                  .width(36)
+                  .justifyContent(FlexAlign.Center)
+
+                  Text(item.viewCount > 0 ? '浏览 ' + item.viewCount + ' 次' : '暂无查看')
+                    .fontSize(10)
+                    .fontColor('#b0b8c8')
+                    .fontWeight(500)
+                }
+                .width('100%')
+                .justifyContent(FlexAlign.SpaceBetween)
+                .margin({ top: 6 })
+              }
+              .width(150)
+              .height('100%')
+              .justifyContent(FlexAlign.Center)
+              .margin({ right: 11 })
+              .padding({ left: 12, right: 12, top: 10, bottom: 10 })
+              .backgroundColor('rgba(33, 98, 226, 0.04)')
+              .borderRadius(9)
+              .onClick(() => this.onStandbyCardTap(item))
+            }
+          })
+        }
+        .width('100%')
+        .height('70')
+        .scrollBar(BarState.Off)
+        .listDirection(Axis.Horizontal)
+        .padding({ left: 10, right: 10 })
+        .clip(true)
+      }
+      .width('90%')
+      .padding({ top: 8, bottom: 8 })
+      .backgroundColor('#FFFFFF')
+      .borderRadius(9)
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Center)
+    }
+  }
+
+  @Builder
+  ExpandedStandbyOverlay() {
+    if (this.showExpandedStandby && this.expandedStandbyItem) {
+      Stack() {
+        Column()
+          .width(this.screenWidth)
+          .height(this.screenHeight)
+          .backgroundColor('rgba(0, 0, 0, 0.7)')
+          .position({ x: 0, y: 0 })
+          .onClick(() => this.closeExpandedStandbyDialog())
+
+        Column() {
+          Column() {
+            this.buildExpandedPilotCard()
+          }
+          .width('92%')
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.Center)
+        .hitTestBehavior(HitTestMode.Transparent)
+      }
+      .width(this.screenWidth)
+      .height(this.screenHeight)
+      .clip(false)
+      .onClick(() => this.closeExpandedStandbyDialog())
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+    }
+  }
+
+  @Builder
+  InfoRow(label: string, value: string) {
+    Row() {
+      Text(label)
+        .fontSize(14)
+        .fontColor('#455066')
+        .fontWeight(FontWeight.Medium)
+      Text(value)
+        .fontSize(14)
+        .fontColor('#1f2a3a')
+        .fontWeight(FontWeight.Medium)
+        .textAlign(TextAlign.End)
+    }
+    .width('100%')
+    .justifyContent(FlexAlign.SpaceBetween)
+    .margin({ top: 9, left: 24, right: 24 })
+  }
+
   build() {
     Stack() {
       Column()
@@ -473,6 +754,7 @@ struct Index {
         .height('100%')
         .backgroundColor('#E7F8FC')
         .expandSafeArea([SafeAreaType.SYSTEM])
+        .clip(false)
 
       HdsNavigation() {
         Scroll(this.scroller) {
@@ -522,6 +804,21 @@ struct Index {
             .padding({ left: 18, right: 18, top: 0, bottom: 0 })
             .margin({ top: -100 })
             .opacity(this.bannerLoaded ? 1 : 0)
+
+            // 今日有空
+            this.StandbyList()
+
+            // 常用功能标题
+            Row() {
+              Text('常用功能')
+                .fontSize(17)
+                .fontWeight(FontWeight.Bold)
+                .fontColor('#14233a')
+                .fontFamily('DouyinSansBold')
+            }
+            .width('100%')
+            .padding({ left: 18, right: 18 })
+            .margin({ top: 16 })
 
             // 功能卡片行：搜索飞手 + 个人中心 + 覆盖城市
             Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween }) {
@@ -637,6 +934,26 @@ struct Index {
       .titleMode(HdsNavigationTitleMode.MINI)
       .bindToScrollable([this.scroller])
       .expandSafeArea([SafeAreaType.SYSTEM])
+
+      // 今日有空弹窗
+      this.ExpandedStandbyOverlay()
+
+      // 复制成功提示
+      if (this.showCopySuccess) {
+        Column() {
+          Text('✓ 已复制')
+            .fontSize(16)
+            .fontColor('#FFFFFF')
+            .fontWeight(FontWeight.Bold)
+        }
+        .width(120)
+        .height(120)
+        .backgroundColor('rgba(0, 0, 0, 0.75)')
+        .borderRadius(16)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .position({ x: this.screenWidth / 2 - 60, y: this.screenHeight / 2 - 60 })
+      }
     }
     .width('100%')
     .height('100%')

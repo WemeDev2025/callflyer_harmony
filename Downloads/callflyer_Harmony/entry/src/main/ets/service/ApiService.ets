@@ -1260,6 +1260,127 @@ export async function likeProfile(openid: string, token: string): Promise<LikeRe
   });
 }
 
+// ============ 今日有空（Standby）===========
+
+export interface StandbyProfile {
+  openid: string;
+  nickname: string;
+  avatarUrl: string;
+  city: string;
+  isNew: boolean;
+  phone?: string;
+  wechatId?: string;
+  company?: string;
+  position?: string;
+  droneModel?: string;
+  businessScopeText?: string;
+  recentActiveText?: string;
+  licenseType?: string;
+  licenseStatus?: string;
+  pilotCode?: string;
+  userRole?: string;
+  roleLabel?: string;
+}
+
+export interface StandbyItem {
+  openid: string;
+  joined_at: string;
+  profile: StandbyProfile;
+  likeCount: number;
+  viewCount: number;
+}
+
+export interface StandbyResult {
+  items: StandbyItem[];
+  count: number;
+  is_joined: boolean;
+}
+
+export async function fetchStandby(): Promise<StandbyResult> {
+  return new Promise<StandbyResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/standby`;
+    console.info('【接口请求】fetchStandby url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchStandby:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】fetchStandby:', data.result as string);
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string' && data.result.length > 0) {
+          try {
+            const res: Record<string, Object> = JSON.parse(data.result as string);
+            const rawItems: Record<string, Object>[] = (res['items'] as Record<string, Object>[]) || [];
+            const items: StandbyItem[] = rawItems.map((item: Record<string, Object>) => {
+              const profileRaw: Record<string, Object> = (item['profile'] as Record<string, Object>) || {};
+              // 优先用API返回的recentActiveText，否则从updated_at计算
+              let recentActiveText = (profileRaw['recentActiveText'] as string) || (profileRaw['recent_active_text'] as string) || '';
+              if (!recentActiveText) {
+                const updatedAt = (profileRaw['updated_at'] as string) || (profileRaw['updatedAt'] as string) || '';
+                if (updatedAt) {
+                  const updatedMs = new Date(updatedAt).getTime();
+                  if (!isNaN(updatedMs)) {
+                    const nowMs = Date.now();
+                    const diffMs = nowMs - updatedMs;
+                    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    recentActiveText = diffDays === 0 ? '今天' : `${diffDays} 天前`;
+                  }
+                }
+              }
+              const p: StandbyProfile = {
+                openid: (profileRaw['openid'] as string) || '',
+                nickname: (profileRaw['nickname'] as string) || '',
+                avatarUrl: (profileRaw['avatarUrl'] as string) || (profileRaw['avatar_url'] as string) || '',
+                city: (profileRaw['city'] as string) || '',
+                isNew: (profileRaw['isNew'] as boolean) || (profileRaw['is_new'] as boolean) || false,
+                phone: (profileRaw['phone'] as string) || '',
+                wechatId: (profileRaw['wechatId'] as string) || (profileRaw['wechat_id'] as string) || '',
+                company: (profileRaw['company'] as string) || '',
+                position: (profileRaw['position'] as string) || '',
+                droneModel: (profileRaw['droneModel'] as string) || (profileRaw['drone_model'] as string) || '',
+                businessScopeText: (profileRaw['businessScopeText'] as string) || (profileRaw['business_scope_text'] as string) || '',
+                recentActiveText: recentActiveText || '--',
+                licenseType: (profileRaw['licenseType'] as string) || (profileRaw['license_type'] as string) || '',
+                licenseStatus: (profileRaw['licenseStatus'] as string) || (profileRaw['license_status'] as string) || '',
+                pilotCode: (profileRaw['pilotCode'] as string) || (profileRaw['pilot_code'] as string) || '',
+                userRole: (profileRaw['userRole'] as string) || (profileRaw['user_role'] as string) || '',
+                roleLabel: (profileRaw['roleLabel'] as string) || ''
+              };
+              const si: StandbyItem = {
+                openid: (item['openid'] as string) || '',
+                joined_at: (item['joined_at'] as string) || '',
+                profile: p,
+                likeCount: (item['likeCount'] as number) || (item['like_count'] as number) || 0,
+                viewCount: (item['viewCount'] as number) || (item['view_count'] as number) || 0
+              };
+              return si;
+            });
+            resolve({
+              items: items,
+              count: (res['count'] as number) || 0,
+              is_joined: (res['is_joined'] as boolean) || false
+            });
+          } catch (e) {
+            console.error('【fetchStandby解析失败】', JSON.stringify(e));
+            reject(err);
+          }
+        } else {
+          reject(err);
+        }
+      }
+    );
+  });
+}
+
 export async function unlikeProfile(openid: string, token: string): Promise<LikeResult> {
   return new Promise<LikeResult>((resolve, reject) => {
     const httpRequest = http.createHttp();
