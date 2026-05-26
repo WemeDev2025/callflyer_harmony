@@ -479,6 +479,8 @@ struct Index {
                         const mapUrl = 'https://wetofly.com/map?token=' + encodeURIComponent(token);
                         console.info('【地图跳转】token: ' + (token ? '有值' : '空') + ', url: ' + mapUrl);
                         router.pushUrl({ url: 'pages/WebView', params: { url: mapUrl, title: '地图' } });
+                      } else if (item.clickPage === 'pages/new/index' || item.clickPage === '/pages/new/index') {
+                        router.pushUrl({ url: 'pages/CertifiedUsers' });
                       } else if ((item.clickType === 'h5' || item.clickType === 'url') && item.clickUrl) {
                         router.pushUrl({ url: 'pages/WebView', params: { url: item.clickUrl, title: item.clickPage || '网页' } });
                       } else if (!this.hasValidClick(item)) {
