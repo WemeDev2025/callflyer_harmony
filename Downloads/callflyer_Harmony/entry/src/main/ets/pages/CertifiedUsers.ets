@@ -13,6 +13,11 @@ interface UserContact {
   wechatId: string;
 }
 
+interface RoleOption {
+  label: string;
+  value: string;
+}
+
 @Entry
 @Component
 struct CertifiedUsers {
@@ -22,9 +27,29 @@ struct CertifiedUsers {
   @State hasMore: boolean = false;
   @State count: number = 0;
   @State searchText: string = '';
+  @State currentRole: string = 'all';
 
   private skip: number = 0;
   private isLoading: boolean = false;
+
+  private roleOptions: RoleOption[] = [
+    { label: '全部', value: 'all' },
+    { label: '我赞过', value: 'liked_by_me' },
+    { label: '飞手', value: 'pilot' },
+    { label: '雇主', value: 'employer' },
+    { label: '植保', value: '植保' },
+    { label: '飞防', value: '飞防' },
+    { label: '吊运', value: '吊运' },
+    { label: '公司', value: '公司' },
+    { label: '职位', value: '职位' },
+    { label: '机型', value: '机型' },
+    { label: 'CAAC', value: 'CAAC' },
+    { label: 'UTC', value: 'UTC' },
+    { label: '巡检', value: '巡检' },
+    { label: '测绘', value: '测绘' },
+    { label: '教学', value: '教学' },
+    { label: '应急', value: '应急' },
+  ];
 
   scroller: Scroller = new Scroller();
   searchController: SearchController = new SearchController();
@@ -49,6 +74,14 @@ struct CertifiedUsers {
       if (searchQuery && searchQuery.trim()) {
         params.search = searchQuery.trim();
       }
+      if (this.currentRole === 'liked_by_me') {
+        params.liked_by_me = true;
+      } else if (this.currentRole === 'pilot') {
+        params.role = 'pilot';
+      } else if (this.currentRole === 'employer') {
+        params.role = 'employer';
+      }
+      console.info('【认证用户】currentRole:', this.currentRole, 'params:', JSON.stringify(params));
       const result = await fetchCertifiedProfiles(params, token || undefined);
 
       const newUsers = (result.items || []).map(item => this.toPilotCardData(item));
@@ -69,6 +102,23 @@ struct CertifiedUsers {
   onSearch(value: string) {
     this.searchText = value;
     this.loadCertifiedUsers(value);
+  }
+
+  handleRoleChange(role: string) {
+    this.currentRole = role;
+    if (role === 'liked_by_me') {
+      // 登录检查
+      const token = AuthService.getAuthToken();
+      if (!token) {
+        promptAction.showToast({ message: '登录后即可查看我赞过的用户' });
+        return;
+      }
+    }
+    // 如果点击的是筛选标签（全部/我赞过/飞手/雇主），searchText 不变，传空字符串清空搜索
+    // 如果是业务标签（植保/飞防等），用 role 值作为搜索词
+    const searchValue = (role === 'all' || role === 'liked_by_me' || role === 'pilot' || role === 'employer') ? '' : role;
+    this.searchText = searchValue;
+    this.loadCertifiedUsers(searchValue);
   }
 
   async loadMore() {
@@ -186,48 +236,74 @@ struct CertifiedUsers {
 
       List() {
         ListItem() {
-          Row() {
-            SymbolGlyph($r('sys.symbol.magnifyingglass'))
-              .fontSize(20)
-              .fontColor(['#999999'])
-              .margin({ left: 14 })
-
-            TextInput({
-              placeholder: '搜索昵称/城市/主营业务...',
-              text: this.searchText,
-              controller: this.searchController
-            })
-              .layoutWeight(1)
-              .height(44)
-              .backgroundColor('#FFFFFF')
-              .borderRadius(22)
-              .placeholderColor('#999999')
-              .fontSize(15)
-              .margin({ left: 8 })
-              .onChange((value: string) => {
-                this.searchText = value;
-              })
-              .onSubmit((enterKey: EnterKeyType) => {
-                this.loadCertifiedUsers(this.searchText);
-              })
-
-            if (this.searchText && this.searchText.trim() !== '') {
-              SymbolGlyph($r('sys.symbol.xmark'))
-                .fontSize(28)
+          Column() {
+            Row() {
+              SymbolGlyph($r('sys.symbol.magnifyingglass'))
+                .fontSize(20)
                 .fontColor(['#999999'])
-                .margin({ right: 12 })
-                .onClick(() => {
-                  this.searchText = '';
-                  this.loadCertifiedUsers();
+                .margin({ left: 14 })
+
+              TextInput({
+                placeholder: '搜索昵称/城市/主营业务...',
+                text: this.searchText,
+                controller: this.searchController
+              })
+                .layoutWeight(1)
+                .height(44)
+                .backgroundColor('#FFFFFF')
+                .borderRadius(22)
+                .placeholderColor('#999999')
+                .fontSize(15)
+                .margin({ left: 8 })
+                .onChange((value: string) => {
+                  this.searchText = value;
                 })
+                .onSubmit((enterKey: EnterKeyType) => {
+                  this.loadCertifiedUsers(this.searchText);
+                })
+
+              if (this.searchText && this.searchText.trim() !== '') {
+                SymbolGlyph($r('sys.symbol.xmark'))
+                  .fontSize(28)
+                  .fontColor(['#999999'])
+                  .margin({ right: 12 })
+                  .onClick(() => {
+                    this.searchText = '';
+                    this.loadCertifiedUsers();
+                  })
+              }
             }
+            .width('100%')
+            .height(44)
+            .backgroundColor('#FFFFFF')
+            .borderRadius(22)
+
+            // 标签行
+            Scroll() {
+              Row() {
+                ForEach(this.roleOptions, (option: RoleOption) => {
+                  Text(option.label)
+                    .fontSize(13)
+                    .fontColor(this.currentRole === option.value ? '#FFFFFF' : '#14233a')
+                    .fontWeight(FontWeight.Medium)
+                    .backgroundColor(this.currentRole === option.value ? '#07C160' : '#FFFFFF')
+                    .borderRadius(16)
+                    .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+                    .margin({ right: 8 })
+                    .onClick(() => {
+                      this.handleRoleChange(option.value);
+                    })
+                })
+              }
+              .padding({ left: 4, right: 4, top: 10, bottom: 10 })
+            }
+            .width('100%')
+            .scrollable(ScrollDirection.Horizontal)
+            .scrollBar(BarState.Off)
           }
           .width('100%')
-          .height(44)
-          .backgroundColor('#FFFFFF')
-          .borderRadius(22)
         }
-        .padding({ left: 18, right: 18, top: 12, bottom: 12 })
+        .padding({ left: 18, right: 18, top: 12 })
 
         if (this.loading) {
           ForEach([1, 2, 3], (i: number) => {
