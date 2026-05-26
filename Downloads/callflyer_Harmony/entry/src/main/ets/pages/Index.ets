@@ -15,6 +15,7 @@ import { PilotCard, PilotCardData } from '../components/PilotCard';
 import http from '@ohos.net.http';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import fileIo from '@ohos.file.fs';
+import fileUri from '@ohos.file.fileuri';
 import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
 
 // 防抖标记：确保每次启动只上报一次访问
@@ -210,55 +211,65 @@ struct Index {
     ];
   }
 
-  // 保存网络图片到本地相册
+  // 保存网络图片到本地相册（使用安全弹窗方式，无需WRITE权限）
   async saveImageToGallery(imageUrl: string): Promise<void> {
     try {
-      // 请求相册写入权限
-      const context = getContext(this);
-      const atManager = abilityAccessCtrl.createAtManager();
-      const result = await atManager.requestPermissionsFromUser(context, ['ohos.permission.WRITE_IMAGEVIDEO']);
-      console.info('【保存图片】权限请求结果: ' + JSON.stringify(result));
-      if (result.authResults[0] !== 0) {
-        promptAction.showToast({ message: '需要相册权限才能保存' });
-        return;
-      }
+      console.info('【保存图片】开始保存: ' + imageUrl);
 
-      console.info('【保存图片】开始下载: ' + imageUrl);
-      // 从URL提取文件扩展名
-      const urlPath = imageUrl.split('?')[0];
-      const extMatch = urlPath.match(/\.(\w+)(\?.*)?$/);
-      const extension = extMatch ? extMatch[1].toLowerCase() : 'jpg';
-      const validExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'];
-      const finalExt = validExts.includes(extension) ? extension : 'jpg';
-
+      // 下载图片到临时目录
       const httpRequest = http.createHttp();
       const response = await httpRequest.request(imageUrl, {
         method: http.RequestMethod.GET,
         connectTimeout: 30000,
         readTimeout: 30000
       });
-      if (response.responseCode === 200) {
-        const imageData = response.result as ArrayBuffer;
-        const helper = photoAccessHelper.getPhotoAccessHelper(getContext(this));
-        const createOptions: photoAccessHelper.CreateOptions = {
-          title: '轮播图_' + Date.now()
-        };
-        const uri = await helper.createAsset(photoAccessHelper.PhotoType.IMAGE, finalExt, createOptions);
-        console.info('【保存图片】创建资产成功: ' + uri);
-        // 写入图片数据
-        const file = fileIo.openSync(uri, fileIo.OpenMode.READ_WRITE);
-        fileIo.writeSync(file.fd, imageData);
-        fileIo.closeSync(file.fd);
-        console.info('【保存图片】成功');
+
+      if (response.responseCode !== 200) {
+        console.error('【保存图片】下载失败: ' + response.responseCode);
+        promptAction.showToast({ message: '下载图片失败' });
+        return;
+      }
+
+      const imageData = response.result as ArrayBuffer;
+
+      // 先保存到临时目录
+      const tempDir = getContext(this).cacheDir;
+      const tempFileName = 'temp_image_' + Date.now() + '.jpg';
+      const tempFilePath = tempDir + '/' + tempFileName;
+      const tempFile = fileIo.openSync(tempFilePath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE);
+      fileIo.writeSync(tempFile.fd, imageData);
+      fileIo.closeSync(tempFile.fd);
+      console.info('【保存图片】临时文件: ' + tempFilePath);
+
+      // 使用安全弹窗方式保存到相册（不需要WRITE权限）
+      const helper = photoAccessHelper.getPhotoAccessHelper(getContext(this));
+      const photoCreationConfig: photoAccessHelper.PhotoCreationConfig = {
+        title: '轮播图_' + Date.now(),
+        fileNameExtension: 'jpg',
+        photoType: photoAccessHelper.PhotoType.IMAGE
+      };
+
+      const resultUris = await helper.showAssetsCreationDialog(
+        [fileUri.getUriFromPath(tempFilePath)],
+        [photoCreationConfig]
+      );
+      console.info('【保存图片】安全弹窗结果: ' + JSON.stringify(resultUris));
+
+      // 删除临时文件
+      try {
+        fileIo.unlinkSync(tempFilePath);
+      } catch (e) {}
+
+      if (resultUris && resultUris.length > 0) {
+        console.info('【保存图片】成功: ' + resultUris[0]);
         promptAction.showToast({ message: '已保存到相册' });
       } else {
-        console.error('【保存图片】下载失败: ' + response.responseCode);
-        promptAction.showToast({ message: '保存失败' });
+        console.info('【保存图片】用户取消保存');
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : JSON.stringify(e);
       console.error('【保存图片】异常: ' + errMsg);
-      promptAction.showToast({ message: '保存失败' });
+      promptAction.showToast({ message: '保存失败: ' + errMsg });
     }
   }
 
