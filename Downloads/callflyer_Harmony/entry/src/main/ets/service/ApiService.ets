@@ -1138,6 +1138,7 @@ export async function fetchCertifiedProfiles(params: CertifiedProfilesParams, to
     if (params.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
     if (params.liked_by_me) queryParts.push('liked_by_me=true');
     if (params.role && params.role !== 'all') queryParts.push(`role=${params.role}`);
+    if (params.tag) queryParts.push(`tag=${encodeURIComponent(params.tag)}`);
     const query = queryParts.length > 0 ? '?' + queryParts.join('&') : '';
     const url = `${BASE_URL}/api/profiles/certified${query}`;
     console.info('【接口请求】fetchCertifiedProfiles url:', url);
