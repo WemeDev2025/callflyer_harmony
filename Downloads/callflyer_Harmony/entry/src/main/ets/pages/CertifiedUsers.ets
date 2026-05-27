@@ -6,6 +6,7 @@ import AuthService from '../service/AuthService';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
 import systemShare from '@hms.collaboration.systemShare';
 import common from '@ohos.app.ability.common';
+import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 const PAGE_SIZE = 20;
@@ -47,6 +48,9 @@ struct ShareGuideDialog {
 @Entry
 @Component
 struct CertifiedUsers {
+  // 颜色模式监听（跟随系统深浅色）
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+
   @State users: PilotCardData[] = [];
   @State loading: boolean = false;
   @State loadingMore: boolean = false;
@@ -307,7 +311,7 @@ struct CertifiedUsers {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('#F5F8FA')
+        .backgroundColor($r('app.color.page_bg'))
         .expandSafeArea([SafeAreaType.SYSTEM])
 
       List() {
@@ -316,7 +320,7 @@ struct CertifiedUsers {
             Row() {
               SymbolGlyph($r('sys.symbol.magnifyingglass'))
                 .fontSize(20)
-                .fontColor(['#999999'])
+                .fontColor([$r('app.color.text_secondary')])
                 .margin({ left: 14 })
 
               TextInput({
@@ -326,9 +330,9 @@ struct CertifiedUsers {
               })
                 .layoutWeight(1)
                 .height(44)
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.card_bg'))
                 .borderRadius(22)
-                .placeholderColor('#999999')
+                .placeholderColor($r('app.color.text_secondary'))
                 .fontSize(15)
                 .margin({ left: 8 })
                 .onChange((value: string) => {
@@ -341,7 +345,7 @@ struct CertifiedUsers {
               if (this.searchText && this.searchText.trim() !== '') {
                 SymbolGlyph($r('sys.symbol.xmark'))
                   .fontSize(20)
-                  .fontColor(['#999999'])
+                  .fontColor([$r('app.color.text_secondary')])
                   .margin({ right: 12 })
                   .onClick(() => {
                     this.searchText = '';
@@ -351,7 +355,7 @@ struct CertifiedUsers {
             }
             .width('100%')
             .height(44)
-            .backgroundColor('#FFFFFF')
+            .backgroundColor($r('app.color.card_bg'))
             .borderRadius(22)
 
             // 标签行
@@ -360,9 +364,9 @@ struct CertifiedUsers {
                 ForEach(this.roleOptions, (option: RoleOption) => {
                   Text(option.label)
                     .fontSize(13)
-                    .fontColor(this.currentRole === option.value ? '#FFFFFF' : '#14233a')
+                    .fontColor(this.currentRole === option.value ? '#FFFFFF' : $r('app.color.text_title'))
                     .fontWeight(FontWeight.Medium)
-                    .backgroundColor(this.currentRole === option.value ? '#07C160' : '#FFFFFF')
+                    .backgroundColor(this.currentRole === option.value ? $r('app.color.badge_green') : $r('app.color.card_bg'))
                     .borderRadius(16)
                     .padding({ left: 14, right: 14, top: 6, bottom: 6 })
                     .margin({ right: 8 })
@@ -390,25 +394,25 @@ struct CertifiedUsers {
                     .width(56)
                     .height(56)
                     .borderRadius(28)
-                    .backgroundColor('#E8E8E8')
+                    .backgroundColor($r('app.color.skeleton_bg'))
                   Column() {
-                    Row().width(120).height(18).borderRadius(4).backgroundColor('#E8E8E8').margin({ top: 4 })
-                    Row().width(80).height(12).borderRadius(4).backgroundColor('#E8E8E8').margin({ top: 8 })
+                    Row().width(120).height(18).borderRadius(4).backgroundColor($r('app.color.skeleton_bg')).margin({ top: 4 })
+                    Row().width(80).height(12).borderRadius(4).backgroundColor($r('app.color.skeleton_bg')).margin({ top: 8 })
                   }
                   .margin({ left: 14 })
                 }
                 .width('100%')
-                Divider().color('rgba(99, 105, 117, 0.15)').margin({ top: 12, bottom: 12 })
+                Divider().color($r('app.color.divider')).margin({ top: 12, bottom: 12 })
                 Row() {
-                  Row().width(100).height(15).borderRadius(4).backgroundColor('#E8E8E8')
-                  Row().width(60).height(15).borderRadius(4).backgroundColor('#E8E8E8')
+                  Row().width(100).height(15).borderRadius(4).backgroundColor($r('app.color.skeleton_bg'))
+                  Row().width(60).height(15).borderRadius(4).backgroundColor($r('app.color.skeleton_bg'))
                 }
                 .width('100%')
                 .justifyContent(FlexAlign.SpaceBetween)
               }
               .width('100%')
               .padding(24)
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.card_bg'))
               .borderRadius(14)
               .margin({ left: 18, right: 18, bottom: 12 })
             }
@@ -417,7 +421,7 @@ struct CertifiedUsers {
           ListItem() {
             Column() {
               Text(this.searchText && this.searchText.trim() ? '未找到匹配结果' : '暂无认证用户')
-                .fontColor('#999999')
+                .fontColor($r('app.color.text_secondary'))
                 .fontSize(14)
             }
             .width('100%')
@@ -440,8 +444,8 @@ struct CertifiedUsers {
           if (this.loadingMore) {
             ListItem() {
               Row() {
-                LoadingProgress().width(24).height(24).color('#999999')
-                Text('加载中...').fontColor('#999999').fontSize(12).margin({ left: 8 })
+                LoadingProgress().width(24).height(24).color($r('app.color.text_secondary'))
+                Text('加载中...').fontColor($r('app.color.text_secondary')).fontSize(12).margin({ left: 8 })
               }
               .width('100%')
               .justifyContent(FlexAlign.Center)
@@ -451,7 +455,7 @@ struct CertifiedUsers {
             ListItem() {
               Text('点击加载更多')
                 .fontSize(12)
-                .fontColor('#999999')
+                .fontColor($r('app.color.text_secondary'))
                 .width('100%')
                 .textAlign(TextAlign.Center)
                 .padding(20)
