@@ -45,7 +45,9 @@ struct CityCoverage {
 
   onSearchChange(text: string) {
     this.keyword = text;
+    console.info('【搜索】keyword:', this.keyword, 'text:', text);
     this._applyFilter();
+    console.info('【搜索】groups.length:', this.groups.length);
   }
 
   onFilterChange(mode: string) {
@@ -56,6 +58,7 @@ struct CityCoverage {
   _applyFilter() {
     const kw = this.keyword.trim();
     let list = this.cities;
+    console.info('【过滤】原始cities数量:', list.length, 'keyword:', kw);
     if (this.filterMode === 'lit') {
       list = list.filter((c: CityItem) => c.lit);
     } else if (this.filterMode === 'unlit') {
@@ -63,6 +66,7 @@ struct CityCoverage {
     }
     if (kw) {
       list = list.filter((c: CityItem) => c.city.includes(kw) || c.province.includes(kw));
+      console.info('【过滤】搜索后数量:', list.length, 'kw:', kw);
     }
 
     const map: Record<string, CityGroup> = {};
