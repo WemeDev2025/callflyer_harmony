@@ -98,24 +98,35 @@ struct CertifiedUsers {
   private skip: number = 0;
   private isLoading: boolean = false;
 
-  @State roleOptions: RoleOption[] = [
-    { label: '全部', value: 'all' },
-    { label: '我赞过', value: 'liked_by_me' },
-    { label: '飞手', value: 'pilot' },
-    { label: '雇主', value: 'employer' },
-    { label: '植保', value: '植保' },
-    { label: '飞防', value: '飞防' },
-    { label: '吊运', value: '吊运' },
-    { label: '公司', value: '公司' },
-    { label: '职位', value: '职位' },
-    { label: '机型', value: '机型' },
-    { label: 'CAAC', value: 'CAAC' },
-    { label: 'UTC', value: 'UTC' },
-    { label: '巡检', value: '巡检' },
-    { label: '测绘', value: '测绘' },
-    { label: '教学', value: '教学' },
-    { label: '应急', value: '应急' },
+  // 标签映射：后端key -> 显示label
+  private tagLabelMap: Record<string, string> = {
+    'all': '全部',
+    'liked_by_me': '我赞过',
+    'pilot': '飞手',
+    'employer': '雇主',
+    'company': '公司',
+    'position': '职位',
+    'drone_model': '机型',
+    'caac': 'CAAC',
+    'utc': 'UTC',
+    'business_植保': '植保',
+    'business_飞防': '飞防',
+    'business_吊运': '吊运',
+    'business_巡检': '巡检',
+    'business_测绘': '测绘',
+    'business_教学': '教学',
+    'business_应急': '应急',
+  };
+
+  // 标签显示顺序
+  private tagOrder: string[] = [
+    'all', 'liked_by_me', 'pilot', 'employer',
+    'business_植保', 'business_飞防', 'business_吊运',
+    'company', 'position', 'drone_model',
+    'caac', 'utc', 'business_巡检', 'business_测绘', 'business_教学', 'business_应急'
   ];
+
+  @State roleOptions: RoleOption[] = [];
 
   scroller: Scroller = new Scroller();
   searchController: SearchController = new SearchController();
@@ -216,26 +227,37 @@ struct CertifiedUsers {
     this.isLoading = false;
   }
 
-  updateRoleOptionsCounts() {
+  getTagCount(key: string): number {
     const c = this.tagCounts;
-    this.roleOptions = [
-      { label: '全部', value: 'all', count: c.all },
-      { label: '我赞过', value: 'liked_by_me', count: c.liked_by_me },
-      { label: '飞手', value: 'pilot', count: c.pilot },
-      { label: '雇主', value: 'employer', count: c.employer },
-      { label: '植保', value: '植保', count: c.business_植保 },
-      { label: '飞防', value: '飞防', count: c.business_飞防 },
-      { label: '吊运', value: '吊运', count: c.business_吊运 },
-      { label: '公司', value: '公司', count: c.company },
-      { label: '职位', value: '职位', count: c.position },
-      { label: '机型', value: '机型', count: c.drone_model },
-      { label: 'CAAC', value: 'CAAC', count: c.caac },
-      { label: 'UTC', value: 'UTC', count: c.utc },
-      { label: '巡检', value: '巡检', count: c.business_巡检 },
-      { label: '测绘', value: '测绘', count: c.business_测绘 },
-      { label: '教学', value: '教学', count: c.business_教学 },
-      { label: '应急', value: '应急', count: c.business_应急 },
-    ];
+    if (key === 'all') return c.all;
+    if (key === 'liked_by_me') return c.liked_by_me;
+    if (key === 'pilot') return c.pilot;
+    if (key === 'employer') return c.employer;
+    if (key === 'business_植保') return c.business_植保;
+    if (key === 'business_飞防') return c.business_飞防;
+    if (key === 'business_吊运') return c.business_吊运;
+    if (key === 'company') return c.company;
+    if (key === 'position') return c.position;
+    if (key === 'drone_model') return c.drone_model;
+    if (key === 'caac') return c.caac;
+    if (key === 'utc') return c.utc;
+    if (key === 'business_巡检') return c.business_巡检;
+    if (key === 'business_测绘') return c.business_测绘;
+    if (key === 'business_教学') return c.business_教学;
+    if (key === 'business_应急') return c.business_应急;
+    return 0;
+  }
+
+  updateRoleOptionsCounts() {
+    const options: RoleOption[] = [];
+    for (const key of this.tagOrder) {
+      options.push({
+        label: this.tagLabelMap[key] || key,
+        value: key,
+        count: this.getTagCount(key)
+      });
+    }
+    this.roleOptions = options;
   }
 
   onSearch(value: string) {
