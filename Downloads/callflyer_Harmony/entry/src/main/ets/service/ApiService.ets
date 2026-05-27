@@ -1056,6 +1056,7 @@ export interface CertifiedProfilesParams {
   search?: string;
   liked_by_me?: boolean;
   role?: string;
+  tag?: string;
 }
 
 interface RawCertifiedLocation {
@@ -1244,6 +1245,60 @@ export async function fetchCertifiedProfiles(params: CertifiedProfilesParams, to
           }
         } else {
           resolve({ items: [], count: 0, hasMore: false });
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// ============ 认证用户标签 ============
+
+export interface CertifiedTag {
+  key: string;
+  label: string;
+  count: number | null;
+}
+
+export interface CertifiedTagsResult {
+  tags: CertifiedTag[];
+}
+
+export async function fetchCertifiedTags(token?: string): Promise<CertifiedTagsResult> {
+  return new Promise<CertifiedTagsResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/profiles/certified/tags`;
+    console.info('【接口请求】fetchCertifiedTags url:', url);
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchCertifiedTags:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        if (data.result) {
+          console.info('【接口返回】fetchCertifiedTags:', data.result as string);
+          try {
+            const res = JSON.parse(data.result as string);
+            resolve({
+              tags: res.tags || []
+            });
+          } catch (parseErr) {
+            reject(parseErr);
+          }
+        } else {
+          resolve({ tags: [] });
         }
         httpRequest.destroy();
       }

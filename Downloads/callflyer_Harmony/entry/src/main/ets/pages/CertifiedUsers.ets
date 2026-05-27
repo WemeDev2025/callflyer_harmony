@@ -1,7 +1,7 @@
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
-import { fetchCertifiedProfiles, fetchPilotContact, likeProfile, unlikeProfile, CertifiedUser, CertifiedProfilesParams, TagCounts } from '../service/ApiService';
+import { fetchCertifiedProfiles, fetchPilotContact, likeProfile, unlikeProfile, CertifiedUser, CertifiedProfilesParams, fetchCertifiedTags, CertifiedTag } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
 import systemShare from '@hms.collaboration.systemShare';
@@ -71,24 +71,6 @@ struct CertifiedUsers {
   @State count: number = 0;
   @State searchText: string = '';
   @State currentRole: string = 'all';
-  @State tagCounts: TagCounts = {
-    all: 0,
-    pilot: 0,
-    employer: 0,
-    company: 0,
-    position: 0,
-    drone_model: 0,
-    caac: 0,
-    utc: 0,
-    business_植保: 0,
-    business_飞防: 0,
-    business_吊运: 0,
-    business_巡检: 0,
-    business_测绘: 0,
-    business_教学: 0,
-    business_应急: 0,
-    liked_by_me: 0
-  };
 
   // 分享引导弹窗
   @State shareGuideImagePath: string = 'https://wetofly.com/data/image/pic_comeon.webp';
@@ -97,34 +79,6 @@ struct CertifiedUsers {
 
   private skip: number = 0;
   private isLoading: boolean = false;
-
-  // 标签映射：后端key -> 显示label
-  private tagLabelMap: Record<string, string> = {
-    'all': '全部',
-    'liked_by_me': '我赞过',
-    'pilot': '飞手',
-    'employer': '雇主',
-    'company': '公司',
-    'position': '职位',
-    'drone_model': '机型',
-    'caac': 'CAAC',
-    'utc': 'UTC',
-    'business_植保': '植保',
-    'business_飞防': '飞防',
-    'business_吊运': '吊运',
-    'business_巡检': '巡检',
-    'business_测绘': '测绘',
-    'business_教学': '教学',
-    'business_应急': '应急',
-  };
-
-  // 标签显示顺序
-  private tagOrder: string[] = [
-    'all', 'liked_by_me', 'pilot', 'employer',
-    'business_植保', 'business_飞防', 'business_吊运',
-    'company', 'position', 'drone_model',
-    'caac', 'utc', 'business_巡检', 'business_测绘', 'business_教学', 'business_应急'
-  ];
 
   @State roleOptions: RoleOption[] = [];
 
@@ -177,7 +131,23 @@ struct CertifiedUsers {
   }
 
   aboutToAppear() {
-    this.loadCertifiedUsers();
+    this.loadTags();
+  }
+
+  async loadTags() {
+    try {
+      const token = AuthService.getAuthToken();
+      const res = await fetchCertifiedTags(token || undefined);
+      this.roleOptions = res.tags.map(tag => ({
+        label: tag.label,
+        value: tag.key,
+        count: tag.count ?? 0
+      }));
+      this.loadCertifiedUsers();
+    } catch (err) {
+      console.error('【加载标签失败】', JSON.stringify(err));
+      this.loadCertifiedUsers();
+    }
   }
 
   async loadCertifiedUsers(searchQuery?: string) {
@@ -196,12 +166,8 @@ struct CertifiedUsers {
       if (searchQuery && searchQuery.trim()) {
         params.search = searchQuery.trim();
       }
-      if (this.currentRole === 'liked_by_me') {
-        params.liked_by_me = true;
-      } else if (this.currentRole === 'pilot') {
-        params.role = 'pilot';
-      } else if (this.currentRole === 'employer') {
-        params.role = 'employer';
+      if (this.currentRole && this.currentRole !== 'all') {
+        params.tag = this.currentRole;
       }
       console.info('【认证用户】currentRole:', this.currentRole, 'params:', JSON.stringify(params));
       const result = await fetchCertifiedProfiles(params, token || undefined);
@@ -212,12 +178,6 @@ struct CertifiedUsers {
       this.count = result.count || 0;
       this.skip = result.items?.length || 0;
       this.hasMore = this.skip < this.count;
-      // 更新标签计数
-      if (result.tag_counts) {
-        this.tagCounts = result.tag_counts;
-        // 更新 roleOptions 中的计数
-        this.updateRoleOptionsCounts();
-      }
     } catch (err) {
       console.error('【加载认证用户失败】', JSON.stringify(err));
       promptAction.showToast({ message: '加载失败' });
@@ -225,39 +185,6 @@ struct CertifiedUsers {
 
     this.loading = false;
     this.isLoading = false;
-  }
-
-  getTagCount(key: string): number {
-    const c = this.tagCounts;
-    if (key === 'all') return c.all;
-    if (key === 'liked_by_me') return c.liked_by_me;
-    if (key === 'pilot') return c.pilot;
-    if (key === 'employer') return c.employer;
-    if (key === 'business_植保') return c.business_植保;
-    if (key === 'business_飞防') return c.business_飞防;
-    if (key === 'business_吊运') return c.business_吊运;
-    if (key === 'company') return c.company;
-    if (key === 'position') return c.position;
-    if (key === 'drone_model') return c.drone_model;
-    if (key === 'caac') return c.caac;
-    if (key === 'utc') return c.utc;
-    if (key === 'business_巡检') return c.business_巡检;
-    if (key === 'business_测绘') return c.business_测绘;
-    if (key === 'business_教学') return c.business_教学;
-    if (key === 'business_应急') return c.business_应急;
-    return 0;
-  }
-
-  updateRoleOptionsCounts() {
-    const options: RoleOption[] = [];
-    for (const key of this.tagOrder) {
-      options.push({
-        label: this.tagLabelMap[key] || key,
-        value: key,
-        count: this.getTagCount(key)
-      });
-    }
-    this.roleOptions = options;
   }
 
   onSearch(value: string) {
@@ -268,18 +195,13 @@ struct CertifiedUsers {
   handleRoleChange(role: string) {
     this.currentRole = role;
     if (role === 'liked_by_me') {
-      // 登录检查
       const token = AuthService.getAuthToken();
       if (!token) {
         promptAction.showToast({ message: '登录后即可查看我赞过的用户' });
         return;
       }
     }
-    // 如果点击的是筛选标签（全部/我赞过/飞手/雇主），searchText 不变，传空字符串清空搜索
-    // 如果是业务标签（植保/飞防等），用 role 值作为搜索词
-    const searchValue = (role === 'all' || role === 'liked_by_me' || role === 'pilot' || role === 'employer') ? '' : role;
-    this.searchText = searchValue;
-    this.loadCertifiedUsers(searchValue);
+    this.loadCertifiedUsers();
   }
 
   async loadMore() {
