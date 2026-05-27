@@ -29,19 +29,32 @@ struct ShareGuideDialog {
   controller: CustomDialogController;
 
   build() {
-    Column() {
-      Image(this.imagePath)
-        .width('80%')
-        .objectFit(ImageFit.Contain)
-        .borderRadius(16)
+    Stack() {
+      // 点击蒙层空白关闭
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor('rgba(0, 0, 0, 0.7)')
         .onClick(() => {
-          this.onConfirm();
           this.controller?.close();
         })
+
+      Column() {
+        Image(this.imagePath)
+          .width('80%')
+          .objectFit(ImageFit.Contain)
+          .borderRadius(16)
+          .onClick(() => {
+            this.onConfirm();
+            this.controller?.close();
+          })
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Center)
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
   }
 }
 
