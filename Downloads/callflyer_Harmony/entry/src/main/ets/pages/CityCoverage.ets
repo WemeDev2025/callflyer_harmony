@@ -139,12 +139,14 @@ struct CityCoverage {
                       .height(5)
                       .borderRadius(3)
                       .backgroundColor($r('app.color.badge_green'))
+                      .alignItems(VerticalAlign.Start)
                   }
                   .width('100%')
                   .height(5)
                   .backgroundColor($r('app.color.card_bg_secondary'))
                   .borderRadius(3)
                   .margin({ top: 8 })
+                  .alignItems(HorizontalAlign.Start)
 
                   Text('覆盖率 ' + this.summary.coverage_pct + '%')
                     .fontSize(11)
