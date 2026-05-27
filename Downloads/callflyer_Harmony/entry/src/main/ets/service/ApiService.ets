@@ -1024,10 +1024,30 @@ export interface CertifiedUser {
   isNew: boolean;
 }
 
+export interface TagCounts {
+  all: number;
+  pilot: number;
+  employer: number;
+  company: number;
+  position: number;
+  drone_model: number;
+  caac: number;
+  utc: number;
+  business_植保: number;
+  business_飞防: number;
+  business_吊运: number;
+  business_巡检: number;
+  business_测绘: number;
+  business_教学: number;
+  business_应急: number;
+  liked_by_me: number;
+}
+
 export interface CertifiedProfilesResult {
   items: CertifiedUser[];
   count: number;
   hasMore: boolean;
+  tag_counts?: TagCounts;
 }
 
 export interface CertifiedProfilesParams {

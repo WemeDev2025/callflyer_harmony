@@ -19,6 +19,7 @@ interface UserContact {
 interface RoleOption {
   label: string;
   value: string;
+  count?: number;
 }
 
 // 分享引导弹窗（定义在文件级别，避免 ArkTS strict mode 下 this 引用问题）
@@ -70,6 +71,7 @@ struct CertifiedUsers {
   @State count: number = 0;
   @State searchText: string = '';
   @State currentRole: string = 'all';
+  @State tagCounts: Record<string, number> = {};
 
   // 分享引导弹窗
   @State shareGuideImagePath: string = 'https://wetofly.com/data/image/pic_comeon.webp';
@@ -79,7 +81,7 @@ struct CertifiedUsers {
   private skip: number = 0;
   private isLoading: boolean = false;
 
-  private roleOptions: RoleOption[] = [
+  @State roleOptions: RoleOption[] = [
     { label: '全部', value: 'all' },
     { label: '我赞过', value: 'liked_by_me' },
     { label: '飞手', value: 'pilot' },
@@ -182,6 +184,12 @@ struct CertifiedUsers {
       this.count = result.count || 0;
       this.skip = result.items?.length || 0;
       this.hasMore = this.skip < this.count;
+      // 更新标签计数
+      if (result.tag_counts) {
+        this.tagCounts = result.tag_counts;
+        // 更新 roleOptions 中的计数
+        this.updateRoleOptionsCounts();
+      }
     } catch (err) {
       console.error('【加载认证用户失败】', JSON.stringify(err));
       promptAction.showToast({ message: '加载失败' });
@@ -189,6 +197,28 @@ struct CertifiedUsers {
 
     this.loading = false;
     this.isLoading = false;
+  }
+
+  updateRoleOptionsCounts() {
+    const counts = this.tagCounts;
+    this.roleOptions = [
+      { label: '全部', value: 'all', count: counts['all'] || 0 },
+      { label: '我赞过', value: 'liked_by_me', count: counts['liked_by_me'] || 0 },
+      { label: '飞手', value: 'pilot', count: counts['pilot'] || 0 },
+      { label: '雇主', value: 'employer', count: counts['employer'] || 0 },
+      { label: '植保', value: '植保', count: counts['business_植保'] || 0 },
+      { label: '飞防', value: '飞防', count: counts['business_飞防'] || 0 },
+      { label: '吊运', value: '吊运', count: counts['business_吊运'] || 0 },
+      { label: '公司', value: '公司', count: counts['company'] || 0 },
+      { label: '职位', value: '职位', count: counts['position'] || 0 },
+      { label: '机型', value: '机型', count: counts['drone_model'] || 0 },
+      { label: 'CAAC', value: 'CAAC', count: counts['caac'] || 0 },
+      { label: 'UTC', value: 'UTC', count: counts['utc'] || 0 },
+      { label: '巡检', value: '巡检', count: counts['business_巡检'] || 0 },
+      { label: '测绘', value: '测绘', count: counts['business_测绘'] || 0 },
+      { label: '教学', value: '教学', count: counts['business_教学'] || 0 },
+      { label: '应急', value: '应急', count: counts['business_应急'] || 0 },
+    ];
   }
 
   onSearch(value: string) {
@@ -374,7 +404,7 @@ struct CertifiedUsers {
             Scroll() {
               Row() {
                 ForEach(this.roleOptions, (option: RoleOption) => {
-                  Text(option.label)
+                  Text(option.label + (option.count !== undefined ? '(' + option.count + ')' : ''))
                     .fontSize(13)
                     .fontColor(this.currentRole === option.value ? '#FFFFFF' : $r('app.color.text_title'))
                     .fontWeight(FontWeight.Medium)
