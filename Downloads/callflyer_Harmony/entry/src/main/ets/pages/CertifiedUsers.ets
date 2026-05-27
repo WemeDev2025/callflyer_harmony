@@ -497,9 +497,22 @@ struct CertifiedUsers {
     PilotCard({
       user: user,
       showActions: true,
-      onWechatClick: () => {
-        console.info('### Builder PilotCardItem wechat click, user:', user.openid, 'wechatId:', user.wechatId);
-        const wechatId = user.wechatId || '';
+      onWechatClick: async () => {
+        console.info('### Builder PilotCardItem wechat click, user:', user.openid);
+        let wechatId = user.wechatId || '';
+        let phone = user.phone || '';
+        // 如果本地没有wechatId，尝试获取
+        if (!wechatId || !phone) {
+          try {
+            const token = AuthService.getAuthToken();
+            const contact = await fetchPilotContact(user.openid, token);
+            wechatId = wechatId || contact.wechatId || '';
+            phone = phone || contact.phone || '';
+          } catch (e) {
+            console.info('### 获取联系方式失败:', JSON.stringify(e));
+          }
+        }
+        console.info('### wechatId:', wechatId, 'phone:', phone);
         if (wechatId) {
           try {
             const pasteData = pasteboard.createData('text/plain', wechatId);
@@ -513,9 +526,20 @@ struct CertifiedUsers {
           promptAction.showToast({ message: '暂无微信号' });
         }
       },
-      onCallClick: () => {
-        console.info('### Builder PilotCardItem call click, user:', user.openid, 'phone:', user.phone);
-        const phone = user.phone || '';
+      onCallClick: async () => {
+        console.info('### Builder PilotCardItem call click, user:', user.openid);
+        let phone = user.phone || '';
+        // 如果本地没有phone，尝试获取
+        if (!phone) {
+          try {
+            const token = AuthService.getAuthToken();
+            const contact = await fetchPilotContact(user.openid, token);
+            phone = phone || contact.phone || '';
+          } catch (e) {
+            console.info('### 获取联系方式失败:', JSON.stringify(e));
+          }
+        }
+        console.info('### phone:', phone);
         if (phone) {
           try {
             call.makeCall(phone);
