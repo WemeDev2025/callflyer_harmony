@@ -1,7 +1,7 @@
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
-import { fetchCertifiedProfiles, fetchPilotContact, likeProfile, unlikeProfile, CertifiedUser, CertifiedProfilesParams } from '../service/ApiService';
+import { fetchCertifiedProfiles, fetchPilotContact, likeProfile, unlikeProfile, CertifiedUser, CertifiedProfilesParams, TagCounts } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
 import systemShare from '@hms.collaboration.systemShare';
@@ -71,7 +71,24 @@ struct CertifiedUsers {
   @State count: number = 0;
   @State searchText: string = '';
   @State currentRole: string = 'all';
-  @State tagCounts: Record<string, number> = {};
+  @State tagCounts: TagCounts = {
+    all: 0,
+    pilot: 0,
+    employer: 0,
+    company: 0,
+    position: 0,
+    drone_model: 0,
+    caac: 0,
+    utc: 0,
+    business_植保: 0,
+    business_飞防: 0,
+    business_吊运: 0,
+    business_巡检: 0,
+    business_测绘: 0,
+    business_教学: 0,
+    business_应急: 0,
+    liked_by_me: 0
+  };
 
   // 分享引导弹窗
   @State shareGuideImagePath: string = 'https://wetofly.com/data/image/pic_comeon.webp';
