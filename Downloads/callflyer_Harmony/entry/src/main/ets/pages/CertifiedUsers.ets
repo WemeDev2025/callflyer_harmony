@@ -451,13 +451,33 @@ struct CertifiedUsers {
               PilotCard({
                 user: user,
                 showActions: true,
-                onWechatClick: (openid: string) => {
-                  console.info('>>> Arrow function called with openid:', openid);
-                  console.info('>>> this is:', this ? 'defined' : 'undefined');
-                  this.onCopyWechatByOpenid(openid);
+                onWechatClick: (_openid: string) => {
+                  const wechatId = user.wechatId || '';
+                  console.info('【微信】user wechatId:', wechatId);
+                  if (wechatId) {
+                    try {
+                      const pasteData = pasteboard.createData('text/plain', wechatId);
+                      const systemPasteboard = pasteboard.getSystemPasteboard();
+                      systemPasteboard.setData(pasteData);
+                      promptAction.showToast({ message: '微信号已复制' });
+                    } catch (err) {
+                      promptAction.showToast({ message: '微信号: ' + wechatId });
+                    }
+                  } else {
+                    promptAction.showToast({ message: '暂无微信号' });
+                  }
                 },
                 onCallClick: (openid: string) => {
-                  this.onCallPhoneByOpenid(openid);
+                  const phone = user.phone || '';
+                  if (phone) {
+                    try {
+                      call.makeCall(phone);
+                    } catch (err) {
+                      promptAction.showToast({ message: '拨打 ' + phone });
+                    }
+                  } else {
+                    promptAction.showToast({ message: '暂无电话号码' });
+                  }
                 },
               })
             }
