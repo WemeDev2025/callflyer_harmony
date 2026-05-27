@@ -5,6 +5,7 @@ import vibrator from '@ohos.vibrator';
 import { imagePreview } from './imagepreview/ImagePreview';
 import { likeProfile, unlikeProfile } from '../service/ApiService';
 import AuthService from '../service/AuthService';
+import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 
@@ -33,6 +34,9 @@ export class PilotCardData {
 
 @Component
 export struct PilotCard {
+  // 颜色模式监听（跟随系统深浅色）
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+
   // 用户数据
   user: PilotCardData = {
     openid: '',
@@ -127,7 +131,7 @@ export struct PilotCard {
           .width(45)
           .height(45)
           .borderRadius(22.5)
-          .backgroundColor('#dfe4ec')
+          .backgroundColor($r('app.color.avatar_placeholder'))
           .onClick(() => {
             imagePreview.show([this.user.avatar || DEFAULT_AVATAR], {
               showIndex: false
@@ -138,7 +142,7 @@ export struct PilotCard {
           Text(this.user.nickname)
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#14233a')
+            .fontColor($r('app.color.text_title'))
             .fontFamily('DouyinSansBold')
             .margin({ top: 4 })
             .maxLines(1)
@@ -152,21 +156,21 @@ export struct PilotCard {
                 .objectFit(ImageFit.Contain)
               Text(this.user.pilotCode)
                 .fontSize(12)
-                .fontColor('#6f7c90')
+                .fontColor($r('app.color.text_body'))
                 .margin({ left: 4 })
             }
             .margin({ top: 4 })
           } else if (this.user.company) {
             Text(this.user.company + (this.user.position ? ' ' + this.user.position : ''))
               .fontSize(12)
-              .fontColor('#6f7c90')
+              .fontColor($r('app.color.text_body'))
               .margin({ top: 4 })
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
           } else if (this.user.roleLabel) {
             Text(this.user.roleLabel)
               .fontSize(12)
-              .fontColor('#6f7c90')
+              .fontColor($r('app.color.text_body'))
               .margin({ top: 4 })
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -186,7 +190,7 @@ export struct PilotCard {
             .height(28)
           Text(String(this.internalLikeCount))
             .fontSize(12)
-            .fontColor('#1a1a1a')
+            .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Bold)
             .margin({ top: 2 })
             .visibility(this.internalLikeCount > 0 ? Visibility.Visible : Visibility.None)
@@ -199,7 +203,7 @@ export struct PilotCard {
       .alignItems(VerticalAlign.Center)
 
       Divider()
-        .color('rgba(99, 105, 117, 0.15)')
+        .color($r('app.color.divider'))
         .margin({ top: 12, bottom: 12 })
 
       // 最近活跃
@@ -207,11 +211,11 @@ export struct PilotCard {
         Row() {
           Text('最近活跃')
             .fontSize(14)
-            .fontColor('#455066')
+            .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Text(this.user.recentActiveText || '--')
             .fontSize(14)
-            .fontColor('#1f2a3a')
+            .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Medium)
         }
         .width('100%')
@@ -223,21 +227,21 @@ export struct PilotCard {
       Row() {
         Text('认证状态')
           .fontSize(14)
-          .fontColor('#455066')
+          .fontColor($r('app.color.text_label'))
           .fontWeight(FontWeight.Medium)
         Row() {
           if (this.user.licenseType) {
             Text(this.user.licenseType.toUpperCase())
               .fontSize(10)
               .fontColor('#FFFFFF')
-              .backgroundColor(this.user.licenseType.toLowerCase() === 'utc' ? '#007DFF' : '#07C160')
+              .backgroundColor(this.user.licenseType.toLowerCase() === 'utc' ? $r('app.color.primary_color') : $r('app.color.accent_green'))
               .borderRadius(3)
               .padding({ left: 6, right: 6, top: 2, bottom: 2 })
               .margin({ right: 12 })
           }
           Text(this.user.licenseStatus)
             .fontSize(14)
-            .fontColor('#1f2a3a')
+            .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Medium)
         }
       }
@@ -250,11 +254,11 @@ export struct PilotCard {
         Row() {
           Text('所在城市')
             .fontSize(14)
-            .fontColor('#455066')
+            .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Text(this.user.city)
             .fontSize(14)
-            .fontColor('#1f2a3a')
+            .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Medium)
         }
         .width('100%')
@@ -267,11 +271,11 @@ export struct PilotCard {
         Row() {
           Text('主营业务')
             .fontSize(14)
-            .fontColor('#455066')
+            .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Text(this.user.businessScopeText)
             .fontSize(14)
-            .fontColor('#1f2a3a')
+            .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Medium)
         }
         .width('100%')
@@ -284,11 +288,11 @@ export struct PilotCard {
         Row() {
           Text('常用机型')
             .fontSize(14)
-            .fontColor('#455066')
+            .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Text(this.user.droneModel)
             .fontSize(14)
-            .fontColor('#1f2a3a')
+            .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Medium)
         }
         .width('100%')
@@ -333,7 +337,7 @@ export struct PilotCard {
       // 底部操作区域
       if (this.showActions || this.showDistance) {
         Divider()
-          .color('rgba(99, 105, 117, 0.15)')
+          .color($r('app.color.divider'))
           .margin({ top: 12 })
 
         Row() {
@@ -342,7 +346,7 @@ export struct PilotCard {
               Text(this.user.distanceText)
                 .fontSize(12)
                 .fontColor('#FFFFFF')
-                .backgroundColor('#07C160')
+                .backgroundColor($r('app.color.badge_green'))
                 .borderRadius(3)
                 .padding({ left: 8, right: 8, top: 4, bottom: 4 })
             }
@@ -368,7 +372,7 @@ export struct PilotCard {
             }
           }
           .width('100%')
-          .backgroundColor('#f7f7f7')
+          .backgroundColor($r('app.color.card_bg_secondary'))
           .borderRadius(11)
           .padding({ left: 16, right: 16, top: 11, bottom: 11 })
           .alignItems(VerticalAlign.Center)
@@ -379,7 +383,7 @@ export struct PilotCard {
     }
     .width('100%')
     .padding(24)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.card_bg'))
     .borderRadius(14)
     .margin({ bottom: 12 })
   }

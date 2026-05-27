@@ -20,6 +20,7 @@ import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import fileIo from '@ohos.file.fs';
 import fileUri from '@ohos.file.fileuri';
 import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
+import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
 // 防抖标记：确保每次启动只上报一次访问
 let visitReported = false;
@@ -95,6 +96,13 @@ struct StandbyPilotCardDialog {
 @Entry
 @Component
 struct Index {
+  // 颜色模式监听（跟随系统深浅色）
+  @StorageLink('colorMode') @Watch('onColorModeChange') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+
+  // 跑马灯渐变色（跟随深浅色模式）
+  @State marqueeGradientStart: string = '#E7F8FC';
+  @State marqueeGradientEnd: string = 'rgba(231,248,252,0)';
+
   // 滚动控制器
   scroller: Scroller = new Scroller();
 
@@ -143,6 +151,8 @@ struct Index {
   @State statusBarHeight: number = 0;
 
   aboutToAppear() {
+    // 初始化渐变颜色
+    this.updateMarqueeGradient();
     this.loadBanner();
     this.loadConfig();
     // 先等待登录完成再上报访问（每次启动只上报一次）
@@ -159,21 +169,34 @@ struct Index {
       this.loadStandby();
     });
 
-    // 获取状态栏高度
+    // 获取状态栏高度并设置状态栏颜色（跟随深浅色模式）
     try {
       window.getLastWindow(getContext(this)).then((win) => {
         const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
         this.statusBarHeight = px2vp(avoidArea.topRect.height);
         console.info('状态栏高度:', this.statusBarHeight, 'vp');
-        // 状态栏透明 + 黑色文字
+        // 状态栏透明 + 文字颜色跟随深浅色模式
+        const isDarkMode = this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
         win.setWindowSystemBarProperties({
           statusBarColor: '#00000000',
-          statusBarContentColor: '#14233a'
+          statusBarContentColor: isDarkMode ? '#FFFFFF' : '#14233a'
         });
       });
     } catch (e) {
       console.info('获取状态栏高度失败', JSON.stringify(e));
     }
+  }
+
+  // 更新跑马灯渐变色（跟随深浅色模式）
+  private updateMarqueeGradient(): void {
+    const isDarkMode = this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
+    this.marqueeGradientStart = isDarkMode ? '#121212' : '#E7F8FC';
+    this.marqueeGradientEnd = isDarkMode ? 'rgba(18,18,18,0)' : 'rgba(231,248,252,0)';
+  }
+
+  // 颜色模式变化回调
+  private onColorModeChange(): void {
+    this.updateMarqueeGradient();
   }
 
   async checkLoginStatus() {
@@ -630,12 +653,12 @@ struct Index {
         Column() {
           Text(param.title)
             .fontSize(16)
-            .fontColor('#14233a')
+            .fontColor($r('app.color.text_title'))
             .fontWeight(FontWeight.Medium)
             .fontFamily('DouyinSansBold')
           Text(param.subtitle)
             .fontSize(12)
-            .fontColor('#6f7c90')
+            .fontColor($r('app.color.text_body'))
             .fontFamily('DouyinSansBold')
             .margin({ top: 2 })
         }
@@ -644,7 +667,7 @@ struct Index {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor('#FFFFFF')
+      .backgroundColor($r('app.color.card_bg'))
       .borderRadius(14)
       .justifyContent(FlexAlign.Center)
       .alignItems(VerticalAlign.Center)
@@ -669,7 +692,7 @@ struct Index {
         Text('呼叫飞手')
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#14233a')
+          .fontColor($r('app.color.text_title'))
       }
       .width('100%')
       .justifyContent(FlexAlign.Center)
@@ -696,7 +719,7 @@ struct Index {
         Text('今日有空')
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#14233a')
+          .fontColor($r('app.color.text_title'))
           .fontFamily('DouyinSansBold')
       }
       .width('100%')
@@ -716,19 +739,19 @@ struct Index {
                     .width(32)
                     .height(32)
                     .borderRadius(18)
-                    .backgroundColor('#dfe4ec')
+                    .backgroundColor($r('app.color.avatar_placeholder'))
 
                   Column() {
                     Text(item.profile.nickname)
                       .fontSize(14)
                       .fontWeight(700)
-                      .fontColor('#1d2b3a')
+                      .fontColor($r('app.color.text_primary'))
                       .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
                     if (item.profile.city) {
                       Text(item.profile.city)
                         .fontSize(12)
-                        .fontColor('#8a96a8')
+                        .fontColor($r('app.color.text_caption'))
                         .maxLines(1)
                         .textOverflow({ overflow: TextOverflow.Ellipsis })
                     }
@@ -749,7 +772,7 @@ struct Index {
                       .objectFit(ImageFit.Contain)
                     Text(item.likeCount > 0 ? String(item.likeCount) : '')
                       .fontSize(10)
-                      .fontColor('#b0b8c8')
+                      .fontColor($r('app.color.text_caption'))
                       .fontWeight(600)
                       .margin({ left: 3 })
                   }
@@ -758,7 +781,7 @@ struct Index {
 
                   Text(item.viewCount > 0 ? '浏览 ' + item.viewCount + ' 次' : '暂无查看')
                     .fontSize(10)
-                    .fontColor('#b0b8c8')
+                    .fontColor($r('app.color.text_caption'))
                     .fontWeight(500)
                 }
                 .width('100%')
@@ -770,7 +793,7 @@ struct Index {
               .justifyContent(FlexAlign.Center)
               .margin({ right: 11 })
               .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-              .backgroundColor('rgba(33, 98, 226, 0.04)')
+              .backgroundColor($r('app.color.card_bg_secondary'))
               .borderRadius(9)
               .onClick(() => this.onStandbyCardTap(item))
             }
@@ -785,7 +808,7 @@ struct Index {
       }
       .width('90%')
       .padding({ top: 8, bottom: 8 })
-      .backgroundColor('#FFFFFF')
+      .backgroundColor($r('app.color.card_bg'))
       .borderRadius(9)
     }
     .width('100%')
@@ -828,11 +851,11 @@ struct Index {
     Row() {
       Text(label)
         .fontSize(14)
-        .fontColor('#455066')
+        .fontColor($r('app.color.text_label'))
         .fontWeight(FontWeight.Medium)
       Text(value)
         .fontSize(14)
-        .fontColor('#1f2a3a')
+        .fontColor($r('app.color.text_primary'))
         .fontWeight(FontWeight.Medium)
         .textAlign(TextAlign.End)
     }
@@ -846,7 +869,7 @@ struct Index {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('#E7F8FC')
+        .backgroundColor($r('app.color.page_bg'))
         .expandSafeArea([SafeAreaType.SYSTEM])
         .clip(false)
 
@@ -872,7 +895,7 @@ struct Index {
                   loop: -1
                 })
                 .fontSize(18)
-                .fontColor('#14233a')
+                .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
                 .fontWeight(FontWeight.Medium)
                 .width('100%')
               }
@@ -887,7 +910,7 @@ struct Index {
                 .height('100%')
                 .linearGradient({
                   direction: GradientDirection.Right,
-                  colors: [[ '#E7F8FC', 0 ], ['rgba(231,248,252,0)', 1]]
+                  colors: [[ this.marqueeGradientStart, 0 ], [this.marqueeGradientEnd, 1]]
                 })
                 .position({ left: 18 })
                 .borderRadius({ topLeft: 12, bottomLeft: 12 })
@@ -898,7 +921,7 @@ struct Index {
                 .height('100%')
                 .linearGradient({
                   direction: GradientDirection.Left,
-                  colors: [[ '#E7F8FC', 0 ], ['rgba(231,248,252,0)', 1]]
+                  colors: [[ this.marqueeGradientStart, 0 ], [this.marqueeGradientEnd, 1]]
                 })
                 .position({ right: 18 })
                 .borderRadius({ topRight: 12, bottomRight: 12 })
@@ -959,7 +982,7 @@ struct Index {
               Text('常用功能')
                 .fontSize(17)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#14233a')
+                .fontColor($r('app.color.text_title'))
                 .fontFamily('DouyinSansBold')
             }
             .width('100%')
@@ -1019,7 +1042,7 @@ struct Index {
                 Text('附近飞手')
                   .fontSize(17)
                   .fontWeight(this.currentTab === 'pilots' ? FontWeight.Bold : FontWeight.Medium)
-                  .fontColor(this.currentTab === 'pilots' ? '#14233a' : '#999999')
+                  .fontColor(this.currentTab === 'pilots' ? $r('app.color.text_title') : $r('app.color.text_secondary'))
                   .fontFamily('DouyinSansBold')
               }
               .height(44)
@@ -1030,7 +1053,7 @@ struct Index {
                 Text('最新任务')
                   .fontSize(17)
                   .fontWeight(this.currentTab === 'orders' ? FontWeight.Bold : FontWeight.Medium)
-                  .fontColor(this.currentTab === 'orders' ? '#14233a' : '#999999')
+                  .fontColor(this.currentTab === 'orders' ? $r('app.color.text_title') : $r('app.color.text_secondary'))
                   .fontFamily('DouyinSansBold')
               }
               .height(44)
@@ -1086,8 +1109,8 @@ struct Index {
         }
       })
       .systemBarStyle(
-        { statusBarContentColor: '#E5020202' },
-        { statusBarContentColor: '#E5020202' }
+        { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' },
+        { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' }
       )
       .titleMode(HdsNavigationTitleMode.MINI)
       .bindToScrollable([this.scroller])
@@ -1127,7 +1150,7 @@ struct Index {
                   .width(56)
                   .height(56)
                   .borderRadius(28)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Column() {
@@ -1135,7 +1158,7 @@ struct Index {
                     .width(120)
                     .height(18)
                     .borderRadius(4)
-                    .backgroundColor('#E8E8E8')
+                    .backgroundColor($r('app.color.skeleton_bg'))
                     .margin({ top: 4 })
                     .opacity(this.skeletonShimmer ? 1 : 0.4)
                     .animation({ duration: 300 })
@@ -1143,7 +1166,7 @@ struct Index {
                     .width(80)
                     .height(12)
                     .borderRadius(4)
-                    .backgroundColor('#E8E8E8')
+                    .backgroundColor($r('app.color.skeleton_bg'))
                     .margin({ top: 8 })
                     .opacity(this.skeletonShimmer ? 1 : 0.4)
                     .animation({ duration: 300 })
@@ -1154,7 +1177,7 @@ struct Index {
               .alignItems(VerticalAlign.Center)
 
               Divider()
-                .color('rgba(99, 105, 117, 0.15)')
+                .color($r('app.color.divider'))
                 .margin({ top: 12, bottom: 12 })
 
               // 信息行占位
@@ -1163,14 +1186,14 @@ struct Index {
                   .width(80)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Row()
                   .width(60)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
               }
@@ -1183,14 +1206,14 @@ struct Index {
                   .width(100)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Row()
                   .width(50)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
               }
@@ -1203,14 +1226,14 @@ struct Index {
                   .width(70)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Row()
                   .width(90)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
               }
@@ -1224,7 +1247,7 @@ struct Index {
                   .width(50)
                   .height(26)
                   .borderRadius(3)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Blank()
@@ -1232,7 +1255,7 @@ struct Index {
                   .width(44)
                   .height(44)
                   .borderRadius(22)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .margin({ left: 16 })
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
@@ -1240,7 +1263,7 @@ struct Index {
                   .width(44)
                   .height(44)
                   .borderRadius(22)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .margin({ left: 16 })
                   .opacity(this.skeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
@@ -1251,7 +1274,7 @@ struct Index {
             }
             .width('100%')
             .padding(24)
-            .backgroundColor('#FFFFFF')
+            .backgroundColor($r('app.color.card_bg'))
             .borderRadius(14)
             .margin({ bottom: 12 })
           }
@@ -1261,7 +1284,7 @@ struct Index {
     } else if (this.pilots.length === 0) {
       Column() {
         Text('暂无附近飞手')
-          .fontColor('#999999')
+          .fontColor($r('app.color.text_secondary'))
           .fontSize(14)
       }
       .width('100%')
@@ -1318,7 +1341,7 @@ struct Index {
                   .width(56)
                   .height(56)
                   .borderRadius(28)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Column() {
@@ -1326,7 +1349,7 @@ struct Index {
                     .width(100)
                     .height(18)
                     .borderRadius(4)
-                    .backgroundColor('#E8E8E8')
+                    .backgroundColor($r('app.color.skeleton_bg'))
                     .margin({ top: 4 })
                     .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                     .animation({ duration: 300 })
@@ -1334,7 +1357,7 @@ struct Index {
                     .width(120)
                     .height(12)
                     .borderRadius(4)
-                    .backgroundColor('#E8E8E8')
+                    .backgroundColor($r('app.color.skeleton_bg'))
                     .margin({ top: 8 })
                     .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                     .animation({ duration: 300 })
@@ -1345,7 +1368,7 @@ struct Index {
               .alignItems(VerticalAlign.Center)
 
               Divider()
-                .color('rgba(99, 105, 117, 0.15)')
+                .color($r('app.color.divider'))
                 .margin({ top: 12, bottom: 12 })
 
               // 信息行占位
@@ -1354,14 +1377,14 @@ struct Index {
                   .width(80)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Row()
                   .width(60)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
               }
@@ -1373,14 +1396,14 @@ struct Index {
                   .width(100)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Row()
                   .width(70)
                   .height(15)
                   .borderRadius(4)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
               }
@@ -1394,14 +1417,14 @@ struct Index {
                   .width(44)
                   .height(44)
                   .borderRadius(22)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
                 Row()
                   .width(44)
                   .height(44)
                   .borderRadius(22)
-                  .backgroundColor('#E8E8E8')
+                  .backgroundColor($r('app.color.skeleton_bg'))
                   .margin({ left: 16 })
                   .opacity(this.ordersSkeletonShimmer ? 1 : 0.4)
                   .animation({ duration: 300 })
@@ -1412,7 +1435,7 @@ struct Index {
             }
             .width('100%')
             .padding(24)
-            .backgroundColor('#FFFFFF')
+            .backgroundColor($r('app.color.card_bg'))
             .borderRadius(14)
             .margin({ bottom: 12 })
           }
@@ -1422,7 +1445,7 @@ struct Index {
     } else if (this.orders.length === 0) {
       Column() {
         Text('暂无任务')
-          .fontColor('#999999')
+          .fontColor($r('app.color.text_secondary'))
           .fontSize(14)
       }
       .width('100%')
@@ -1438,13 +1461,13 @@ struct Index {
                   .width(45)
                   .height(45)
                   .borderRadius(22.5)
-                  .backgroundColor('#dfe4ec')
+                  .backgroundColor($r('app.color.avatar_placeholder'))
 
                 Column() {
                   Text(order.profile.nickname || '匿名')
                     .fontSize(15)
                     .fontWeight(FontWeight.Bold)
-                    .fontColor('#14233a')
+                    .fontColor($r('app.color.text_title'))
                     .fontFamily('DouyinSansBold')
                     .margin({ top: 4 })
                     .maxLines(1)
@@ -1452,14 +1475,14 @@ struct Index {
                   if (order.profile.company || order.profile.position) {
                     Text((order.profile.company || '') + (order.profile.company && order.profile.position ? '｜' : '') + (order.profile.position || ''))
                       .fontSize(12)
-                      .fontColor('#6f7c90')
+                      .fontColor($r('app.color.text_body'))
                       .margin({ top: 4 })
                       .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
                   } else {
                     Text('雇主')
                       .fontSize(12)
-                      .fontColor('#6f7c90')
+                      .fontColor($r('app.color.text_body'))
                       .margin({ top: 4 })
                   }
                 }
@@ -1474,7 +1497,7 @@ struct Index {
 
               // 分隔线
               Divider()
-                .color('rgba(99, 105, 117, 0.15)')
+                .color($r('app.color.divider'))
                 .margin({ top: 12, bottom: 12 })
 
               // 所在城市
@@ -1482,11 +1505,11 @@ struct Index {
                 Row() {
                   Text('所在城市')
                     .fontSize(15)
-                    .fontColor('#455066')
+                    .fontColor($r('app.color.text_label'))
                     .fontWeight(FontWeight.Medium)
                   Text(order.city)
                     .fontSize(15)
-                    .fontColor('#1f2a3a')
+                    .fontColor($r('app.color.text_primary'))
                     .fontWeight(FontWeight.Medium)
                 }
                 .width('100%')
@@ -1497,11 +1520,11 @@ struct Index {
               Row() {
                 Text('任务类型')
                   .fontSize(15)
-                  .fontColor('#455066')
+                  .fontColor($r('app.color.text_label'))
                   .fontWeight(FontWeight.Medium)
                 Text(order.taskCategory)
                   .fontSize(15)
-                  .fontColor('#1f2a3a')
+                  .fontColor($r('app.color.text_primary'))
                   .fontWeight(FontWeight.Medium)
               }
               .width('100%')
@@ -1513,11 +1536,11 @@ struct Index {
                 Row() {
                   Text('任务预算')
                     .fontSize(15)
-                    .fontColor('#455066')
+                    .fontColor($r('app.color.text_label'))
                     .fontWeight(FontWeight.Medium)
                   Text(order.price)
                     .fontSize(15)
-                    .fontColor('#FF6F4D')
+                    .fontColor($r('app.color.accent_orange'))
                     .fontWeight(FontWeight.Bold)
                 }
                 .width('100%')
@@ -1532,11 +1555,11 @@ struct Index {
                   Row() {
                     Text('飞行距离')
                       .fontSize(15)
-                      .fontColor('#455066')
+                      .fontColor($r('app.color.text_label'))
                       .fontWeight(FontWeight.Medium)
                     Text(order.distanceText)
                       .fontSize(15)
-                      .fontColor('#1f2a3a')
+                      .fontColor($r('app.color.text_primary'))
                       .fontWeight(FontWeight.Medium)
                   }
                   .width('100%')
@@ -1549,11 +1572,11 @@ struct Index {
                   Row() {
                     Text('垂直落差')
                       .fontSize(15)
-                      .fontColor('#455066')
+                      .fontColor($r('app.color.text_label'))
                       .fontWeight(FontWeight.Medium)
                     Text(order.verticalDropLabel)
                       .fontSize(15)
-                      .fontColor('#1f2a3a')
+                      .fontColor($r('app.color.text_primary'))
                       .fontWeight(FontWeight.Medium)
                   }
                   .width('100%')
@@ -1566,11 +1589,11 @@ struct Index {
                   Row() {
                     Text('单次载重')
                       .fontSize(15)
-                      .fontColor('#455066')
+                      .fontColor($r('app.color.text_label'))
                       .fontWeight(FontWeight.Medium)
                     Text(order.payloadLabel)
                       .fontSize(15)
-                      .fontColor('#1f2a3a')
+                      .fontColor($r('app.color.text_primary'))
                       .fontWeight(FontWeight.Medium)
                   }
                   .width('100%')
@@ -1583,11 +1606,11 @@ struct Index {
                   Row() {
                     Text('订单总量')
                       .fontSize(15)
-                      .fontColor('#455066')
+                      .fontColor($r('app.color.text_label'))
                       .fontWeight(FontWeight.Medium)
                     Text(order.totalOrders.toString() + 'kg')
                       .fontSize(15)
-                      .fontColor('#1f2a3a')
+                      .fontColor($r('app.color.text_primary'))
                       .fontWeight(FontWeight.Medium)
                   }
                   .width('100%')
@@ -1599,7 +1622,7 @@ struct Index {
                 if (order.notes) {
                   Text(order.notes)
                     .fontSize(15)
-                    .fontColor('#1f2a3a')
+                    .fontColor($r('app.color.text_primary'))
                     .fontWeight(FontWeight.Medium)
                     .width('100%')
                     .textAlign(TextAlign.Start)
@@ -1611,17 +1634,17 @@ struct Index {
                   Row() {
                     Text('评价')
                       .fontSize(15)
-                      .fontColor('#455066')
+                      .fontColor($r('app.color.text_label'))
                       .fontWeight(FontWeight.Medium)
                     Row() {
                       Text(order.rating.score.toFixed(1))
                         .fontSize(15)
-                        .fontColor('#FFB800')
+                        .fontColor($r('app.color.accent_gold'))
                         .fontWeight(FontWeight.Medium)
                       if (order.rating.comment) {
                         Text(' · ' + order.rating.comment)
                           .fontSize(15)
-                          .fontColor('#6f7c90')
+                          .fontColor($r('app.color.text_body'))
                       }
                     }
                   }
@@ -1636,7 +1659,7 @@ struct Index {
                 Blank()
                 Text(this.isOrderExpanded(order.orderId) ? '收起' : '展开')
                   .fontSize(14)
-                  .fontColor('#6f7c90')
+                  .fontColor($r('app.color.text_body'))
                   .fontWeight(FontWeight.Medium)
                   .onClick(() => {
                     this.toggleOrderExpand(order.orderId);
@@ -1647,7 +1670,7 @@ struct Index {
 
               // 分隔线
               Divider()
-                .color('rgba(99, 105, 117, 0.15)')
+                .color($r('app.color.divider'))
                 .margin({ top: 12 })
 
               // 联系图标行
@@ -1679,7 +1702,7 @@ struct Index {
             }
             .width('100%')
             .padding(24)
-            .backgroundColor('#FFFFFF')
+            .backgroundColor($r('app.color.card_bg'))
             .borderRadius(14)
             .margin({ bottom: 12 })
           }

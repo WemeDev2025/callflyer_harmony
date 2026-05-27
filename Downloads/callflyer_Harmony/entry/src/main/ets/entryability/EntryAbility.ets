@@ -20,7 +20,18 @@ export default class EntryAbility extends UIAbility {
   onConfigurationUpdate(newConfig: Configuration) {
     hilog.info(DOMAIN, TAG, 'onConfigurationUpdate colorMode: %{public}s', JSON.stringify(newConfig.colorMode));
     // 同步最新颜色模式到 AppStorage，供页面监听
-    AppStorage.setOrCreate('colorMode', newConfig.colorMode ?? ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
+    const colorMode = newConfig.colorMode ?? ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+    AppStorage.setOrCreate('colorMode', colorMode);
+
+    // 更新窗口背景色和状态栏（跟随深浅色模式切换）
+    window.getLastWindow(this.context).then((win: window.Window) => {
+      const bgColor = colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC';
+      win.setWindowBackgroundColor(bgColor);
+      win.setWindowSystemBarProperties({
+        statusBarColor: '#00000000',
+        statusBarContentColor: colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
+      });
+    });
   }
 
   onDestroy() {

@@ -19,6 +19,10 @@
         "label": "$string:EntryAbility_label",
         "startWindowIcon": "$media:icon_startwindow",
         "startWindowBackground": "$color:start_window_background",
+        "metadata": [{
+          "name": "configColorModeChangePerformanceInArkUI",
+          "value": "true"
+        }],
         "exported": true,
         "skills": [
           {
