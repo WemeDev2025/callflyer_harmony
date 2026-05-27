@@ -448,8 +448,8 @@ struct CertifiedUsers {
               PilotCard({
                 user: user,
                 showActions: true,
-                onWechatClick: (openid: string): void => { this.onCopyWechatByOpenid(openid); },
-                onCallClick: (openid: string): void => { this.onCallPhoneByOpenid(openid); },
+                onWechatClick: this.onCopyWechatByOpenid.bind(this),
+                onCallClick: this.onCallPhoneByOpenid.bind(this),
               })
             }
             .padding({ left: 18, right: 18 })
