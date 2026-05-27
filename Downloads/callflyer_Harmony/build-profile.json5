@@ -6,12 +6,12 @@
         "type": "HarmonyOS",
         "material": {
           "storeFile": "/Users/zhaojing/Downloads/callflyerDebug.p12",
-          "storePassword": "000000186A2D7C212022BF34F78D3B4B58BAEBCCE5150A1F1AA3A3B896518C81B8767F8AD3C183A9",
+          "storePassword": "00000018AB99103E3364F11D097009686DE37CD6B075263F8EDBE6D566FEDC155C3E45CC46940220",
           "keyAlias": "callflyerDebug",
-          "keyPassword": "00000018C5AD11E1749B5EF21590610D2569999B74F32D91297A73D6A5129F3D1CF1AEC337C868DF",
+          "keyPassword": "000000180F385981179A95D7C5B2D93E1DE0451667381FD60E815AC705BB9D287C51D63DE89EC692",
           "signAlg": "SHA256withECDSA",
-          "profile": "/Users/zhaojing/Downloads/callflyerDebugDebug.p7b",
-          "certpath": "/Users/zhaojing/Downloads/callflyer.cer"
+          "profile": "/Users/zhaojing/Downloads/callflyerDebugDebug (1).p7b",
+          "certpath": "/Users/zhaojing/Downloads/callflyerDebug.cer"
         }
       }
     ],

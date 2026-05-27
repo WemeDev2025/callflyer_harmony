@@ -1,5 +1,5 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
@@ -104,6 +104,9 @@ struct Index {
   @State bannerLoaded: boolean = false;
   @State autoplay: boolean = true;
 
+  // 跑马灯
+  @State marqueeText: string = '';
+
   // 飞手列表
   @State pilots: PilotItem[] = [];
   @State pilotsLoading: boolean = false;
@@ -141,6 +144,7 @@ struct Index {
 
   aboutToAppear() {
     this.loadBanner();
+    this.loadConfig();
     // 先等待登录完成再上报访问（每次启动只上报一次）
     this.handleLogin().then(() => {
       if (!visitReported) {
@@ -227,6 +231,15 @@ struct Index {
       this.imageList = this.getDefaultBanners();
     }
     this.bannerLoaded = true;
+  }
+
+  async loadConfig() {
+    try {
+      const config = await fetchConfig();
+      this.marqueeText = config.defaultTopTitle || '呼叫飞手';
+    } catch {
+      this.marqueeText = '呼叫飞手';
+    }
   }
 
   async loadPilots() {
@@ -840,8 +853,61 @@ struct Index {
       HdsNavigation() {
         Scroll(this.scroller) {
           Column() {
+            // 跑马灯（两侧渐变遮罩）
+            Stack() {
+              // 背景层
+              Column()
+                .width('100%')
+                .height('100%')
+                // .backgroundColor('#E7F8FC')
+                .borderRadius(12)
+
+              // 跑马灯容器（限制宽度，两侧留出渐变位置）
+              Column() {
+                Marquee({
+                  src: this.marqueeText || '呼叫飞手',
+                  start: true,
+                  fromStart: true,
+                  step: 6,
+                  loop: -1
+                })
+                .fontSize(18)
+                .fontColor('#14233a')
+                .fontWeight(FontWeight.Medium)
+                .width('100%')
+              }
+              .width('100%')
+              .constraintSize({ maxWidth: '100%' })
+              .padding({ left: 32, right: 32 })
+              // .backgroundColor('rgba(0,0,0,0)')
+
+              // 左侧渐变（实色→透明）
+              Column()
+                .width(48)
+                .height('100%')
+                .linearGradient({
+                  direction: GradientDirection.Right,
+                  colors: [[ '#E7F8FC', 0 ], ['rgba(231,248,252,0)', 1]]
+                })
+                .position({ left: 18 })
+                .borderRadius({ topLeft: 12, bottomLeft: 12 })
+
+              // 右侧渐变（实色→透明）
+              Column()
+                .width(48)
+                .height('100%')
+                .linearGradient({
+                  direction: GradientDirection.Left,
+                  colors: [[ '#E7F8FC', 0 ], ['rgba(231,248,252,0)', 1]]
+                })
+                .position({ right: 18 })
+                .borderRadius({ topRight: 12, bottomRight: 12 })
+            }
+            .height(30)
+            .margin({ top: -40 })
+
             // 占位，让内容穿过导航栏
-            Column().width('100%').height(56)
+            Column().width('100%').height(16)
 
             // 轮播图（固定高度，防止布局跳动）
             Column() {
@@ -883,7 +949,6 @@ struct Index {
             .width('100%')
             .height(200)
             .padding({ left: 18, right: 18, top: 0, bottom: 0 })
-            .margin({ top: -100 })
             .opacity(this.bannerLoaded ? 1 : 0)
 
             // 今日有空

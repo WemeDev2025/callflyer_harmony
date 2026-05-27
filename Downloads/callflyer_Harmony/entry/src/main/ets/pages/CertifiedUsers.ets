@@ -4,6 +4,8 @@ import call from '@ohos.telephony.call';
 import { fetchCertifiedProfiles, fetchPilotContact, likeProfile, unlikeProfile, CertifiedUser, CertifiedProfilesParams } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
+import systemShare from '@hms.collaboration.systemShare';
+import common from '@ohos.app.ability.common';
 
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 const PAGE_SIZE = 20;
@@ -18,6 +20,30 @@ interface RoleOption {
   value: string;
 }
 
+// 分享引导弹窗（定义在文件级别，避免 ArkTS strict mode 下 this 引用问题）
+@CustomDialog
+struct ShareGuideDialog {
+  imagePath: string = '';
+  onConfirm: () => void = () => {};
+  controller: CustomDialogController;
+
+  build() {
+    Column() {
+      Image(this.imagePath)
+        .width('80%')
+        .objectFit(ImageFit.Contain)
+        .borderRadius(16)
+        .onClick(() => {
+          this.onConfirm();
+          this.controller?.close();
+        })
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+  }
+}
+
 @Entry
 @Component
 struct CertifiedUsers {
@@ -28,6 +54,11 @@ struct CertifiedUsers {
   @State count: number = 0;
   @State searchText: string = '';
   @State currentRole: string = 'all';
+
+  // 分享引导弹窗
+  @State shareGuideImagePath: string = 'https://wetofly.com/data/image/pic_comeon.webp';
+  private shareDialogController: CustomDialogController | null = null;
+  private browseScrollTriggered: boolean = false;
 
   private skip: number = 0;
   private isLoading: boolean = false;
@@ -53,6 +84,51 @@ struct CertifiedUsers {
 
   scroller: Scroller = new Scroller();
   searchController: SearchController = new SearchController();
+
+  // 分享引导 CustomDialog
+  private shareGuideDialogController: CustomDialogController = new CustomDialogController({
+    builder: ShareGuideDialog({
+      imagePath: this.shareGuideImagePath,
+      onConfirm: this.confirmShare.bind(this)
+    }),
+    customStyle: true,
+    maskColor: 'rgba(0, 0, 0, 0.7)',
+    alignment: DialogAlignment.Center
+  });
+
+  // 滚动监听，滑过约10张卡片后触发分享引导
+  onScrollIndex(scrollTop: number) {
+    if (!this.browseScrollTriggered && scrollTop > 2500) {
+      this.browseScrollTriggered = true;
+      this.shareGuideDialogController?.open();
+    }
+  }
+
+  // 确认分享
+  async confirmShare() {
+    try {
+      const context = getContext(this) as common.UIAbilityContext;
+
+      // 创建分享记录（使用超链接类型，content 为图片 URL）
+      const record: systemShare.SharedRecord = {
+        utd: 'general.hyperlink',
+        content: 'https://wetofly.com/data/pic_h5Share.png',
+        title: '呼叫飞手 - 无人机服务调度平台',
+        description: '专业飞手调度平台，找飞手、发任务一键搞定'
+      };
+      // 创建分享数据
+      const sharedData = new systemShare.SharedData(record);
+      // 创建分享控制器
+      const controller = new systemShare.ShareController(sharedData);
+      // 显示系统分享面板
+      await controller.show(context, {
+        selectionMode: systemShare.SelectionMode.SINGLE,
+        previewMode: systemShare.SharePreviewMode.DEFAULT
+      });
+    } catch (e) {
+      console.info('【分享失败】', JSON.stringify(e));
+    }
+  }
 
   aboutToAppear() {
     this.loadCertifiedUsers();
@@ -389,6 +465,11 @@ struct CertifiedUsers {
       .sticky(0)
       .onReachEnd(() => {
         this.loadMore()
+      })
+      .onScrollIndex((firstIndex: number) => {
+        // 根据索引估算滚动位置，每个卡片约250vp
+        const estimatedScrollTop = firstIndex * 250;
+        this.onScrollIndex(estimatedScrollTop);
       })
     }
     .width('100%')

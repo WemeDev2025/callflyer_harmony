@@ -2,6 +2,8 @@ import UIAbility from '@ohos.app.ability.UIAbility';
 import hilog from '@ohos.hilog';
 import window from '@ohos.window';
 import Want from '@ohos.app.ability.Want';
+import { notificationManager } from '@kit.NotificationKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 const TAG = 'EntryAbility';
 const DOMAIN = 0x0001;
@@ -17,6 +19,13 @@ export default class EntryAbility extends UIAbility {
 
   onWindowStageCreate(windowStage: window.WindowStage) {
     hilog.info(DOMAIN, TAG, 'EntryAbility onWindowStageCreate');
+
+    // 请求通知授权
+    notificationManager.requestEnableNotification(this.context).then(() => {
+      hilog.info(DOMAIN, TAG, '[ANS] requestEnableNotification success');
+    }).catch((err: BusinessError) => {
+      hilog.error(DOMAIN, TAG, '[ANS] requestEnableNotification failed, code is %{public}d, message is %{public}s', err.code, err.message);
+    });
 
     windowStage.loadContent('pages/Index', (err: Error, data: void) => {
       if (err) {

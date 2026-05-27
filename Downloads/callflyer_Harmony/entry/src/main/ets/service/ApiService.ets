@@ -33,6 +33,7 @@ export interface BannerItem {
 
 interface RawConfig {
   carousel: RawBannerItem[];
+  defaultTopTitle?: string;
 }
 
 interface RawBannerItem {
@@ -40,6 +41,7 @@ interface RawBannerItem {
   click_type: string;
   click_page: string;
   click_url: string;
+  click_miniprogram: string;
   video_url: string;
   order: number;
   enabled: boolean;
@@ -83,6 +85,11 @@ export async function fetchBanners(): Promise<BannerItem[]> {
   });
 }
 
+// 判断是否为微信小程序ID（wx开头+数字字母）
+function isMiniProgramId(value: string): boolean {
+  return /^wx[a-zA-Z0-9]{10,}$/.test(value);
+}
+
 function parseBanners(response: RawConfig): BannerItem[] {
   if (!response.carousel || !Array.isArray(response.carousel)) {
     return [];
@@ -92,6 +99,14 @@ function parseBanners(response: RawConfig): BannerItem[] {
   for (let i = 0; i < response.carousel.length; i++) {
     const item = response.carousel[i];
     if (item.enabled && item.position === 'homepage_banner' && item.image_url) {
+      // 过滤小程序类型的轮播图
+      if (item.click_type === 'miniprogram') {
+        continue;
+      }
+      const clickUrl = item.click_url || '';
+      if (isMiniProgramId(clickUrl)) {
+        continue;
+      }
       result.push({
         uid: `banner_${i}_${timestamp}`,
         src: item.image_url,
@@ -99,11 +114,53 @@ function parseBanners(response: RawConfig): BannerItem[] {
         videoUrl: item.video_url || '',
         clickType: item.click_type || 'none',
         clickPage: item.click_page || '',
-        clickUrl: item.click_url || ''
+        clickUrl: clickUrl
       });
     }
   }
   return result;
+}
+
+export interface ConfigResult {
+  defaultTopTitle: string;
+}
+
+export async function fetchConfig(): Promise<ConfigResult> {
+  return new Promise<ConfigResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/config`;
+    console.info('【接口请求】fetchConfig url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: [{ 'Content-Type': 'application/json' }],
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchConfig:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        if (data.result) {
+          console.info('【接口返回】fetchConfig:', data.result as string);
+          try {
+            const response = JSON.parse(data.result as string) as RawConfig;
+            resolve({
+              defaultTopTitle: response.defaultTopTitle || ''
+            });
+          } catch (parseErr) {
+            reject(parseErr);
+          }
+        } else {
+          resolve({ defaultTopTitle: '' });
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
 }
 
 // ============ 附近飞手 ============
