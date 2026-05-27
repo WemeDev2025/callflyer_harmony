@@ -1,4 +1,5 @@
 import http from '@ohos.net.http';
+import AuthService from './AuthService';
 
 /**
  * API服务
@@ -1544,6 +1545,19 @@ export interface CityCoverageResponse {
   cities: CityItem[];
 }
 
+export interface ReferralLeaderboardItem {
+  openid: string;
+  nickname: string;
+  avatar_url: string;
+  referral_count: number;
+}
+
+export interface ReferralLeaderboardResult {
+  leaderboard: ReferralLeaderboardItem[];
+  my_rank: number;
+  my_count: number;
+}
+
 export async function fetchCityCoverage(): Promise<CityCoverageResponse> {
   return new Promise<CityCoverageResponse>((resolve, reject) => {
     const httpRequest = http.createHttp();
@@ -1570,6 +1584,91 @@ export async function fetchCityCoverage(): Promise<CityCoverageResponse> {
             reject(err);
           }
         } else {
+          reject(err);
+        }
+      }
+    );
+  });
+}
+
+export async function fetchReferralLeaderboard(limit: number = 50): Promise<ReferralLeaderboardResult> {
+  const token = AuthService.getAuthToken();
+  return new Promise<ReferralLeaderboardResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/referral/leaderboard?limit=${limit}`;
+    console.info('【接口请求】fetchReferralLeaderboard url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchReferralLeaderboard:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】fetchReferralLeaderboard:', data.result as string);
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string' && data.result.length > 0) {
+          try {
+            const res = JSON.parse(data.result as string) as Record<string, Object>;
+            const list: ReferralLeaderboardItem[] = (res['leaderboard'] as ReferralLeaderboardItem[]) || (res['list'] as ReferralLeaderboardItem[]) || [];
+            const myRank = (res['my_rank'] as number) || 0;
+            const myCount = (res['my_count'] as number) || 0;
+            resolve({ leaderboard: list, my_rank: myRank, my_count: myCount });
+          } catch (e) {
+            reject(err);
+          }
+        } else {
+          reject(err);
+        }
+      }
+    );
+  });
+}
+
+export async function fetchPublicProfile(openid: string): Promise<Record<string, Object>> {
+  const token = AuthService.getAuthToken();
+  return new Promise<Record<string, Object>>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/profiles/${openid}/public`;
+    console.info('【接口请求】fetchPublicProfile url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchPublicProfile:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string' && data.result.length > 0) {
+          try {
+            const res = JSON.parse(data.result as string) as Record<string, Object>;
+            console.info('【fetchPublicProfile返回】', JSON.stringify(res));
+            resolve(res as Record<string, Object>);
+          } catch (e) {
+            console.error('【fetchPublicProfile解析失败】', JSON.stringify(e));
+            reject(err);
+          }
+        } else {
+          console.error('【fetchPublicProfile无数据】');
           reject(err);
         }
       }

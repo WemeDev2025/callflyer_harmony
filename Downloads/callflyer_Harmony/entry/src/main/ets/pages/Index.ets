@@ -38,6 +38,60 @@ interface SystemBarStyleInterface {
 /**
  * 首页 - 轮播图 + 附近飞手 + 最新任务
  */
+
+@CustomDialog
+struct StandbyPilotCardDialog {
+  controller: CustomDialogController;
+  user: PilotCardData = {
+    openid: '',
+    nickname: '',
+    avatar: '',
+    city: '',
+    userRole: '',
+    roleLabel: '',
+    licenseType: '',
+    licenseStatus: '',
+    pilotCode: '',
+    company: '',
+    position: '',
+    droneModel: '',
+    businessScopeText: '',
+    recentActiveText: '',
+    likeCount: 0,
+    likedByMe: false,
+    phone: '',
+    wechatId: '',
+    distanceText: '',
+    isNew: false,
+  };
+  onWechatClick: () => void = () => {};
+  onCallClick: () => void = () => {};
+
+  build() {
+    Stack() {
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor('rgba(0, 0, 0, 0.01)')
+        .onClick(() => { this.controller?.close(); })
+
+      Column() {
+        PilotCard({
+          user: this.user,
+          showDistance: false,
+          showRecentActive: false,
+          showActions: true,
+          onWechatClick: () => { this.onWechatClick(); },
+          onCallClick: () => { this.onCallClick(); }
+        })
+      }
+      .width('92%')
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
 @Entry
 @Component
 struct Index {
@@ -74,6 +128,7 @@ struct Index {
   @State expandedPilotCardData: PilotCardData | null = null;
   @State showExpandedStandby: boolean = false;
   @State showCopySuccess: boolean = false;
+  standbyDialogController: CustomDialogController | null = null;
   @State screenWidth: number = 360;
   @State screenHeight: number = 780;
   @State navBarHeight: number = 0;
@@ -221,9 +276,8 @@ struct Index {
   }
 
   onStandbyCardTap(item: StandbyItem) {
-    this.expandedStandbyItem = item;
     const p = item.profile;
-    this.expandedPilotCardData = {
+    const pilotData: PilotCardData = {
       openid: p.openid,
       nickname: p.nickname,
       avatar: p.avatarUrl || '',
@@ -245,7 +299,34 @@ struct Index {
       distanceText: '',
       isNew: p.isNew,
     };
-    this.showExpandedStandby = true;
+
+    this.standbyDialogController = new CustomDialogController({
+      builder: StandbyPilotCardDialog({
+        user: pilotData,
+        onWechatClick: () => {
+          const wechatId = pilotData.wechatId || '';
+          if (wechatId) {
+            const pasteData = pasteboard.createData('text/plain', wechatId);
+            const systemPasteboard = pasteboard.getSystemPasteboard();
+            systemPasteboard.setData(pasteData);
+            this.showCopySuccess = true;
+            setTimeout(() => { this.showCopySuccess = false; }, 1500);
+          }
+        },
+        onCallClick: () => {
+          const phone = pilotData.phone || '';
+          if (phone) {
+            call.makeCall(phone, (err) => {
+              if (err) console.error('拨号失败:', JSON.stringify(err));
+            });
+          }
+        }
+      }),
+      customStyle: true,
+      maskColor: 'rgba(0, 0, 0, 0.7)',
+      alignment: DialogAlignment.Center
+    });
+    this.standbyDialogController?.open();
   }
 
   closeExpandedStandbyDialog() {
@@ -851,6 +932,18 @@ struct Index {
                 })
               }
               .margin({ top: 12 })
+
+              Column() {
+                this.FeatureCard({
+                  title: '共创榜单',
+                  subtitle: '邀请排行',
+                  iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
+                  onClick: () => {
+                    router.pushUrl({ url: 'pages/ReferralLeaderboard' });
+                  }
+                })
+              }
+              .margin({ top: 12 })
             }
             .width('100%')
             .padding({ left: 18, right: 18, top: 16, bottom: 16 })
@@ -934,9 +1027,6 @@ struct Index {
       .titleMode(HdsNavigationTitleMode.MINI)
       .bindToScrollable([this.scroller])
       .expandSafeArea([SafeAreaType.SYSTEM])
-
-      // 今日有空弹窗
-      this.ExpandedStandbyOverlay()
 
       // 复制成功提示
       if (this.showCopySuccess) {
