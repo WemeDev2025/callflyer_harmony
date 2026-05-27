@@ -146,6 +146,7 @@ struct CertifiedUsers {
           count: tag.count ?? 0
         } as RoleOption));
         console.info('【加载标签】roleOptions:', JSON.stringify(this.roleOptions));
+        console.info('【加载标签】巡检的value:', JSON.stringify(this.roleOptions.find(t => t.label === '巡检')));
       } else {
         console.info('【加载标签】tags为空或格式异常');
         this.roleOptions = [];
@@ -178,6 +179,7 @@ struct CertifiedUsers {
         params.tag = this.currentRole;
       }
       console.info('【认证用户】currentRole:', this.currentRole, 'params:', JSON.stringify(params));
+      console.info('【认证用户】searchText:', this.searchText);
       const result = await fetchCertifiedProfiles(params, token || undefined);
 
       const newUsers = (result.items || []).map(item => this.toPilotCardData(item));
@@ -202,6 +204,8 @@ struct CertifiedUsers {
 
   handleRoleChange(role: string) {
     this.currentRole = role;
+    this.searchText = '';
+    console.info('【handleRoleChange】role:', role, 'searchText cleared');
     if (role === 'liked_by_me') {
       const token = AuthService.getAuthToken();
       if (!token) {
