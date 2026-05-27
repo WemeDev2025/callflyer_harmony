@@ -82,7 +82,10 @@ struct StandbyPilotCardDialog {
           showDistance: false,
           showRecentActive: false,
           showActions: true,
-          onWechatClick: () => { this.onWechatClick(); },
+          onWechatClick: () => {
+            console.info('【StandbyPilotCardDialog onWechatClick】被调用');
+            this.onWechatClick();
+          },
           onCallClick: () => { this.onCallClick(); }
         })
       }
@@ -340,6 +343,7 @@ struct Index {
       builder: StandbyPilotCardDialog({
         user: pilotData,
         onWechatClick: () => {
+          console.info('【今日有空弹窗微信点击】pilotData.wechatId:', pilotData.wechatId);
           const wechatId = pilotData.wechatId || '';
           if (wechatId) {
             const pasteData = pasteboard.createData('text/plain', wechatId);
