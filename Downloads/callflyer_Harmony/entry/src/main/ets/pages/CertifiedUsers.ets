@@ -452,6 +452,8 @@ struct CertifiedUsers {
                 user: user,
                 showActions: true,
                 onWechatClick: (openid: string) => {
+                  console.info('>>> Arrow function called with openid:', openid);
+                  console.info('>>> this is:', this ? 'defined' : 'undefined');
                   this.onCopyWechatByOpenid(openid);
                 },
                 onCallClick: (openid: string) => {
