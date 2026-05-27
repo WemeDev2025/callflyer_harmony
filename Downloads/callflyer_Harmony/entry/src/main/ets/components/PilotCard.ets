@@ -357,8 +357,14 @@ export struct PilotCard {
                   .width(44)
                   .height(44)
                   .onClick(() => {
-                    console.info('【微信按钮点击】openid:', this.user.openid, 'onWechatClick:', this.onWechatClick ? 'defined' : 'undefined');
-                    this.onWechatClick?.(this.user.openid);
+                    console.info('【微信按钮点击】openid:', this.user.openid, 'typeof onWechatClick:', typeof this.onWechatClick);
+                    if (this.onWechatClick) {
+                      console.info('【微信按钮点击】准备调用回调');
+                      this.onWechatClick(this.user.openid);
+                      console.info('【微信按钮点击】回调调用完成');
+                    } else {
+                      console.info('【微信按钮点击】回调为空');
+                    }
                   })
               }
               .alignItems(HorizontalAlign.Center)
