@@ -358,15 +358,12 @@ export struct PilotCard {
                   .height(44)
                   .onClick(() => {
                     console.info('>>> PilotCard onWechatClick trigger, openid:', this.user.openid);
-                    try {
-                      const fn = this.onWechatClick;
-                      console.info('>>> fn is:', fn ? 'function' : 'null/undefined');
-                      if (fn) {
-                        fn(this.user.openid);
-                        console.info('>>> fn called successfully');
-                      }
-                    } catch (e) {
-                      console.info('>>> error calling fn:', JSON.stringify(e));
+                    console.info('>>> PilotCard onWechatClick function name:', this.onWechatClick?.name);
+                    console.info('>>> PilotCard this:', this);
+                    if (this.onWechatClick) {
+                      console.info('>>> about to call onWechatClick');
+                      this.onWechatClick(this.user.openid);
+                      console.info('>>> onWechatClick called');
                     }
                   })
               }
