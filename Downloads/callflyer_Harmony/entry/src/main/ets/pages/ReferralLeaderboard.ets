@@ -7,6 +7,7 @@ import call from '@ohos.telephony.call';
 import pasteboard from '@ohos.pasteboard';
 import display from '@ohos.display';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import window from '@ohos.window';
 
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 
@@ -142,6 +143,14 @@ struct ReferralLeaderboard {
 
   aboutToAppear() {
     this.loadLeaderboard();
+    // 设置状态栏透明，让顶部图片延伸上去
+    try {
+      window.getLastWindow(getContext(this)).then((win) => {
+        win.setWindowSystemBarProperties({
+          statusBarColor: '#00000000'
+        });
+      });
+    } catch (e) {}
   }
 
   async loadLeaderboard() {
@@ -241,6 +250,7 @@ struct ReferralLeaderboard {
             .height(200)
             .backgroundImage('https://wetofly.com/data/image/pic_top.webp')
             .backgroundImageSize(ImageSize.Cover)
+            .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
         }
         .width('100%')
 
