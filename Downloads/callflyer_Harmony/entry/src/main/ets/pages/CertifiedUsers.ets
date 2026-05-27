@@ -142,7 +142,7 @@ struct CertifiedUsers {
         label: tag.label,
         value: tag.key,
         count: tag.count ?? 0
-      }));
+      } as RoleOption));
       this.loadCertifiedUsers();
     } catch (err) {
       console.error('【加载标签失败】', JSON.stringify(err));

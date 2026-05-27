@@ -1290,7 +1290,7 @@ export async function fetchCertifiedTags(token?: string): Promise<CertifiedTagsR
         if (data.result) {
           console.info('【接口返回】fetchCertifiedTags:', data.result as string);
           try {
-            const res = JSON.parse(data.result as string);
+            const res: CertifiedTagsResult = JSON.parse(data.result as string);
             resolve({
               tags: res.tags || []
             });
