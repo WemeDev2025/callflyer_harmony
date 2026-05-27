@@ -139,7 +139,6 @@ struct CityCoverage {
                       .height(5)
                       .borderRadius(3)
                       .backgroundColor($r('app.color.badge_green'))
-                      .alignItems(VerticalAlign.Start)
                   }
                   .width('100%')
                   .height(5)
