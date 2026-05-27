@@ -346,11 +346,16 @@ struct Index {
           console.info('【今日有空弹窗微信点击】pilotData.wechatId:', pilotData.wechatId);
           const wechatId = pilotData.wechatId || '';
           if (wechatId) {
-            const pasteData = pasteboard.createData('text/plain', wechatId);
-            const systemPasteboard = pasteboard.getSystemPasteboard();
-            systemPasteboard.setData(pasteData);
-            this.showCopySuccess = true;
-            setTimeout(() => { this.showCopySuccess = false; }, 1500);
+            try {
+              const pasteData = pasteboard.createData('text/plain', wechatId);
+              const systemPasteboard = pasteboard.getSystemPasteboard();
+              systemPasteboard.setData(pasteData);
+              promptAction.showToast({ message: '微信号已复制' });
+            } catch (e) {
+              promptAction.showToast({ message: '微信号: ' + wechatId });
+            }
+          } else {
+            promptAction.showToast({ message: '暂无微信号' });
           }
         },
         onCallClick: () => {
