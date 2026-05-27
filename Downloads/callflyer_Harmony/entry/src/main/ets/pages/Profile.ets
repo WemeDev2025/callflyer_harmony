@@ -334,7 +334,7 @@ struct Profile {
                 offsetY: 4
               })
             }
-            .width('100%')
+            .width('90%')
           }
           .width('100%')
           .layoutWeight(1)
