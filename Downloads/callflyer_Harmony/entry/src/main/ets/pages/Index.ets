@@ -897,6 +897,7 @@ struct Index {
                 .fontSize(18)
                 .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
                 .fontWeight(FontWeight.Medium)
+                .fontFamily('DouyinSansBold')
                 .width('100%')
               }
               .width('100%')
