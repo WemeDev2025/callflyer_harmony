@@ -8,6 +8,7 @@
     "pages/BlurTest",
     "pages/CertifiedUsers",
     "pages/CityCoverage",
-    "pages/ReferralLeaderboard"
+    "pages/ReferralLeaderboard",
+    "pages/ContactLog"
   ]
 }

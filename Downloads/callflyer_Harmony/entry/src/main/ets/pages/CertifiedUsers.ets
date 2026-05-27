@@ -1,6 +1,7 @@
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
+import router from '@ohos.router';
 import { fetchCertifiedProfiles, fetchPilotContact, likeProfile, unlikeProfile, CertifiedUser, CertifiedProfilesParams, fetchCertifiedTags, CertifiedTag } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
@@ -176,7 +177,11 @@ struct CertifiedUsers {
         params.search = searchQuery.trim();
       }
       if (this.currentRole && this.currentRole !== 'all') {
-        params.tag = this.currentRole;
+        if (this.currentRole === 'liked_by_me') {
+          params.liked_by_me = true;
+        } else {
+          params.tag = this.currentRole;
+        }
       }
       console.info('【认证用户】currentRole:', this.currentRole, 'params:', JSON.stringify(params));
       console.info('【认证用户】searchText:', this.searchText);
@@ -225,10 +230,18 @@ struct CertifiedUsers {
 
     try {
       const token = AuthService.getAuthToken();
-      const result = await fetchCertifiedProfiles({
+      const params: CertifiedProfilesParams = {
         limit: PAGE_SIZE,
         skip: this.skip
-      }, token || undefined);
+      };
+      if (this.currentRole && this.currentRole !== 'all') {
+        if (this.currentRole === 'liked_by_me') {
+          params.liked_by_me = true;
+        } else {
+          params.tag = this.currentRole;
+        }
+      }
+      const result = await fetchCertifiedProfiles(params, token || undefined);
 
       const newUsers = (result.items || []).map(item => this.toPilotCardData(item));
       this.users = [...this.users, ...newUsers];
@@ -395,6 +408,19 @@ struct CertifiedUsers {
                       this.handleRoleChange(option.value);
                     })
                 })
+
+                // 记录按钮
+                Text('记录')
+                  .fontSize(13)
+                  .fontColor($r('app.color.text_title'))
+                  .fontWeight(FontWeight.Medium)
+                  .backgroundColor($r('app.color.card_bg'))
+                  .borderRadius(16)
+                  .padding({ left: 14, right: 14, top: 6, bottom: 6 })
+                  .margin({ right: 8 })
+                  .onClick(() => {
+                    router.pushUrl({ url: 'pages/ContactLog' });
+                  })
               }
               .padding({ left: 4, right: 4, top: 10, bottom: 10 })
             }
@@ -554,6 +580,28 @@ struct CertifiedUsers {
           promptAction.showToast({ message: '暂无电话号码' });
         }
       },
+      onLikeChanged: (likeCount: number, likedByMe: boolean) => {
+        // 在「我赞过」标签下，取消点赞后自动从列表移除
+        if (this.currentRole === 'liked_by_me' && !likedByMe) {
+          const index = this.users.findIndex(u => u.openid === user.openid);
+          if (index > -1) {
+            this.users.splice(index, 1);
+            this.count = Math.max(0, this.count - 1);
+            console.info('【我赞过】已移除用户:', user.openid, '剩余:', this.count);
+          }
+        }
+      },
+      onUnlikeInLikedTab: () => {
+        // 在「我赞过」标签下，点击即移除（不等 API 返回）
+        if (this.currentRole === 'liked_by_me') {
+          const index = this.users.findIndex(u => u.openid === user.openid);
+          if (index > -1) {
+            this.users.splice(index, 1);
+            this.count = Math.max(0, this.count - 1);
+            console.info('【我赞过】点击即移除用户:', user.openid, '剩余:', this.count);
+          }
+        }
+      }
     })
   }
 }

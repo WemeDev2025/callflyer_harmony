@@ -1556,7 +1556,6 @@ export async function unlikeProfile(openid: string, token: string): Promise<Like
           }
         } else {
           reject(err);
-          reject(err);
         }
       }
     );
@@ -1802,6 +1801,79 @@ export async function fetchPublicProfile(openid: string): Promise<Record<string,
           }
         } else {
           console.error('【fetchPublicProfile无数据】');
+          reject(err);
+        }
+      }
+    );
+  });
+}
+
+// ============ 联系记录 ============
+
+export interface ContactLogActor {
+  openid?: string;
+  nickname?: string;
+  avatar?: string;
+}
+
+export interface ContactLogItem {
+  openid?: string;
+  actor?: ContactLogActor;
+  target?: ContactLogActor;
+  action_label?: string;
+  created_at?: string;
+}
+
+export interface ContactLogResult {
+  items: ContactLogItem[];
+  count: number;
+}
+
+export interface ContactLogParams {
+  limit?: number;
+  skip?: number;
+}
+
+export async function fetchContactLogFeed(params: ContactLogParams): Promise<ContactLogResult> {
+  const limit = params.limit ?? 30;
+  const skip = params.skip ?? 0;
+  const token = AuthService.getAuthToken();
+  return new Promise<ContactLogResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/contact-log/feed?limit=${limit}&skip=${skip}`;
+    console.info('【接口请求】fetchContactLogFeed url:', url);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchContactLogFeed:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string' && data.result.length > 0) {
+          try {
+            const res = JSON.parse(data.result as string) as ContactLogResult;
+            console.info('【接口返回】fetchContactLogFeed:', JSON.stringify(res));
+            resolve(res);
+          } catch (e) {
+            console.error('【fetchContactLogFeed解析失败】', JSON.stringify(e));
+            reject(err);
+          }
+        } else {
+          console.error('【fetchContactLogFeed无数据】');
           reject(err);
         }
       }
