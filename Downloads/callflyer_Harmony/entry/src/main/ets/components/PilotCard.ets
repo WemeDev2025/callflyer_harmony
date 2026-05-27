@@ -357,14 +357,11 @@ export struct PilotCard {
                   .width(44)
                   .height(44)
                   .onClick(() => {
-                    console.info('>>> PilotCard onWechatClick trigger, openid:', this.user.openid);
-                    console.info('>>> PilotCard onWechatClick function name:', this.onWechatClick?.name);
-                    console.info('>>> PilotCard this:', this);
-                    if (this.onWechatClick) {
-                      console.info('>>> about to call onWechatClick');
-                      this.onWechatClick(this.user.openid);
-                      console.info('>>> onWechatClick called');
-                    }
+                    console.info('>>> PilotCard onWechatClick trigger');
+                    console.info('>>> this.onWechatClick is:', typeof this.onWechatClick, this.onWechatClick?.toString()?.substring(0, 100));
+                    console.info('>>> calling this.onWechatClick with:', this.user.openid);
+                    const result = this.onWechatClick?.call(this, this.user.openid);
+                    console.info('>>> call result:', result);
                   })
               }
               .alignItems(HorizontalAlign.Center)

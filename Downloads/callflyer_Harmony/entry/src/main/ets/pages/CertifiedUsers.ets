@@ -452,8 +452,9 @@ struct CertifiedUsers {
                 user: user,
                 showActions: true,
                 onWechatClick: (_openid: string) => {
+                  console.info('### Arrow function onWechatClick called, user:', JSON.stringify(user));
                   const wechatId = user.wechatId || '';
-                  console.info('【微信】user wechatId:', wechatId);
+                  console.info('### wechatId:', wechatId);
                   if (wechatId) {
                     try {
                       const pasteData = pasteboard.createData('text/plain', wechatId);
@@ -468,6 +469,7 @@ struct CertifiedUsers {
                   }
                 },
                 onCallClick: (openid: string) => {
+                  console.info('### Arrow function onCallClick called');
                   const phone = user.phone || '';
                   if (phone) {
                     try {
