@@ -2,6 +2,7 @@ import router from '@ohos.router';
 import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
 import { LengthMetrics } from '@kit.ArkUI';
 import { fetchCityCoverage, CityCoverageSummary, CityItem } from '../service/ApiService';
+import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
 interface CityGroup {
   province: string;
@@ -12,6 +13,9 @@ interface CityGroup {
 @Entry
 @Component
 struct CityCoverage {
+  // 颜色模式监听（跟随系统深浅色）
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+
   scroller: Scroller = new Scroller();
   @State loading: boolean = true;
   @State error: string = '';
@@ -87,7 +91,7 @@ struct CityCoverage {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('#E7F8FC')
+        .backgroundColor($r('app.color.page_bg'))
 
       HdsNavigation() {
         Scroll(this.scroller) {
@@ -95,7 +99,7 @@ struct CityCoverage {
             if (this.loading) {
               Column() {
                 Text('加载中...')
-                  .fontColor('#9aa4b2')
+                  .fontColor($r('app.color.text_caption'))
                   .fontSize(14)
               }
               .width('100%')
@@ -103,7 +107,7 @@ struct CityCoverage {
             } else if (this.error) {
               Column() {
                 Text(this.error)
-                  .fontColor('#9aa4b2')
+                  .fontColor($r('app.color.text_caption'))
                   .fontSize(14)
               }
               .width('100%')
@@ -115,17 +119,17 @@ struct CityCoverage {
                     Text(String(this.summary.lit_cities))
                       .fontSize(28)
                       .fontWeight(900)
-                      .fontColor('#07C160')
+                      .fontColor($r('app.color.badge_green'))
                     Text(' / ')
                       .fontSize(18)
-                      .fontColor('#d0d8e4')
+                      .fontColor($r('app.color.text_secondary'))
                     Text(String(this.summary.total_cities))
                       .fontSize(18)
                       .fontWeight(700)
-                      .fontColor('#1d2b3a')
+                      .fontColor($r('app.color.text_primary'))
                     Text(' 城市已覆盖')
                       .fontSize(18)
-                      .fontColor('#8a96a8')
+                      .fontColor($r('app.color.text_caption'))
                   }
                   .width('100%')
 
@@ -134,23 +138,23 @@ struct CityCoverage {
                       .width(this.summary.coverage_pct + '%')
                       .height(5)
                       .borderRadius(3)
-                      .backgroundColor('#07C160')
+                      .backgroundColor($r('app.color.badge_green'))
                   }
                   .width('100%')
                   .height(5)
-                  .backgroundColor('#f0f2f5')
+                  .backgroundColor($r('app.color.card_bg_secondary'))
                   .borderRadius(3)
                   .margin({ top: 8 })
 
                   Text('覆盖率 ' + this.summary.coverage_pct + '%')
                     .fontSize(11)
-                    .fontColor('#9aa4b2')
+                    .fontColor($r('app.color.text_caption'))
                     .margin({ top: 8 })
                     .width('100%')
                 }
                 .width('90%')
                 .padding(16)
-                .backgroundColor('#ffffff')
+                .backgroundColor($r('app.color.card_bg'))
                 .borderRadius(12)
               }
 
@@ -159,12 +163,12 @@ struct CityCoverage {
                   Row() {
                     Text('全部 ' + this.cities.length)
                       .fontSize(12)
-                      .fontColor(this.filterMode === 'all' ? '#ffffff' : '#8a96a8')
+                      .fontColor(this.filterMode === 'all' ? '#ffffff' : $r('app.color.text_caption'))
                       .fontWeight(this.filterMode === 'all' ? 700 : 400)
                   }
                   .layoutWeight(1)
                   .height(36)
-                  .backgroundColor(this.filterMode === 'all' ? '#07C160' : '#ffffff')
+                  .backgroundColor(this.filterMode === 'all' ? $r('app.color.badge_green') : $r('app.color.card_bg'))
                   .borderRadius(6)
                   .alignItems(VerticalAlign.Center)
                   .justifyContent(FlexAlign.Center)
@@ -173,12 +177,12 @@ struct CityCoverage {
                   Row() {
                     Text('已覆盖 ' + (this.summary?.lit_cities || 0))
                       .fontSize(12)
-                      .fontColor(this.filterMode === 'lit' ? '#ffffff' : '#8a96a8')
+                      .fontColor(this.filterMode === 'lit' ? '#ffffff' : $r('app.color.text_caption'))
                       .fontWeight(this.filterMode === 'lit' ? 700 : 400)
                   }
                   .layoutWeight(1)
                   .height(36)
-                  .backgroundColor(this.filterMode === 'lit' ? '#07C160' : '#ffffff')
+                  .backgroundColor(this.filterMode === 'lit' ? $r('app.color.badge_green') : $r('app.color.card_bg'))
                   .borderRadius(6)
                   .alignItems(VerticalAlign.Center)
                   .justifyContent(FlexAlign.Center)
@@ -188,12 +192,12 @@ struct CityCoverage {
                   Row() {
                     Text('未覆盖 ' + (this.summary?.unlit_cities || 0))
                       .fontSize(12)
-                      .fontColor(this.filterMode === 'unlit' ? '#ffffff' : '#8a96a8')
+                      .fontColor(this.filterMode === 'unlit' ? '#ffffff' : $r('app.color.text_caption'))
                       .fontWeight(this.filterMode === 'unlit' ? 700 : 400)
                   }
                   .layoutWeight(1)
                   .height(36)
-                  .backgroundColor(this.filterMode === 'unlit' ? '#07C160' : '#ffffff')
+                  .backgroundColor(this.filterMode === 'unlit' ? $r('app.color.badge_green') : $r('app.color.card_bg'))
                   .borderRadius(6)
                   .alignItems(VerticalAlign.Center)
                   .justifyContent(FlexAlign.Center)
@@ -207,7 +211,7 @@ struct CityCoverage {
               if (this.groups.length === 0 && this.keyword.trim()) {
                 Column() {
                   Text('没有匹配的城市')
-                    .fontColor('#9aa4b2')
+                    .fontColor($r('app.color.text_caption'))
                     .fontSize(14)
                 }
                 .width('100%')
@@ -220,11 +224,11 @@ struct CityCoverage {
                     Text(group.province)
                       .fontSize(14)
                       .fontWeight(700)
-                      .fontColor('#1d2b3a')
+                      .fontColor($r('app.color.text_primary'))
                     Blank()
                     Text(group.litCount + ' / ' + group.cities.length)
                       .fontSize(11)
-                      .fontColor('#9aa4b2')
+                      .fontColor($r('app.color.text_caption'))
                   }
                   .width('100%')
                   .padding({ bottom: 8 })
@@ -234,7 +238,7 @@ struct CityCoverage {
                       Row() {
                         Text(city.city)
                           .fontSize(12)
-                          .fontColor(city.lit ? '#ffffff' : '#b0b8c8')
+                          .fontColor(city.lit ? '#ffffff' : $r('app.color.text_caption'))
                         if (city.lit) {
                           Text(' ' + city.pilot_count)
                             .fontSize(10)
@@ -242,7 +246,7 @@ struct CityCoverage {
                             .fontWeight(700)
                         }
                       }
-                      .backgroundColor(city.lit ? '#07C160' : '#f5f6f8')
+                      .backgroundColor(city.lit ? $r('app.color.badge_green') : $r('app.color.card_bg_secondary'))
                       .borderRadius(5)
                       .padding({ left: 8, right: 8, top: 4, bottom: 4 })
                       .margin({ right: 6, bottom: 6 })
@@ -253,7 +257,7 @@ struct CityCoverage {
                 }
                 .width('90%')
                 .padding(12)
-                .backgroundColor('#ffffff')
+                .backgroundColor($r('app.color.card_bg'))
                 .borderRadius(10)
                 .margin({ bottom: 10 })
               })
@@ -283,7 +287,7 @@ struct CityCoverage {
           },
           scrollEffectStyle: {
             backgroundStyle: {
-              backgroundColor: '#FFFFFF'
+              backgroundColor: $r('app.color.card_bg')
             }
           }
         },
@@ -292,8 +296,8 @@ struct CityCoverage {
         }
       })
       .systemBarStyle(
-        { statusBarContentColor: '#E5020202' },
-        { statusBarContentColor: '#E5020202' }
+        { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' },
+        { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' }
       )
       .titleMode(HdsNavigationTitleMode.MINI)
       .bindToScrollable([this.scroller])
@@ -304,9 +308,9 @@ struct CityCoverage {
         TextInput({ placeholder: '搜索城市或省份', text: this.keyword })
           .width('100%')
           .height(44)
-          .backgroundColor('#ffffff')
+          .backgroundColor($r('app.color.card_bg'))
           .borderRadius(22)
-          .placeholderColor('#9aa4b2')
+          .placeholderColor($r('app.color.text_caption'))
           .fontSize(14)
           .onChange((text: string) => { this.onSearchChange(text); })
       }
