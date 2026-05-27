@@ -138,14 +138,22 @@ struct CertifiedUsers {
     try {
       const token = AuthService.getAuthToken();
       const res = await fetchCertifiedTags(token || undefined);
-      this.roleOptions = res.tags.map(tag => ({
-        label: tag.label,
-        value: tag.key,
-        count: tag.count ?? 0
-      } as RoleOption));
+      console.info('【加载标签】res:', JSON.stringify(res));
+      if (res && res.tags && res.tags.length > 0) {
+        this.roleOptions = res.tags.map(tag => ({
+          label: tag.label,
+          value: tag.key,
+          count: tag.count ?? 0
+        } as RoleOption));
+        console.info('【加载标签】roleOptions:', JSON.stringify(this.roleOptions));
+      } else {
+        console.info('【加载标签】tags为空或格式异常');
+        this.roleOptions = [];
+      }
       this.loadCertifiedUsers();
     } catch (err) {
       console.error('【加载标签失败】', JSON.stringify(err));
+      this.roleOptions = [];
       this.loadCertifiedUsers();
     }
   }
