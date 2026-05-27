@@ -241,12 +241,16 @@ struct CertifiedUsers {
   }
 
   async onCopyWechatByOpenid(openid: string) {
-    console.info('>>> onCopyWechatByOpenid CALLED with openid:', openid);
+    console.info('### onCopyWechatByOpenid START openid:', openid);
+    console.info('### this.users length:', this.users.length);
     const user = this.users.find(u => u.openid === openid);
-    console.info('【复制微信】user:', user ? 'found' : 'not found', 'wechatId:', user?.wechatId);
-    if (!user) return;
+    console.info('### user found:', !!user, 'wechatId:', user?.wechatId);
+    if (!user) {
+      console.info('### user not found, returning');
+      return;
+    }
     const contact = await this.getContactByOpenid(openid);
-    console.info('【复制微信】contact:', JSON.stringify(contact));
+    console.info('### contact:', JSON.stringify(contact));
     if (contact.wechatId) {
       try {
         const pasteData = pasteboard.createData('text/plain', contact.wechatId);
@@ -259,6 +263,7 @@ struct CertifiedUsers {
     } else {
       promptAction.showToast({ message: '暂无微信号' });
     }
+    console.info('### onCopyWechatByOpenid END');
   }
 
   async onCallPhoneByOpenid(openid: string) {

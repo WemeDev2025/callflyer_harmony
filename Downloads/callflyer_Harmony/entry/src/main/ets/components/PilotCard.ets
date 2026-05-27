@@ -358,8 +358,16 @@ export struct PilotCard {
                   .height(44)
                   .onClick(() => {
                     console.info('>>> PilotCard onWechatClick trigger, openid:', this.user.openid);
-                    this.onWechatClick?.(this.user.openid);
-                    console.info('>>> PilotCard onWechatClick called');
+                    try {
+                      const fn = this.onWechatClick;
+                      console.info('>>> fn is:', fn ? 'function' : 'null/undefined');
+                      if (fn) {
+                        fn(this.user.openid);
+                        console.info('>>> fn called successfully');
+                      }
+                    } catch (e) {
+                      console.info('>>> error calling fn:', JSON.stringify(e));
+                    }
                   })
               }
               .alignItems(HorizontalAlign.Center)
