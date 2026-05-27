@@ -6,6 +6,7 @@ import router from '@ohos.router';
 import call from '@ohos.telephony.call';
 import pasteboard from '@ohos.pasteboard';
 import display from '@ohos.display';
+import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 
@@ -30,17 +31,17 @@ struct ReferralLeaderboardItemView {
         Text('🥉').fontSize(28).width(40).textAlign(TextAlign.Center)
       } else {
         Text(String(this.rank))
-          .fontSize(16).fontWeight(FontWeight.Bold).fontColor('#bbbbbb')
+          .fontSize(16).fontWeight(FontWeight.Bold).fontColor($r('app.color.text_secondary'))
           .width(40).textAlign(TextAlign.Center)
       }
 
       Image(this.item.avatar_url || DEFAULT_AVATAR)
-        .width(48).height(48).borderRadius(24).backgroundColor('#f0f4f8')
+        .width(48).height(48).borderRadius(24).backgroundColor($r('app.color.avatar_placeholder'))
         .onClick(() => this.onAvatarClick(this.item.openid))
 
       Column() {
         Text(this.item.nickname || '未知用户')
-          .fontSize(16).fontColor('#1a1a2e').fontWeight(FontWeight.Medium)
+          .fontSize(16).fontColor($r('app.color.text_primary')).fontWeight(FontWeight.Medium)
           .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
 
         if (this.rank <= 3) {
@@ -51,8 +52,8 @@ struct ReferralLeaderboardItemView {
             .borderRadius(12).padding({ left: 8, right: 8, top: 2, bottom: 2 }).margin({ top: 4 })
         } else {
           Text('TOP ' + this.rank)
-            .fontSize(12).fontWeight(FontWeight.Bold).fontColor('#888888')
-            .backgroundColor('#f0f0f0').borderRadius(12)
+            .fontSize(12).fontWeight(FontWeight.Bold).fontColor($r('app.color.text_secondary'))
+            .backgroundColor($r('app.color.card_bg_secondary')).borderRadius(12)
             .padding({ left: 8, right: 8, top: 2, bottom: 2 }).margin({ top: 4 })
         }
       }
@@ -60,8 +61,8 @@ struct ReferralLeaderboardItemView {
 
       Row() {
         Text(String(this.item.referral_count))
-          .fontSize(24).fontWeight(FontWeight.Bold).fontColor('#16a34a')
-        Text('人').fontSize(14).fontColor('#888888').margin({ left: 2 })
+          .fontSize(24).fontWeight(FontWeight.Bold).fontColor($r('app.color.badge_green'))
+        Text('人').fontSize(14).fontColor($r('app.color.text_secondary')).margin({ left: 2 })
       }
     }
     .width('100%')
@@ -127,6 +128,9 @@ struct PilotCardDialog {
 @Entry
 @Component
 struct ReferralLeaderboard {
+  // 颜色模式监听（跟随系统深浅色）
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+
   @State leaderboard: ReferralLeaderboardItem[] = [];
   @State loading: boolean = true;
   @State myRank: number = 0;
@@ -243,11 +247,11 @@ struct ReferralLeaderboard {
         Column() {
           if (this.loading) {
             Text('加载中...')
-              .fontSize(16).fontColor('#aaaaaa').width('100%')
+              .fontSize(16).fontColor($r('app.color.text_secondary')).width('100%')
               .textAlign(TextAlign.Center).padding({ top: 100, bottom: 100 })
           } else if (this.leaderboard.length === 0) {
             Text('暂无榜单数据')
-              .fontSize(16).fontColor('#aaaaaa').width('100%')
+              .fontSize(16).fontColor($r('app.color.text_secondary')).width('100%')
               .textAlign(TextAlign.Center).padding({ top: 100, bottom: 100 })
           } else {
             Column() {
@@ -258,7 +262,7 @@ struct ReferralLeaderboard {
                     rank: index + 1,
                     onAvatarClick: (openid: string): void => { this.onAvatarClick(openid); }
                   })
-                  Divider().color('rgba(0,0,0,0.05)').margin({ left: 76 })
+                  Divider().color($r('app.color.divider')).margin({ left: 76 })
                 }
               })
             }
@@ -267,7 +271,7 @@ struct ReferralLeaderboard {
             if (this.myRank > 0) {
               Column() {
                 Text('我的排名：第 ' + this.myRank + ' 名（邀请 ' + this.myCount + ' 人）')
-                  .fontSize(14).fontColor('#16a34a').fontWeight(FontWeight.Medium)
+                  .fontSize(14).fontColor($r('app.color.badge_green')).fontWeight(FontWeight.Medium)
               }
               .width('100%').padding(16)
               .backgroundColor('rgba(22, 163, 74, 0.06)')
@@ -277,7 +281,7 @@ struct ReferralLeaderboard {
         }
         .width('100%')
         .layoutWeight(1)
-        .backgroundColor('#ffffff')
+        .backgroundColor($r('app.color.card_bg'))
         .borderRadius(24)
         .margin({ left: 12, right: 12, top: -40 })
         .padding({ bottom: 34 })
@@ -288,7 +292,7 @@ struct ReferralLeaderboard {
       if (this.showCopySuccess) {
         Column() {
           Text('✓ 已复制')
-            .fontSize(16).fontColor('#FFFFFF').fontWeight(FontWeight.Bold)
+            .fontSize(16).fontColor($r('app.color.text_on_dark_background')).fontWeight(FontWeight.Bold)
         }
         .width(120).height(120)
         .backgroundColor('rgba(0, 0, 0, 0.75)')
