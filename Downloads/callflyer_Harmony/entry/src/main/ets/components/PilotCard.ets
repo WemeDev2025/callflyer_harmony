@@ -186,13 +186,13 @@ export struct PilotCard {
 
         Column() {
           Image(this.user.isNew ? $r('app.media.icon_star2') : $r('app.media.icon_star1'))
-            .width(28)
-            .height(28)
+            .width(20)
+            .height(20)
           Text(String(this.internalLikeCount))
             .fontSize(12)
             .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Bold)
-            .margin({ top: 2 })
+            .margin({ top: 8 })
             .visibility(this.internalLikeCount > 0 ? Visibility.Visible : Visibility.None)
         }
         .alignItems(HorizontalAlign.Center)
@@ -356,7 +356,10 @@ export struct PilotCard {
                 Image($r('app.media.iconwechat'))
                   .width(44)
                   .height(44)
-                  .onClick(() => this.onWechatClick?.(this.user.openid))
+                  .onClick(() => {
+                    console.info('【微信按钮点击】openid:', this.user.openid, 'onWechatClick:', this.onWechatClick ? 'defined' : 'undefined');
+                    this.onWechatClick?.(this.user.openid);
+                  })
               }
               .alignItems(HorizontalAlign.Center)
               .margin({ left: 12 })
@@ -382,7 +385,7 @@ export struct PilotCard {
       }
     }
     .width('100%')
-    .padding(24)
+    .padding(28)
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(14)
     .margin({ bottom: 12 })

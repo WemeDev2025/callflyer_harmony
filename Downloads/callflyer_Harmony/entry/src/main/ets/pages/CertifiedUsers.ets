@@ -241,9 +241,12 @@ struct CertifiedUsers {
   }
 
   async onCopyWechatByOpenid(openid: string) {
+    console.info('【复制微信】openid:', openid);
     const user = this.users.find(u => u.openid === openid);
+    console.info('【复制微信】user:', user ? 'found' : 'not found', 'wechatId:', user?.wechatId);
     if (!user) return;
     const contact = await this.getContactByOpenid(openid);
+    console.info('【复制微信】contact:', JSON.stringify(contact));
     if (contact.wechatId) {
       try {
         const pasteData = pasteboard.createData('text/plain', contact.wechatId);
