@@ -39,19 +39,15 @@ struct ShareGuideDialog {
           this.controller?.close();
         })
 
-      Column() {
-        Image(this.imagePath)
-          .width('80%')
-          .objectFit(ImageFit.Contain)
-          .borderRadius(16)
-          .onClick(() => {
-            this.onConfirm();
-            this.controller?.close();
-          })
-      }
-      .width('100%')
-      .height('100%')
-      .justifyContent(FlexAlign.Center)
+      // TODO: 临时隐藏图片，测试蒙层点击
+      // Image(this.imagePath)
+      //   .width('80%')
+      //   .objectFit(ImageFit.Contain)
+      //   .borderRadius(16)
+      //   .onClick(() => {
+      //     this.onConfirm();
+      //     this.controller?.close();
+      //   })
     }
     .width('100%')
     .height('100%')
