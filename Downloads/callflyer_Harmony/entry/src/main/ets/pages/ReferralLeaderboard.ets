@@ -293,7 +293,7 @@ struct ReferralLeaderboard {
         .layoutWeight(1)
         .backgroundColor($r('app.color.card_bg'))
         .borderRadius(24)
-        .margin({ left: 12, right: 12, top: -40 })
+        .margin({ left: 12, right: 12, top: -120 })
         .padding({ bottom: 34 })
       }
       .width('100%')
