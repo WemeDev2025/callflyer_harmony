@@ -240,30 +240,28 @@ struct CertifiedUsers {
     this.isLoading = false;
   }
 
-  async onCopyWechatByOpenid(openid: string) {
-    console.info('### onCopyWechatByOpenid START openid:', openid);
-    console.info('### this.users length:', this.users.length);
+  onCopyWechatByOpenid(openid: string) {
+    console.info('>>> CertifiedUsers onCopyWechatByOpenid ENTERED openid:', openid);
+    console.info('>>> this:', this ? 'defined' : 'undefined');
     const user = this.users.find(u => u.openid === openid);
-    console.info('### user found:', !!user, 'wechatId:', user?.wechatId);
+    console.info('>>> user found:', !!user, 'wechatId:', user?.wechatId);
     if (!user) {
-      console.info('### user not found, returning');
+      promptAction.showToast({ message: '用户不存在' });
       return;
     }
-    const contact = await this.getContactByOpenid(openid);
-    console.info('### contact:', JSON.stringify(contact));
-    if (contact.wechatId) {
+    const wechatId = user.wechatId;
+    if (wechatId) {
       try {
-        const pasteData = pasteboard.createData('text/plain', contact.wechatId);
+        const pasteData = pasteboard.createData('text/plain', wechatId);
         const systemPasteboard = pasteboard.getSystemPasteboard();
         systemPasteboard.setData(pasteData);
         promptAction.showToast({ message: '微信号已复制' });
       } catch (err) {
-        promptAction.showToast({ message: '微信号: ' + contact.wechatId });
+        promptAction.showToast({ message: '微信号: ' + wechatId });
       }
     } else {
       promptAction.showToast({ message: '暂无微信号' });
     }
-    console.info('### onCopyWechatByOpenid END');
   }
 
   async onCallPhoneByOpenid(openid: string) {
