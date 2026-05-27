@@ -217,24 +217,24 @@ struct CertifiedUsers {
   }
 
   updateRoleOptionsCounts() {
-    const counts = this.tagCounts;
+    const c = this.tagCounts;
     this.roleOptions = [
-      { label: '全部', value: 'all', count: counts['all'] || 0 },
-      { label: '我赞过', value: 'liked_by_me', count: counts['liked_by_me'] || 0 },
-      { label: '飞手', value: 'pilot', count: counts['pilot'] || 0 },
-      { label: '雇主', value: 'employer', count: counts['employer'] || 0 },
-      { label: '植保', value: '植保', count: counts['business_植保'] || 0 },
-      { label: '飞防', value: '飞防', count: counts['business_飞防'] || 0 },
-      { label: '吊运', value: '吊运', count: counts['business_吊运'] || 0 },
-      { label: '公司', value: '公司', count: counts['company'] || 0 },
-      { label: '职位', value: '职位', count: counts['position'] || 0 },
-      { label: '机型', value: '机型', count: counts['drone_model'] || 0 },
-      { label: 'CAAC', value: 'CAAC', count: counts['caac'] || 0 },
-      { label: 'UTC', value: 'UTC', count: counts['utc'] || 0 },
-      { label: '巡检', value: '巡检', count: counts['business_巡检'] || 0 },
-      { label: '测绘', value: '测绘', count: counts['business_测绘'] || 0 },
-      { label: '教学', value: '教学', count: counts['business_教学'] || 0 },
-      { label: '应急', value: '应急', count: counts['business_应急'] || 0 },
+      { label: '全部', value: 'all', count: c.all },
+      { label: '我赞过', value: 'liked_by_me', count: c.liked_by_me },
+      { label: '飞手', value: 'pilot', count: c.pilot },
+      { label: '雇主', value: 'employer', count: c.employer },
+      { label: '植保', value: '植保', count: c.business_植保 },
+      { label: '飞防', value: '飞防', count: c.business_飞防 },
+      { label: '吊运', value: '吊运', count: c.business_吊运 },
+      { label: '公司', value: '公司', count: c.company },
+      { label: '职位', value: '职位', count: c.position },
+      { label: '机型', value: '机型', count: c.drone_model },
+      { label: 'CAAC', value: 'CAAC', count: c.caac },
+      { label: 'UTC', value: 'UTC', count: c.utc },
+      { label: '巡检', value: '巡检', count: c.business_巡检 },
+      { label: '测绘', value: '测绘', count: c.business_测绘 },
+      { label: '教学', value: '教学', count: c.business_教学 },
+      { label: '应急', value: '应急', count: c.business_应急 },
     ];
   }
 
