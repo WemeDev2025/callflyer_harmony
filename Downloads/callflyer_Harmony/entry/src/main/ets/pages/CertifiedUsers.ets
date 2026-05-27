@@ -241,14 +241,12 @@ struct CertifiedUsers {
   }
 
   async onCopyWechatByOpenid(openid: string) {
-    console.info('【onCopyWechatByOpenid】进入方法，openid:', openid);
-    console.info('【onCopyWechatByOpenid】this:', this ? 'defined' : 'undefined');
-    console.info('【onCopyWechatByOpenid】this.users:', this.users ? 'defined' : 'undefined', 'length:', this.users?.length);
+    console.info('>>> onCopyWechatByOpenid CALLED with openid:', openid);
     const user = this.users.find(u => u.openid === openid);
-    console.info('【onCopyWechatByOpenid】user:', user ? 'found' : 'not found', 'wechatId:', user?.wechatId);
+    console.info('【复制微信】user:', user ? 'found' : 'not found', 'wechatId:', user?.wechatId);
     if (!user) return;
     const contact = await this.getContactByOpenid(openid);
-    console.info('【onCopyWechatByOpenid】contact:', JSON.stringify(contact));
+    console.info('【复制微信】contact:', JSON.stringify(contact));
     if (contact.wechatId) {
       try {
         const pasteData = pasteboard.createData('text/plain', contact.wechatId);
