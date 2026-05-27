@@ -357,8 +357,6 @@ export struct PilotCard {
                   .width(44)
                   .height(44)
                   .onClick(() => {
-                    console.info('>>> PilotCard onWechatClick trigger');
-                    console.info('>>> calling this.onWechatClick with:', this.user.openid);
                     this.onWechatClick?.(this.user.openid);
                   })
               }

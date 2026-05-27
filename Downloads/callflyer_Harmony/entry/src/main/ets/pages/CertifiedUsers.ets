@@ -448,40 +448,7 @@ struct CertifiedUsers {
         } else {
           ForEach(this.users, (user: PilotCardData) => {
             ListItem() {
-              PilotCard({
-                user: user,
-                showActions: true,
-                onWechatClick: (_openid: string) => {
-                  console.info('### Arrow function onWechatClick called, user:', JSON.stringify(user));
-                  const wechatId = user.wechatId || '';
-                  console.info('### wechatId:', wechatId);
-                  if (wechatId) {
-                    try {
-                      const pasteData = pasteboard.createData('text/plain', wechatId);
-                      const systemPasteboard = pasteboard.getSystemPasteboard();
-                      systemPasteboard.setData(pasteData);
-                      promptAction.showToast({ message: '微信号已复制' });
-                    } catch (err) {
-                      promptAction.showToast({ message: '微信号: ' + wechatId });
-                    }
-                  } else {
-                    promptAction.showToast({ message: '暂无微信号' });
-                  }
-                },
-                onCallClick: (openid: string) => {
-                  console.info('### Arrow function onCallClick called');
-                  const phone = user.phone || '';
-                  if (phone) {
-                    try {
-                      call.makeCall(phone);
-                    } catch (err) {
-                      promptAction.showToast({ message: '拨打 ' + phone });
-                    }
-                  } else {
-                    promptAction.showToast({ message: '暂无电话号码' });
-                  }
-                },
-              })
+              this.PilotCardItem(user)
             }
             .padding({ left: 18, right: 18 })
           }, (user: PilotCardData) => user.openid)
@@ -523,5 +490,42 @@ struct CertifiedUsers {
     }
     .width('100%')
     .height('100%')
+  }
+
+  @Builder
+  PilotCardItem(user: PilotCardData) {
+    PilotCard({
+      user: user,
+      showActions: true,
+      onWechatClick: () => {
+        console.info('### Builder PilotCardItem wechat click, user:', user.openid, 'wechatId:', user.wechatId);
+        const wechatId = user.wechatId || '';
+        if (wechatId) {
+          try {
+            const pasteData = pasteboard.createData('text/plain', wechatId);
+            const systemPasteboard = pasteboard.getSystemPasteboard();
+            systemPasteboard.setData(pasteData);
+            promptAction.showToast({ message: '微信号已复制' });
+          } catch (err) {
+            promptAction.showToast({ message: '微信号: ' + wechatId });
+          }
+        } else {
+          promptAction.showToast({ message: '暂无微信号' });
+        }
+      },
+      onCallClick: () => {
+        console.info('### Builder PilotCardItem call click, user:', user.openid, 'phone:', user.phone);
+        const phone = user.phone || '';
+        if (phone) {
+          try {
+            call.makeCall(phone);
+          } catch (err) {
+            promptAction.showToast({ message: '拨打 ' + phone });
+          }
+        } else {
+          promptAction.showToast({ message: '暂无电话号码' });
+        }
+      },
+    })
   }
 }
