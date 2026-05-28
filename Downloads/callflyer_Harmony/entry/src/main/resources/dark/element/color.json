@@ -1,0 +1,104 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#1a1a2e"
+    },
+    {
+      "name": "primary_color",
+      "value": "#4A9EFF"
+    },
+    {
+      "name": "accent_green",
+      "value": "#00E676"
+    },
+    {
+      "name": "accent_orange",
+      "value": "#FF7043"
+    },
+    {
+      "name": "accent_gold",
+      "value": "#FFB300"
+    },
+    {
+      "name": "page_background_start",
+      "value": "#1a1a2e"
+    },
+    {
+      "name": "page_background_end",
+      "value": "#16213e"
+    },
+    {
+      "name": "text_on_dark_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#E7F8FC"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#BDBDBD"
+    },
+    {
+      "name": "page_bg",
+      "value": "#121212"
+    },
+    {
+      "name": "card_bg",
+      "value": "#1E1E1E"
+    },
+    {
+      "name": "card_bg_secondary",
+      "value": "#2D2D2D"
+    },
+    {
+      "name": "text_title",
+      "value": "#E7F8FC"
+    },
+    {
+      "name": "text_body",
+      "value": "#B0BEC5"
+    },
+    {
+      "name": "text_caption",
+      "value": "#78909C"
+    },
+    {
+      "name": "text_label",
+      "value": "#90A4AE"
+    },
+    {
+      "name": "divider",
+      "value": "#37474F"
+    },
+    {
+      "name": "icon_wechat",
+      "value": "#07C160"
+    },
+    {
+      "name": "icon_call",
+      "value": "#4A9EFF"
+    },
+    {
+      "name": "avatar_placeholder",
+      "value": "#37474F"
+    },
+    {
+      "name": "skeleton_bg",
+      "value": "#2D2D2D"
+    },
+    {
+      "name": "badge_green",
+      "value": "#00E676"
+    },
+    {
+      "name": "indicator_selected",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "indicator_unselected",
+      "value": "#66FFFFFF"
+    }
+  ]
+}

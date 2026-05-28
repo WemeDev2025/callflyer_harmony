@@ -114,8 +114,8 @@ struct CertifiedUsers {
       const record: systemShare.SharedRecord = {
         utd: 'general.hyperlink',
         content: 'https://wetofly.com/data/pic_h5Share.png',
-        title: '呼叫飞手 - 无人机服务调度平台',
-        description: '专业飞手调度平台，找飞手、发任务一键搞定'
+        title: '呼叫飞手-找飞手 找雇主 都在这了',
+        description: '打造 10W+ 职业飞手库'
       };
       // 创建分享数据
       const sharedData = new systemShare.SharedData(record);

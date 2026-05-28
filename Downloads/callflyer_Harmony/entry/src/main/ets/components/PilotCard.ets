@@ -182,7 +182,7 @@ export struct PilotCard {
           })
 
         Column() {
-          Text(this.user.nickname)
+          Text(this.user.nickname.length > 12 ? this.user.nickname.substring(0, 12) + '...' : this.user.nickname)
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_title'))
@@ -240,7 +240,8 @@ export struct PilotCard {
         }
         .alignItems(HorizontalAlign.Center)
         .height(44)
-        .padding({ left: 12, right: 12 })
+        .padding({ left: 12, right: -14 })
+        .margin({ left: 14 })
         .onClick(() => this.handleLikeClick())
       }
       .width('100%')
@@ -428,7 +429,7 @@ export struct PilotCard {
       }
     }
     .width('100%')
-    .padding(28)
+    .padding(22)
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(14)
     .margin({ bottom: 12 })

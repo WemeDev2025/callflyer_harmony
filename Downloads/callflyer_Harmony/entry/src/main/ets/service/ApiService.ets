@@ -29,11 +29,19 @@ export interface BannerItem {
   clickType: string;
   clickPage: string;
   clickUrl: string;
+  // 奖励位字段
+  isRewardSlot?: boolean;
+  title?: string;
+  subtitle?: string;
+  actionText?: string;
 }
 
 interface RawConfig {
   carousel: RawBannerItem[];
   defaultTopTitle?: string;
+  todayActiveUsers?: number;
+  totalPilotCount?: number;
+  totalEmployerCount?: number;
 }
 
 interface RawBannerItem {
@@ -123,6 +131,9 @@ function parseBanners(response: RawConfig): BannerItem[] {
 
 export interface ConfigResult {
   defaultTopTitle: string;
+  todayActiveUsers?: number;
+  totalPilotCount?: number;
+  totalEmployerCount?: number;
 }
 
 export async function fetchConfig(): Promise<ConfigResult> {
@@ -149,7 +160,10 @@ export async function fetchConfig(): Promise<ConfigResult> {
           try {
             const response = JSON.parse(data.result as string) as RawConfig;
             resolve({
-              defaultTopTitle: response.defaultTopTitle || ''
+              defaultTopTitle: response.defaultTopTitle || '',
+              todayActiveUsers: response.todayActiveUsers || 0,
+              totalPilotCount: response.totalPilotCount || 0,
+              totalEmployerCount: response.totalEmployerCount || 0
             });
           } catch (parseErr) {
             reject(parseErr);

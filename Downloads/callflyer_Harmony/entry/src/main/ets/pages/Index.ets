@@ -118,6 +118,28 @@ struct Index {
   // 跑马灯
   @State marqueeText: string = '';
 
+  // 运营数据
+  @State todayActiveUsers: number = 0;
+  @State totalPilotCount: number = 0;
+  @State totalEmployerCount: number = 0;
+
+  // 奖励位光晕动画状态
+  @State lightAOffsetX: number = -25;
+  @State lightAOffsetY: number = 5;
+  @State lightAOpacity: number = 0.5;
+  @State lightAScale: number = 0.8;
+  @State lightARadius: number = 80;
+  @State lightBOffsetX: number = 15;
+  @State lightBOffsetY: number = -10;
+  @State lightBOpacity: number = 0.4;
+  @State lightBScale: number = 0.8;
+  @State lightBRadius: number = 80;
+  @State lightCOffsetX: number = 25;
+  @State lightCOffsetY: number = -35;
+  @State lightCOpacity: number = 0.5;
+  @State lightCScale: number = 0.9;
+  @State lightCRadius: number = 80;
+
   // 飞手列表
   @State pilots: PilotItem[] = [];
   @State pilotsLoading: boolean = false;
@@ -252,17 +274,76 @@ struct Index {
   async loadBanner() {
     try {
       const banners = await fetchBanners();
-      this.imageList = banners.length > 0 ? banners : this.getDefaultBanners();
+      const baseBanners = banners.length > 0 ? banners : this.getDefaultBanners();
+      const rewardBanner = this.getRewardBanner();
+      this.imageList = [rewardBanner, ...baseBanners];
     } catch {
-      this.imageList = this.getDefaultBanners();
+      const rewardBanner = this.getRewardBanner();
+      this.imageList = [rewardBanner, ...this.getDefaultBanners()];
     }
     this.bannerLoaded = true;
+    // 启动光晕动画
+    this.startLightAnimations();
+  }
+
+  // 启动光晕流动动画
+  startLightAnimations() {
+    // 光晕 A - 青色 8秒周期
+    setTimeout(() => {
+      animateTo({
+        duration: 8000,
+        curve: Curve.EaseInOut,
+        iterations: -1,
+        playMode: PlayMode.Alternate,
+      }, () => {
+        this.lightAOffsetX = 125;
+        this.lightAOffsetY = 25;
+        this.lightAOpacity = 0.8;
+        this.lightAScale = 1.2;
+        this.lightARadius = 255;
+      });
+    }, 0);
+
+    // 光晕 B - 橙色 11秒周期
+    setTimeout(() => {
+      animateTo({
+        duration: 11000,
+        curve: Curve.EaseInOut,
+        iterations: -1,
+        playMode: PlayMode.Alternate,
+      }, () => {
+        this.lightBOffsetX = -100;
+        this.lightBOffsetY = 40;
+        this.lightBOpacity = 0.8;
+        this.lightBScale = 1.3;
+        this.lightBRadius = 255;
+      });
+    }, 0);
+
+    // 光晕 C - 蓝色 14秒周期
+    setTimeout(() => {
+      animateTo({
+        duration: 14000,
+        curve: Curve.EaseInOut,
+        iterations: -1,
+        playMode: PlayMode.Alternate,
+      }, () => {
+        this.lightCOffsetX = 120;
+        this.lightCOffsetY = -75;
+        this.lightCOpacity = 0.7;
+        this.lightCScale = 1.2;
+        this.lightCRadius = 255;
+      });
+    }, 0);
   }
 
   async loadConfig() {
     try {
       const config = await fetchConfig();
       this.marqueeText = config.defaultTopTitle || '呼叫飞手';
+      this.todayActiveUsers = config.todayActiveUsers ?? 0;
+      this.totalPilotCount = config.totalPilotCount ?? 0;
+      this.totalEmployerCount = config.totalEmployerCount ?? 0;
     } catch {
       this.marqueeText = '呼叫飞手';
     }
@@ -475,6 +556,21 @@ struct Index {
     return [
       { uid: '1', src: 'https://wetofly.com/data/banner/banner1.png', isVideoBanner: false, videoUrl: '', clickType: 'none', clickPage: '', clickUrl: '' }
     ];
+  }
+
+  getRewardBanner(): BannerItem {
+    return {
+      uid: 'reward_1',
+      src: '',
+      isVideoBanner: false,
+      videoUrl: '',
+      clickType: 'none',
+      clickPage: '',
+      clickUrl: '',
+      isRewardSlot: true,
+      title: '呼叫飞手 - 无人机服务调度平台',
+      subtitle: '打造职业飞手库'
+    };
   }
 
   // 保存网络图片到本地相册（使用安全弹窗方式，无需WRITE权限）
@@ -946,26 +1042,247 @@ struct Index {
             Column() {
               Swiper() {
                 ForEach(this.imageList, (item: BannerItem) => {
-                  Image(item.src)
+                  if (item.isRewardSlot) {
+                    // 奖励位占位图 - 深色渐变背景 + 彩色光晕
+                    Stack() {
+                      // 背景层
+                      Column()
+                        .width('100%')
+                        .height('100%')
+                        .backgroundColor('#242325')
+
+                      // 装饰光晕 A - 青色 (径向渐变模拟边缘弥散)
+                      Stack() {
+                        // 第1层 - 最外圈，最透明
+                        Column()
+                          .width(200)
+                          .height(200)
+                          .borderRadius(100)
+                          .backgroundColor('#06b6d4')
+                          .opacity(this.lightAOpacity * 0.1)
+                          .scale({ x: this.lightAScale, y: this.lightAScale })
+                        Column()
+                          .width(170)
+                          .height(170)
+                          .borderRadius(85)
+                          .backgroundColor('#06b6d4')
+                          .opacity(this.lightAOpacity * 0.15)
+                          .scale({ x: this.lightAScale, y: this.lightAScale })
+                        Column()
+                          .width(140)
+                          .height(140)
+                          .borderRadius(70)
+                          .backgroundColor('#06b6d4')
+                          .opacity(this.lightAOpacity * 0.2)
+                          .scale({ x: this.lightAScale, y: this.lightAScale })
+                        Column()
+                          .width(110)
+                          .height(110)
+                          .borderRadius(55)
+                          .backgroundColor('#06b6d4')
+                          .opacity(this.lightAOpacity * 0.3)
+                          .scale({ x: this.lightAScale, y: this.lightAScale })
+                        Column()
+                          .width(80)
+                          .height(80)
+                          .borderRadius(40)
+                          .backgroundColor('#06b6d4')
+                          .opacity(this.lightAOpacity * 0.4)
+                          .scale({ x: this.lightAScale, y: this.lightAScale })
+                        Column()
+                          .width(50)
+                          .height(50)
+                          .borderRadius(25)
+                          .backgroundColor('#FFFFFF')
+                          .opacity(this.lightAOpacity * 0.25)
+                          .scale({ x: this.lightAScale, y: this.lightAScale })
+                      }
+                      .position({ left: this.lightAOffsetX - 30, top: this.lightAOffsetY - 30 })
+                      .blur(40)
+
+                      // 装饰光晕 B - 橙色 (径向渐变模拟边缘弥散)
+                      Stack() {
+                        Column()
+                          .width(180)
+                          .height(180)
+                          .borderRadius(90)
+                          .backgroundColor('#f97316')
+                          .opacity(this.lightBOpacity * 0.1)
+                          .scale({ x: this.lightBScale, y: this.lightBScale })
+                        Column()
+                          .width(150)
+                          .height(150)
+                          .borderRadius(75)
+                          .backgroundColor('#f97316')
+                          .opacity(this.lightBOpacity * 0.15)
+                          .scale({ x: this.lightBScale, y: this.lightBScale })
+                        Column()
+                          .width(120)
+                          .height(120)
+                          .borderRadius(60)
+                          .backgroundColor('#f97316')
+                          .opacity(this.lightBOpacity * 0.2)
+                          .scale({ x: this.lightBScale, y: this.lightBScale })
+                        Column()
+                          .width(90)
+                          .height(90)
+                          .borderRadius(45)
+                          .backgroundColor('#f97316')
+                          .opacity(this.lightBOpacity * 0.3)
+                          .scale({ x: this.lightBScale, y: this.lightBScale })
+                        Column()
+                          .width(60)
+                          .height(60)
+                          .borderRadius(30)
+                          .backgroundColor('#f97316')
+                          .opacity(this.lightBOpacity * 0.4)
+                          .scale({ x: this.lightBScale, y: this.lightBScale })
+                        Column()
+                          .width(40)
+                          .height(40)
+                          .borderRadius(20)
+                          .backgroundColor('#FFFFFF')
+                          .opacity(this.lightBOpacity * 0.25)
+                          .scale({ x: this.lightBScale, y: this.lightBScale })
+                      }
+                      .position({ right: this.lightBOffsetX - 30, top: this.lightBOffsetY - 30 })
+                      .blur(40)
+
+                      // 装饰光晕 C - 蓝色 (径向渐变模拟边缘弥散)
+                      Stack() {
+                        Column()
+                          .width(240)
+                          .height(240)
+                          .borderRadius(120)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.1)
+                          .scale({ x: this.lightCScale, y: this.lightCScale })
+                        Column()
+                          .width(200)
+                          .height(200)
+                          .borderRadius(100)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.12)
+                          .scale({ x: this.lightCScale, y: this.lightCScale })
+                        Column()
+                          .width(160)
+                          .height(160)
+                          .borderRadius(80)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.18)
+                          .scale({ x: this.lightCScale, y: this.lightCScale })
+                        Column()
+                          .width(120)
+                          .height(120)
+                          .borderRadius(60)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.25)
+                          .scale({ x: this.lightCScale, y: this.lightCScale })
+                        Column()
+                          .width(80)
+                          .height(80)
+                          .borderRadius(40)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.35)
+                          .scale({ x: this.lightCScale, y: this.lightCScale })
+                        Column()
+                          .width(50)
+                          .height(50)
+                          .borderRadius(25)
+                          .backgroundColor('#FFFFFF')
+                          .opacity(this.lightCOpacity * 0.2)
+                          .scale({ x: this.lightCScale, y: this.lightCScale })
+                      }
+                      .position({ right: this.lightCOffsetX - 30, bottom: this.lightCOffsetY - 30 })
+                      .blur(40)
+
+                      // 内容层
+                      Column() {
+                        Text(item.title || '呼叫飞手')
+                          .fontSize(28)
+                          .fontWeight(900)
+                          .fontColor('#FFFFFF')
+                          .textAlign(TextAlign.Center)
+                          .shadow({
+                            radius: 16,
+                            color: '#06b6d4',
+                            offsetX: 0,
+                            offsetY: 4
+                          })
+                          .margin({ bottom: 8 })
+
+                        Text(item.subtitle || '打造职业飞手库')
+                          .fontSize(16)
+                          .fontColor('#cffafe')
+                          .fontWeight(500)
+                          .textAlign(TextAlign.Center)
+                          .shadow({
+                            radius: 8,
+                            color: '#000000',
+                            offsetX: 0,
+                            offsetY: 2
+                          })
+
+                        Row() {
+                          if (this.todayActiveUsers > 0) {
+                            Text('今日访问 ' + this.todayActiveUsers + ' 人')
+                              .fontSize(12)
+                              .fontColor('rgba(255, 255, 255, 0.9)')
+                          }
+                          if (this.todayActiveUsers > 0 && this.totalPilotCount > 0) {
+                            Text(' · ')
+                              .fontSize(12)
+                              .fontColor('rgba(255, 255, 255, 0.4)')
+                          }
+                          if (this.totalPilotCount > 0) {
+                            Text('报道飞手 ' + this.totalPilotCount + ' 人')
+                              .fontSize(12)
+                              .fontColor('rgba(255, 255, 255, 0.9)')
+                          }
+                          if ((this.todayActiveUsers > 0 || this.totalPilotCount > 0) && this.totalEmployerCount > 0) {
+                            Text(' · ')
+                              .fontSize(12)
+                              .fontColor('rgba(255, 255, 255, 0.4)')
+                          }
+                          if (this.totalEmployerCount > 0) {
+                            Text('注册雇主 ' + this.totalEmployerCount + ' 人')
+                              .fontSize(12)
+                              .fontColor('rgba(255, 255, 255, 0.9)')
+                          }
+                        }
+                        .margin({ top: 12 })
+                      }
+                      .width('100%')
+                      .height('100%')
+                      .justifyContent(FlexAlign.Center)
+                      .alignItems(HorizontalAlign.Center)
+                    }
                     .width('100%')
                     .height('100%')
-                    .objectFit(ImageFit.Cover)
                     .borderRadius(12)
-                    .onClick(() => {
-                      if (item.clickPage === '/pages/pilot-map/index') {
-                        const token = AuthService.getAuthToken() || '';
-                        const mapUrl = 'https://wetofly.com/map?token=' + encodeURIComponent(token);
-                        console.info('【地图跳转】token: ' + (token ? '有值' : '空') + ', url: ' + mapUrl);
-                        router.pushUrl({ url: 'pages/WebView', params: { url: mapUrl, title: '地图' } });
-                      } else if (item.clickPage === 'pages/new/index' || item.clickPage === '/pages/new/index') {
-                        router.pushUrl({ url: 'pages/CertifiedUsers' });
-                      } else if ((item.clickType === 'h5' || item.clickType === 'url') && item.clickUrl) {
-                        router.pushUrl({ url: 'pages/WebView', params: { url: item.clickUrl, title: item.clickPage || '网页' } });
-                      } else if (!this.hasValidClick(item)) {
-                        // 配置参数为空，保存图片到相册
-                        this.saveImageToGallery(item.src);
-                      }
-                    })
+                    .clip(true)
+                  } else {
+                    Image(item.src)
+                      .width('100%')
+                      .height('100%')
+                      .objectFit(ImageFit.Cover)
+                      .borderRadius(12)
+                      .onClick(() => {
+                        if (item.clickPage === '/pages/pilot-map/index') {
+                          const token = AuthService.getAuthToken() || '';
+                          const mapUrl = 'https://wetofly.com/map?token=' + encodeURIComponent(token);
+                          console.info('【地图跳转】token: ' + (token ? '有值' : '空') + ', url: ' + mapUrl);
+                          router.pushUrl({ url: 'pages/WebView', params: { url: mapUrl, title: '地图' } });
+                        } else if (item.clickPage === 'pages/new/index' || item.clickPage === '/pages/new/index') {
+                          router.pushUrl({ url: 'pages/CertifiedUsers' });
+                        } else if ((item.clickType === 'h5' || item.clickType === 'url') && item.clickUrl) {
+                          router.pushUrl({ url: 'pages/WebView', params: { url: item.clickUrl, title: item.clickPage || '网页' } });
+                        } else if (!this.hasValidClick(item)) {
+                          // 配置参数为空，保存图片到相册
+                          this.saveImageToGallery(item.src);
+                        }
+                      })
+                  }
                 })
               }
               .width('100%')
@@ -975,12 +1292,40 @@ struct Index {
               .loop(true)
               .indicator(false)
               .itemSpace(10)
+              .onAnimationStart((index: number, targetIndex: number) => {
+                this.currentIndex = targetIndex;
+              })
               .onChange((index: number) => {
                 this.currentIndex = index;
               })
+
+              // 自定义指示器（放在轮播图下方）
+              if (this.imageList.length > 1) {
+                Row() {
+                  ForEach(this.imageList, (item: BannerItem, index: number) => {
+                    if (index === this.currentIndex) {
+                      // 选中 - 圆角长条
+                      Rect()
+                        .width(16)
+                        .height(6)
+                        .fill($r('app.color.indicator_selected'))
+                        .radius(3)
+                        .margin({ left: index === 0 ? 0 : 4, right: 4 })
+                    } else {
+                      // 未选中 - 小圆点
+                      Circle()
+                        .width(6)
+                        .height(6)
+                        .fill($r('app.color.indicator_unselected'))
+                        .margin({ left: index === 0 ? 0 : 4, right: 4 })
+                    }
+                  })
+                }
+                .margin({ top: 10 })
+              }
             }
             .width('100%')
-            .height(200)
+            .height(230)
             .padding({ left: 18, right: 18, top: 0, bottom: 0 })
             .opacity(this.bannerLoaded ? 1 : 0)
 
