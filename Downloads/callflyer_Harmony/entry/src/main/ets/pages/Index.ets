@@ -1735,15 +1735,25 @@ struct Index {
                                 offsetX: 0,
                                 offsetY: 1
                               })
-                            // 按钮
+                            // 按钮 - 菱形绿色渐变
                             Text(item.actionText || '观看解锁')
                               .fontSize(15)
                               .fontWeight(700)
                               .fontColor('#2c2c2c')
-                              .backgroundColor('#22c55e')
-                              .borderRadius(6)
                               .padding({ left: 24, right: 24, top: 8, bottom: 8 })
                               .margin({ top: 10 })
+                              .borderRadius(12)
+                              .border({ width: 1, color: 'rgba(103, 232, 249, 0.5)' })
+                              .shadow({
+                                radius: 12,
+                                color: 'rgba(6, 182, 212, 0.4)',
+                                offsetX: 0,
+                                offsetY: 4
+                              })
+                              .linearGradient({
+                                direction: GradientDirection.Top,
+                                colors: [['#b2e933', 0], ['#4ace39', 1]]
+                              })
                           }
                           .margin({ bottom: 16 })
 
@@ -1776,7 +1786,6 @@ struct Index {
                             }
                           }
                           .margin({ top: 8 })
-                            .margin({ top: 8 })
                         }
                       }
                       .width('100%')
