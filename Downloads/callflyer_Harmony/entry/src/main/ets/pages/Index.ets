@@ -1710,7 +1710,22 @@ struct Index {
                           .borderRadius(12)
                           .border({ width: 1, color: 'rgba(255,255,255,0.1)' })
                         } else {
-                          // 未领取：显示统计数据
+                          // 未领取：显示标题副标题和按钮
+                          Column() {
+                            Text(item.title || '')
+                              .fontSize(22)
+                              .fontWeight(700)
+                              .fontColor('#FFFFFF')
+                              .textAlign(TextAlign.Center)
+                            Text(item.subtitle || '')
+                              .fontSize(14)
+                              .fontColor('rgba(255,255,255,0.8)')
+                              .textAlign(TextAlign.Center)
+                              .margin({ top: 6 })
+                          }
+                          .margin({ bottom: 16 })
+
+                          // 统计数据
                           Row() {
                             if (this.todayActiveUsers > 0) {
                               Text('今日访问 ' + this.todayActiveUsers + ' 人')
