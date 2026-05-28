@@ -32,6 +32,7 @@ struct Profile {
   @State currentBusinessScope: string = '';
   @State licenseUploadVisible: boolean = false;
   @State showOptionalFields: boolean = false;  // 可选字段折叠状态
+  @State uploadingDroneImage: boolean = false;
 
   // 角色选项
   roleOptions: RoleOption[] = [
@@ -58,13 +59,16 @@ struct Profile {
       userRole: 'employer',
       pilotCode: '',
       droneModels: [],
+      droneModel: '',
       businessScope: [],
       licenseUrl: '',
+      licenseType: '',
       licenseStatus: '',
       licenseVerified: false,
       licenseRejected: false,
       licenseReason: '',
       orgCode: '',
+      institutionId: '',
       workMu: null,
       workKg: null,
       droneImages: []
@@ -152,13 +156,16 @@ struct Profile {
       userRole: this.form.userRole,
       pilotCode: this.form.pilotCode,
       droneModels: this.form.droneModels,
+      droneModel: this.form.droneModels.join('/'),
       businessScope: this.form.businessScope,
       licenseUrl: this.form.licenseUrl,
+      licenseType: this.form.licenseType,
       licenseStatus: this.form.licenseStatus,
       licenseVerified: this.form.licenseVerified,
       licenseRejected: this.form.licenseRejected,
       licenseReason: this.form.licenseReason,
       orgCode: this.form.orgCode,
+      institutionId: this.form.orgCode,
       workMu: this.form.workMu,
       workKg: this.form.workKg,
       droneImages: this.form.droneImages
@@ -189,6 +196,51 @@ struct Profile {
     const models = [...this.form.droneModels];
     models.splice(index, 1);
     this.form.droneModels = models;
+  }
+
+  async handleAddDroneImage() {
+    if (this.uploadingDroneImage) return;
+    try {
+      const photoPicker = new photoAccessHelper.PhotoViewPicker();
+      const options = new photoAccessHelper.PhotoSelectOptions();
+      options.MIMEType = photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE;
+      options.maxSelectNumber = 9 - this.form.droneImages.length;
+      const result = await photoPicker.select(options);
+      const uris = result.photoUris;
+      if (!uris || uris.length === 0) return;
+
+      this.uploadingDroneImage = true;
+      const token = AuthService.getAuthToken();
+      const newImages: string[] = [];
+
+      for (const uri of uris) {
+        const fileStat = fileIo.statSync(uri);
+        const buffer = new ArrayBuffer(fileStat.size);
+        const file = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
+        fileIo.readSync(file.fd, buffer);
+        fileIo.closeSync(file.fd);
+        const uploadResult = await uploadAvatar(buffer, token);
+        if (uploadResult.url) {
+          newImages.push(uploadResult.url);
+        }
+      }
+
+      if (newImages.length > 0) {
+        this.form.droneImages = [...this.form.droneImages, ...newImages];
+        promptAction.showToast({ message: `已上传${newImages.length}张图片` });
+      }
+    } catch (e) {
+      console.error('【上传机型图片失败】', JSON.stringify(e));
+      promptAction.showToast({ message: '上传失败' });
+    } finally {
+      this.uploadingDroneImage = false;
+    }
+  }
+
+  handleRemoveDroneImage(index: number) {
+    const images = [...this.form.droneImages];
+    images.splice(index, 1);
+    this.form.droneImages = images;
   }
 
   handleAddBusinessScope() {
@@ -253,6 +305,7 @@ struct Profile {
   }
 
   async handleUploadLicense() {
+    if (this.uploadingAvatar) return;
     try {
       const photoPicker = new photoAccessHelper.PhotoViewPicker();
       const options = new photoAccessHelper.PhotoSelectOptions();
@@ -263,9 +316,29 @@ struct Profile {
       if (!uri) {
         return;
       }
-      promptAction.showToast({ message: '执照上传功能开发中' });
+      this.uploadingAvatar = true;
+      const fileStat = fileIo.statSync(uri);
+      const buffer = new ArrayBuffer(fileStat.size);
+      const file = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
+      fileIo.readSync(file.fd, buffer);
+      fileIo.closeSync(file.fd);
+      const token = AuthService.getAuthToken();
+      const uploadResult = await uploadAvatar(buffer, token);
+      if (uploadResult.url) {
+        this.form.licenseUrl = uploadResult.url;
+        this.form.licenseStatus = '待审核';
+        this.form.licenseVerified = false;
+        this.form.licenseRejected = false;
+        this.form.licenseReason = '';
+        promptAction.showToast({ message: '执照上传成功' });
+      } else {
+        promptAction.showToast({ message: '上传失败' });
+      }
     } catch (e) {
       console.error('【上传执照失败】', JSON.stringify(e));
+      promptAction.showToast({ message: '上传失败' });
+    } finally {
+      this.uploadingAvatar = false;
     }
   }
 
@@ -362,7 +435,7 @@ struct Profile {
                 Row() {
                   Text('身份选择')
                     .fontSize(14)
-                    .fontColor('#000000')
+                    .fontColor($r('app.color.text_primary'))
                   Blank()
                   ForEach(this.roleOptions, (item: RoleOption) => {
                     Row() {
@@ -399,7 +472,7 @@ struct Profile {
                 }
                 .width('100%')
                 .padding(14)
-                .backgroundColor('#f5f5f5')
+                .backgroundColor($r('app.color.card_bg_secondary'))
                 .borderRadius(10)
                 // 图片认证
                 Row() {
@@ -407,7 +480,7 @@ struct Profile {
                     .fontSize(14)
                     .fontColor($r('app.color.text_primary'))
                   if (this.form.licenseVerified) {
-                    Text('已认证')
+                    Text(this.form.licenseType || '已认证')
                       .fontSize(13)
                       .backgroundColor('#00C85333')
                       .fontColor('#00C853')
@@ -426,17 +499,17 @@ struct Profile {
                   Blank()
                   Text(this.form.licenseUrl ? '重新上传' : '点击上传')
                     .fontSize(14)
-                    .fontColor('#000000')
+                    .fontColor($r('app.color.text_primary'))
                     .onClick(() => this.handleUploadLicense())
                 }
                 .width('100%')
                 .padding(14)
-                .backgroundColor('#f5f5f5')
+                .backgroundColor($r('app.color.card_bg_secondary'))
                 .borderRadius(10)
               }
               .width('100%')
               .padding({ left: 18, right: 18, top: 22, bottom: 22 })
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.card_bg'))
               .borderRadius(18)
               .margin({ top: 44 })
 
@@ -458,7 +531,7 @@ struct Profile {
                       .onSubmit(() => this.handleAddBusinessScope())
                     Text('添加')
                       .fontSize($r('app.float.input_action_font_size'))
-                      .fontColor('#000000')
+                      .fontColor($r('app.color.text_primary'))
                       .margin({ left: 10 })
                       .onClick(() => this.handleAddBusinessScope())
                   }
@@ -469,7 +542,7 @@ struct Profile {
                           Text(scope + '  ×')
                             .fontSize(12)
                             .backgroundColor('#F5F5F5')
-                            .fontColor('#333333')
+                            .fontColor($r('app.color.text_primary'))
                             .borderRadius(4)
                             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
                             .onClick(() => this.handleRemoveBusinessScope(index))
@@ -497,7 +570,7 @@ struct Profile {
                       .onSubmit(() => this.handleAddDroneModel())
                     Text('添加')
                       .fontSize($r('app.float.input_action_font_size'))
-                      .fontColor('#000000')
+                      .fontColor($r('app.color.text_primary'))
                       .margin({ left: 10 })
                       .onClick(() => this.handleAddDroneModel())
                   }
@@ -508,7 +581,7 @@ struct Profile {
                           Text(model + '  ×')
                             .fontSize(12)
                             .backgroundColor('#F5F5F5')
-                            .fontColor('#333333')
+                            .fontColor($r('app.color.text_primary'))
                             .borderRadius(4)
                             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
                             .onClick(() => this.handleRemoveDroneModel(index))
@@ -520,6 +593,70 @@ struct Profile {
                   }
                 }
                 .width('88%')
+
+                // 机型贴图上传
+                if (this.form.droneModels.length > 0) {
+                  Column() {
+                    Text('机型贴图')
+                      .fontSize(14)
+                      .fontColor($r('app.color.text_secondary'))
+                      .width('88%')
+                      .padding({ left: 12, right: 12, top: 12, bottom: 8 })
+
+                    List() {
+                      ForEach(this.form.droneImages, (imgUrl: string, index: number) => {
+                        ListItem() {
+                          Stack() {
+                            Image(imgUrl)
+                              .width(80)
+                              .height(80)
+                              .borderRadius(8)
+                              .objectFit(ImageFit.Cover)
+                            Circle()
+                              .width(20)
+                              .height(20)
+                              .fill('rgba(0,0,0,0.5)')
+                              .position({ x: 58, y: 2 })
+                            Text('×')
+                              .fontSize(12)
+                              .fontColor('#FFFFFF')
+                              .textAlign(TextAlign.Center)
+                              .width(20)
+                              .height(20)
+                              .position({ x: 58, y: 2 })
+                              .onClick(() => this.handleRemoveDroneImage(index))
+                          }
+                          .width(80)
+                          .height(80)
+                          .alignContent(Alignment.TopEnd)
+                        }
+                        .margin({ right: 8 })
+                      })
+                      if (this.form.droneImages.length < 9) {
+                        ListItem() {
+                          Column() {
+                            Text('+')
+                              .fontSize(24)
+                              .fontColor($r('app.color.text_secondary'))
+                          }
+                          .width(80)
+                          .height(80)
+                          .backgroundColor($r('app.color.card_bg_secondary'))
+                          .borderRadius(8)
+                          .justifyContent(FlexAlign.Center)
+                          .onClick(() => this.handleAddDroneImage())
+                        }
+                      }
+                    }
+                    .width('88%')
+                    .listDirection(Axis.Horizontal)
+                    .scrollBar(BarState.Off)
+                    .padding({ left: 12, right: 12, bottom: 12 })
+                  }
+                  .width('100%')
+                  .padding({ top: 12 })
+                }
+
                 // 机构码
                 Column() {
                   Row() {
@@ -537,7 +674,7 @@ struct Profile {
                   .onClick(() => this.handleOrgCodeTap())
                 }
                 .width('88%')
-                .backgroundColor('#f5f5f5')
+                .backgroundColor($r('app.color.card_bg_secondary'))
                 .borderRadius(10)
               }
               .width('100%')
@@ -635,7 +772,7 @@ struct Profile {
     }
     .width('100%')
     .padding({ left: 14, right: 14 })
-    .backgroundColor('#f5f5f5')
+    .backgroundColor($r('app.color.card_bg_secondary'))
     .borderRadius(10)
   }
 
@@ -658,7 +795,8 @@ struct Profile {
       onConfirm: this.handleOrgCodeConfirm.bind(this),
       onCancel: this.handleOrgCodeCancel.bind(this)
     }),
-    alignment: DialogAlignment.Center
+    alignment: DialogAlignment.Center,
+    backgroundColor: Color.Transparent
   });
 
   handleOrgCodeTap() {
@@ -712,15 +850,15 @@ struct OrgCodeDialog {
       if (this.orgCodeError) {
         Text(this.orgCodeError)
           .fontSize(12)
-          .fontColor('#FF3B30')
+          .fontColor($r('app.color.accent_orange'))
       }
 
       Row() {
         Button('取消')
           .width('45%')
           .height(40)
-          .backgroundColor('#f5f5f5')
-          .fontColor('#666666')
+          .backgroundColor($r('app.color.card_bg_secondary'))
+          .fontColor($r('app.color.text_secondary'))
           .borderRadius(8)
           .onClick(() => this.onCancel())
 
@@ -728,14 +866,12 @@ struct OrgCodeDialog {
           .width('45%')
           .height(40)
           .backgroundColor($r('app.color.badge_green'))
-          .fontColor('#FFFFFF')
+          .fontColor($r('app.color.text_on_dark_background'))
           .borderRadius(8)
           .onClick(() => this.onConfirm())
       }
     }
     .width('85%')
-    .padding(20)
-    .backgroundColor('#FFFFFF')
-    .borderRadius(16)
+    .padding(16)
   }
 }

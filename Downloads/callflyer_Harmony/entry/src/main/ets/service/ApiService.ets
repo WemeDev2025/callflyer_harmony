@@ -806,13 +806,16 @@ export interface ProfileForm {
   userRole: string;
   pilotCode: string;
   droneModels: string[];
+  droneModel: string;
   businessScope: string[];
   licenseUrl: string;
+  licenseType: string;
   licenseStatus: string;
   licenseVerified: boolean;
   licenseRejected: boolean;
   licenseReason: string;
   orgCode: string;
+  institutionId: string;
   workMu: number | null;
   workKg: number | null;
   droneImages: string[];
@@ -844,10 +847,19 @@ export async function fetchProfile(openid: string, token?: string): Promise<Prof
         if (data.result) {
           console.info('【接口返回】fetchProfile:', data.result as string);
           try {
-            const p = JSON.parse(data.result as string) as Record<string, string | number | boolean | null>;
+            const p = JSON.parse(data.result as string) as Record<string, Object>;
             const getStr = (key: string, fallback: string): string => {
               const v = p[key];
               return typeof v === 'string' ? v : fallback;
+            };
+            const getArr = (key: string): string[] => {
+              const v = p[key];
+              if (Array.isArray(v)) {
+                const arr = v as string[];
+                return arr.filter(s => typeof s === 'string') as string[];
+              }
+              if (typeof v === 'string') return v.split('/').map(s => s.trim()).filter(s => s);
+              return [];
             };
             const getNum = (key: string): number | null => {
               const v = p[key];
@@ -866,17 +878,20 @@ export async function fetchProfile(openid: string, token?: string): Promise<Prof
               city: getStr('city', ''),
               userRole: getStr('user_role', getStr('userRole', 'employer')),
               pilotCode: getStr('pilotCode', getStr('pilot_code', '')),
-              droneModels: parseArrayField(getStr('drone_model', getStr('droneModel', ''))),
-              businessScope: parseArrayField(getStr('business_scope', getStr('businessScope', ''))),
+              droneModels: getArr('droneModel'),
+              droneModel: getArr('droneModel').join('/'),
+              businessScope: getArr('businessScope'),
               licenseUrl: getStr('license_url', getStr('licenseUrl', '')),
-              licenseStatus: getStr('license_type', getStr('licenseType', getStr('license_status', getStr('licenseStatus', '')))),
+              licenseType: getStr('license_type', getStr('licenseType', '')),
+              licenseStatus: getStr('license_status', getStr('licenseStatus', '')),
               licenseVerified: !!(p['license_verified'] || p['licenseVerified']),
               licenseRejected: isRejected(getStr('license_status', getStr('licenseStatus', ''))),
               licenseReason: getStr('license_reason', getStr('licenseReason', '')),
               orgCode: getStr('institution_id', getStr('institutionId', getStr('org_code', ''))),
+              institutionId: getStr('institution_id', getStr('institutionId', getStr('org_code', ''))),
               workMu: getNum('workStatsMu') ?? getNum('work_stats_mu'),
               workKg: getNum('workStatsKg') ?? getNum('work_stats_kg'),
-              droneImages: parseArrayField(getStr('drone_images', getStr('droneImages', '')))
+              droneImages: getArr('droneImages'),
             };
             resolve(profile);
           } catch (parseErr) {
