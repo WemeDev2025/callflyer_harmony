@@ -6,6 +6,7 @@ import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import fileIo from '@ohos.file.fs';
 import inputMethod from '@ohos.inputMethod';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import curves from '@ohos.curves';
 
 const PHONE_REGEX = /^1[3-9]\d{9}$/;
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
@@ -30,11 +31,12 @@ struct Profile {
   @State currentDroneModel: string = '';
   @State currentBusinessScope: string = '';
   @State licenseUploadVisible: boolean = false;
+  @State showOptionalFields: boolean = false;  // 可选字段折叠状态
 
   // 角色选项
   roleOptions: RoleOption[] = [
-    new RoleOption('我是飞手', 'pilot'),
-    new RoleOption('我是雇主', 'employer')
+    new RoleOption('飞手', 'pilot'),
+    new RoleOption('雇主', 'employer')
   ];
 
   aboutToAppear() {
@@ -292,8 +294,9 @@ struct Profile {
         Column() {
           Scroll() {
             Column() {
-              // 头像区域
-              Column() {
+              // 基础信息卡片
+              Column({ space: 16 }) {
+                // 头像区域
                 Column() {
                   Image(this.form.avatarUrl || DEFAULT_AVATAR)
                     .width(84)
@@ -313,7 +316,7 @@ struct Profile {
                 }
                 .width('100%')
                 .alignItems(HorizontalAlign.Center)
-                .margin({ top: 16, bottom: 12 })
+                .margin({ top: 12, bottom: 12 })
 
                 // 飞手码显示
                 if (this.form.userRole === 'pilot' && this.form.pilotCode) {
@@ -328,184 +331,77 @@ struct Profile {
                       .margin({ left: 4 })
                   }
                 }
-              }
-              .width('100%')
-              .padding({ top: 20, bottom: 16 })
 
-              // 基础信息卡片
-              Column() {
-                this.buildInputItem('昵称', this.form.nickname, '输入昵称')
-                this.buildDivider()
-                this.buildInputItem('手机号码', this.form.phone, '输入手机号', InputType.PhoneNumber)
-                this.buildDivider()
-                this.buildInputItem('微信号', this.form.wechatId, '输入微信号')
-                this.buildDivider()
-                this.buildInputItem('抖音号', this.form.douyinId, '输入抖音号')
-                this.buildDivider()
-                this.buildInputItem('视频号ID', this.form.channelsId, 'sph开头')
-                this.buildDivider()
-                this.buildInputItem('公司简称', this.form.company, '输入公司简称')
-                this.buildDivider()
-                this.buildInputItem('职位', this.form.position, '输入职位')
-                this.buildDivider()
-                this.buildInputItem('城市', this.form.city, '输入城市')
-              }
-              .width('100%')
-              .backgroundColor($r('app.color.card_bg'))
-              .borderRadius(16)
-              .padding({ left: 16, right: 16 })
-
-              // 身份选择
-              Column() {
-                Text('身份选择')
-                  .fontSize(14)
-                  .fontColor($r('app.color.text_secondary'))
-                  .margin({ bottom: 12 })
-                Row() {
-                  ForEach(this.roleOptions, (item: RoleOption) => {
-                    Row() {
-                      Radio({ value: item.value, group: 'userRoleGroup' })
-                        .checked(this.form.userRole === item.value)
-                        .onChange((isChecked: boolean) => {
-                          if (isChecked) {
-                            this.form.userRole = item.value;
-                          }
-                        })
-                      Text(item.label)
-                        .fontSize(15)
-                        .fontColor(this.form.userRole === item.value ? '#4A9EFF' : $r('app.color.text_primary'))
-                        .margin({ left: 6 })
-                    }
-                    .margin({ right: 24 })
-                  })
+                this.buildInputItem('昵称', this.form.nickname, '')
+                this.buildInputItem('手机号码', this.form.phone, '', InputType.PhoneNumber)
+                this.buildInputItem('微信号', this.form.wechatId, '')
+                if (this.showOptionalFields) {
+                  this.buildInputItem('抖音号', this.form.douyinId, '')
+                  this.buildInputItem('视频号ID', this.form.channelsId, '')
+                  this.buildInputItem('公司简称', this.form.company, '')
+                  this.buildInputItem('职位', this.form.position, '')
+                  this.buildInputItem('城市', this.form.city, '')
                 }
-              }
-              .width('100%')
-              .backgroundColor($r('app.color.card_bg'))
-              .borderRadius(16)
-              .padding(16)
-              .margin({ top: 12 })
-
-              // 飞手专属字段
-              if (this.form.userRole === 'pilot') {
-                Column() {
-                  // 主营业务
-                  Column() {
-                    Text('主营业务')
-                      .fontSize(14)
-                      .fontColor($r('app.color.text_secondary'))
-                      .width('100%')
-                      .margin({ bottom: 8 })
-                    Row() {
-                      TextInput({ placeholder: '输入主营业务', text: this.currentBusinessScope })
-                        .layoutWeight(1)
-                        .height(40)
-                        .backgroundColor($r('app.color.card_bg_secondary'))
-                        .borderRadius(8)
-                        .padding({ left: 10, right: 10 })
-                        .onChange((v: string) => this.currentBusinessScope = v)
-                        .onSubmit(() => this.handleAddBusinessScope())
-                      Text('添加')
-                        .fontSize(14)
-                        .fontColor('#4A9EFF')
-                        .margin({ left: 10 })
-                        .onClick(() => this.handleAddBusinessScope())
-                    }
-                    if (this.form.businessScope.length > 0) {
-                      Flex({ wrap: FlexWrap.Wrap }) {
-                        ForEach(this.form.businessScope, (scope: string, index: number) => {
-                          Text(scope)
-                            .fontSize(13)
-                            .backgroundColor('#4A9EFF33')
-                            .fontColor('#4A9EFF')
-                            .borderRadius(4)
-                            .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-                            .margin({ right: 8, top: 8 })
-                          Text('×')
-                            .fontSize(13)
-                            .fontColor('#FF6B6B')
-                            .margin({ left: -4, top: 8 })
-                            .onClick(() => this.handleRemoveBusinessScope(index))
-                        })
-                      }
-                      .margin({ top: 8 })
-                    }
-                  }
-                  .width('100%')
-                  .padding(16)
-
-                  this.buildDivider()
-
-                  // 常用机型
-                  Column() {
-                    Text('常用机型')
-                      .fontSize(14)
-                      .fontColor($r('app.color.text_secondary'))
-                      .width('100%')
-                      .margin({ bottom: 8 })
-                    Row() {
-                      TextInput({ placeholder: '输入常用机型', text: this.currentDroneModel })
-                        .layoutWeight(1)
-                        .height(40)
-                        .backgroundColor($r('app.color.card_bg_secondary'))
-                        .borderRadius(8)
-                        .padding({ left: 10, right: 10 })
-                        .onChange((v: string) => this.currentDroneModel = v)
-                        .onSubmit(() => this.handleAddDroneModel())
-                      Text('添加')
-                        .fontSize(14)
-                        .fontColor('#4A9EFF')
-                        .margin({ left: 10 })
-                        .onClick(() => this.handleAddDroneModel())
-                    }
-                    if (this.form.droneModels.length > 0) {
-                      Flex({ wrap: FlexWrap.Wrap }) {
-                        ForEach(this.form.droneModels, (model: string, index: number) => {
-                          Text(model)
-                            .fontSize(13)
-                            .backgroundColor('#00C85333')
-                            .fontColor('#00C853')
-                            .borderRadius(4)
-                            .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-                            .margin({ right: 8, top: 8 })
-                          Text('×')
-                            .fontSize(13)
-                            .fontColor('#FF6B6B')
-                            .margin({ left: -4, top: 8 })
-                            .onClick(() => this.handleRemoveDroneModel(index))
-                        })
-                      }
-                      .margin({ top: 8 })
-                    }
-                  }
-                  .width('100%')
-                  .padding(16)
-
-                  this.buildDivider()
-
-                  // 机构码
-                  Row() {
-                    Text('我的机构码')
-                      .fontSize(15)
-                      .fontColor($r('app.color.text_primary'))
-                    Text(this.form.orgCode || '输入6位机构码')
-                      .fontSize(15)
-                      .fontColor(this.form.orgCode ? $r('app.color.text_primary') : $r('app.color.text_secondary'))
-                      .layoutWeight(1)
-                      .textAlign(TextAlign.End)
-                      .onClick(() => this.handleOrgCodeTap())
-                  }
-                  .width('100%')
-                  .padding(16)
+                // 展开/收起按钮
+                Row() {
+                  Blank()
+                  Text(this.showOptionalFields ? '收起' : '展开')
+                    .fontSize(14)
+                    .fontColor('#999999')
+                    .onClick(() => {
+                      animateTo({
+                        duration: 300,
+                        curve: Curve.EaseInOut
+                      }, () => {
+                        this.showOptionalFields = !this.showOptionalFields;
+                      })
+                    })
                 }
                 .width('100%')
-                .backgroundColor($r('app.color.card_bg'))
-                .borderRadius(16)
-                .margin({ top: 12 })
-              }
-
-              // 执照认证
-              Column() {
+                // 身份选择
+                Row() {
+                  Text('身份选择')
+                    .fontSize(14)
+                    .fontColor('#000000')
+                  Blank()
+                  ForEach(this.roleOptions, (item: RoleOption) => {
+                    Row() {
+                      Stack() {
+                        Circle()
+                          .width(20)
+                          .height(20)
+                          .fill(this.form.userRole === item.value ? '#00C853' : '#FFFFFF')
+                          .stroke(this.form.userRole === item.value ? '#00C853' : '#CCCCCC')
+                          .strokeWidth(1)
+                        if (this.form.userRole === item.value) {
+                          Text('✓')
+                            .fontSize(12)
+                            .fontColor('#FFFFFF')
+                        }
+                      }
+                      .width(20)
+                      .height(20)
+                      Text(item.label)
+                        .fontSize(15)
+                        .fontColor($r('app.color.text_primary'))
+                        .margin({ left: 6 })
+                    }
+                    .margin({ left: 20 })
+                    .onClick(() => {
+                      animateTo({
+                        duration: 300,
+                        curve: Curve.EaseInOut
+                      }, () => {
+                        this.form.userRole = item.value;
+                      })
+                    })
+                  })
+                }
+                .width('100%')
+                .padding(12)
+                .backgroundColor('#f5f5f5')
+                .borderRadius(10)
+                // 图片认证
                 Row() {
                   Text(this.form.userRole === 'pilot' ? '执照认证' : '图片认证')
                     .fontSize(15)
@@ -526,25 +422,130 @@ struct Profile {
                       .borderRadius(4)
                       .padding({ left: 8, right: 8, top: 2, bottom: 2 })
                       .margin({ left: 8 })
-                  } else {
-                    Text('待上传')
-                      .fontSize(13)
-                      .backgroundColor('#9E9E9E33')
-                      .fontColor('#9E9E9E')
-                      .borderRadius(4)
-                      .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-                      .margin({ left: 8 })
                   }
                   Blank()
                   Text(this.form.licenseUrl ? '重新上传' : '点击上传')
                     .fontSize(14)
-                    .fontColor('#4A9EFF')
+                    .fontColor('#000000')
                     .onClick(() => this.handleUploadLicense())
                 }
                 .width('100%')
-                .padding(16)
+                .padding(12)
+                .backgroundColor('#f5f5f5')
+                .borderRadius(10)
               }
               .width('100%')
+              .padding({ left: 18, right: 18, top: 22, bottom: 22 })
+              .backgroundColor('#FFFFFF')
+              .borderRadius(18)
+              .margin({ top: 44 })
+
+              // 飞手专属字段
+              Column({ space: 8 }) {
+                // 主营业务
+                Column() {
+                  Row() {
+                    TextInput({ placeholder: '主营业务', text: this.currentBusinessScope })
+                      .layoutWeight(1)
+                      .height(44)
+                      .fontSize(15)
+                      .fontColor($r('app.color.text_primary'))
+                      .placeholderFont({ size: 15 })
+                      .borderRadius(8)
+                      .padding({ left: 10, right: 10 })
+                      .onChange((v: string) => this.currentBusinessScope = v)
+                      .onSubmit(() => this.handleAddBusinessScope())
+                    Text('添加')
+                      .fontSize(14)
+                      .fontColor('#000000')
+                      .margin({ left: 10 })
+                      .onClick(() => this.handleAddBusinessScope())
+                  }
+                  if (this.form.businessScope.length > 0) {
+                    Flex({ wrap: FlexWrap.Wrap }) {
+                      ForEach(this.form.businessScope, (scope: string, index: number) => {
+                        Row() {
+                          Text(scope + '  ×')
+                            .fontSize(12)
+                            .backgroundColor('#F5F5F5')
+                            .fontColor('#333333')
+                            .borderRadius(4)
+                            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+                            .onClick(() => this.handleRemoveBusinessScope(index))
+                        }
+                        .margin({ right: 8, top: 8 })
+                      })
+                    }
+                    .margin({ top: 8 })
+                  }
+                }
+                .width('100%')
+                .padding(12)
+                .borderRadius(10)
+
+                // 常用机型
+                Column() {
+                  Row() {
+                    TextInput({ placeholder: '常用机型', text: this.currentDroneModel })
+                      .layoutWeight(1)
+                      .height(44)
+                      .fontSize(15)
+                      .fontColor($r('app.color.text_primary'))
+                      .placeholderFont({ size: 15 })
+                      .borderRadius(8)
+                      .padding({ left: 10, right: 10 })
+                      .onChange((v: string) => this.currentDroneModel = v)
+                      .onSubmit(() => this.handleAddDroneModel())
+                    Text('添加')
+                      .fontSize(14)
+                      .fontColor('#000000')
+                      .margin({ left: 10 })
+                      .onClick(() => this.handleAddDroneModel())
+                  }
+                  if (this.form.droneModels.length > 0) {
+                    Flex({ wrap: FlexWrap.Wrap }) {
+                      ForEach(this.form.droneModels, (model: string, index: number) => {
+                        Row() {
+                          Text(model + '  ×')
+                            .fontSize(12)
+                            .backgroundColor('#F5F5F5')
+                            .fontColor('#333333')
+                            .borderRadius(4)
+                            .padding({ left: 10, right: 10, top: 5, bottom: 5 })
+                            .onClick(() => this.handleRemoveDroneModel(index))
+                        }
+                        .margin({ right: 8, top: 8 })
+                      })
+                    }
+                    .margin({ top: 8 })
+                  }
+                }
+                .width('100%')
+                .padding(12)
+                .borderRadius(10)
+
+                // 机构码
+                Row() {
+                  Text('我的机构码')
+                    .fontSize(15)
+                    .fontColor($r('app.color.text_primary'))
+                  Text(this.form.orgCode || '输入6位机构码')
+                    .fontSize(15)
+                    .fontColor(this.form.orgCode ? $r('app.color.text_primary') : $r('app.color.text_secondary'))
+                    .layoutWeight(1)
+                    .textAlign(TextAlign.End)
+                    .onClick(() => this.handleOrgCodeTap())
+                }
+                .width('100%')
+                .height(48)
+                .padding({ left: 14, right: 14 })
+                .backgroundColor('#f5f5f5')
+                .borderRadius(10)
+              }
+              .width('100%')
+              .opacity(this.form.userRole === 'pilot' ? 1 : 0)
+              .clip(true)
+              .padding({ left: 12, right: 12, top: 12, bottom: 12 })
               .backgroundColor($r('app.color.card_bg'))
               .borderRadius(16)
               .margin({ top: 12 })
@@ -613,13 +614,14 @@ struct Profile {
     Row() {
       Text(label)
         .fontSize(15)
-        .fontColor($r('app.color.text_primary'))
-        .width(80)
+        .fontColor($r('app.color.text_secondary'))
+        .width(76)
       TextInput({ placeholder: placeholder, text: value })
         .layoutWeight(1)
-        .height(44)
+        .height(48)
         .backgroundColor('transparent')
         .fontSize(15)
+        .fontColor($r('app.color.text_primary'))
         .type(inputType)
         .padding(0)
         .onChange((v: string) => {
@@ -634,7 +636,9 @@ struct Profile {
         })
     }
     .width('100%')
-    .padding({ top: 12, bottom: 12 })
+    .padding({ left: 14, right: 14 })
+    .backgroundColor('#f5f5f5')
+    .borderRadius(10)
   }
 
   // 构建分割线
