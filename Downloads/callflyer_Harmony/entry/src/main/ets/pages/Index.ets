@@ -527,39 +527,40 @@ struct Index {
     try {
       hilog.info(0x0000, 'RewardAd', 'onRewardClaimed called');
       const result = await claimRewardSlot();
-      if (result.success) {
+      hilog.info(0x0000, 'RewardAd', `claimRewardSlot result: ${JSON.stringify(result)}`);
+
+      if (result.claimed && result.profileCard) {
         hilog.info(0x0000, 'RewardAd', 'Reward slot claimed successfully');
         promptAction.showToast({ message: '奖励位领取成功' });
-        // 更新UI - 展示用户自己的名片
-        const currentUser = AuthService.getCurrentUser();
-        if (currentUser) {
-          this.rewardSlotUser = {
-            openid: currentUser.openId || '',
-            nickname: currentUser.nickname || '',
-            avatar: currentUser.avatar || '',
-            city: currentUser.city || '',
-            userRole: currentUser.userRole || '',
-            roleLabel: currentUser.roleLabel || '',
-            licenseType: currentUser.licenseType || '',
-            licenseStatus: currentUser.licenseStatus || '',
-            pilotCode: currentUser.pilotCode || '',
-            company: currentUser.company || '',
-            position: currentUser.position || '',
-            droneModel: currentUser.droneModel || '',
-            businessScopeText: currentUser.businessScopeText || '',
-            recentActiveText: '刚刚活跃',
-            likeCount: 0,
-            likedByMe: false,
-            phone: currentUser.phone || '',
-            wechatId: currentUser.wechatId || '',
-            distanceText: '',
-            isNew: false
-          };
-          this.rewardSlotClaimed = true;
-        }
+
+        // 使用后端返回的 profileCard 数据更新UI
+        const card = result.profileCard;
+        this.rewardSlotUser = {
+          openid: '',
+          nickname: card.nickname || '匿名用户',
+          avatar: card.avatarUrl || DEFAULT_AVATAR,
+          city: card.city || '',
+          userRole: card.userRole || '',
+          roleLabel: '',
+          licenseType: card.licenseType || '',
+          licenseStatus: card.licenseType === '已审核' ? '审核通过' : card.licenseType || '',
+          pilotCode: '',
+          company: card.company || '',
+          position: card.position || '',
+          droneModel: card.droneModel || '',
+          businessScopeText: (card.businessScope || []).join('、'),
+          recentActiveText: '刚刚活跃',
+          likeCount: card.viewCount || 0,
+          likedByMe: false,
+          phone: card.phone || '',
+          wechatId: card.wechatId || '',
+          distanceText: '',
+          isNew: false
+        };
+        this.rewardSlotClaimed = true;
       } else {
-        hilog.info(0x0000, 'RewardAd', `Reward slot claim failed: ${result.message}`);
-        promptAction.showToast({ message: result.message || '领取失败，请重试' });
+        hilog.info(0x0000, 'RewardAd', 'Reward slot claim failed or already claimed');
+        promptAction.showToast({ message: '领取失败或已被领取' });
       }
     } catch (e) {
       hilog.error(0x0000, 'RewardAd', `claimRewardSlot error: ${JSON.stringify(e)}`);

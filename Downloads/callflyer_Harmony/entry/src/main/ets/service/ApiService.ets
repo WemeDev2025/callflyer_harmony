@@ -1895,10 +1895,30 @@ export async function fetchContactLogFeed(params: ContactLogParams): Promise<Con
   });
 }
 
-// 奖励位认领结果
+// 奖励位资料卡片
+export interface RewardProfileCard {
+  avatarUrl: string;
+  nickname: string;
+  phone?: string;
+  wechatId?: string;
+  city?: string;
+  company?: string;
+  position?: string;
+  droneModel?: string;
+  licenseType?: string;
+  userRole?: string;
+  businessScope?: string[];
+  viewCount?: number;
+}
+
+// 奖励位认领结果（匹配后端 RewardClaimResponse）
 export interface RewardSlotClaimResult {
-  success: boolean;
-  message?: string;
+  claimed: boolean;
+  expiresAt?: string;
+  remainingSeconds: number;
+  slotKey?: string;
+  slot: string;
+  profileCard?: RewardProfileCard;
 }
 
 // 领取奖励位（激励视频看完后调用）
