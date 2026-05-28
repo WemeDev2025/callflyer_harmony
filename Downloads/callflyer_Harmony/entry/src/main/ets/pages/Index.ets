@@ -1713,15 +1713,37 @@ struct Index {
                           // 未领取：显示标题副标题和按钮
                           Column() {
                             Text(item.title || '')
-                              .fontSize(22)
-                              .fontWeight(700)
+                              .fontSize(28)
+                              .fontWeight(900)
                               .fontColor('#FFFFFF')
                               .textAlign(TextAlign.Center)
+                              .shadow({
+                                radius: 16,
+                                color: '#06b6d4',
+                                offsetX: 0,
+                                offsetY: 2
+                              })
                             Text(item.subtitle || '')
-                              .fontSize(14)
-                              .fontColor('rgba(255,255,255,0.8)')
+                              .fontSize(16)
+                              .fontWeight(500)
+                              .fontColor('#cffafe')
                               .textAlign(TextAlign.Center)
-                              .margin({ top: 6 })
+                              .margin({ top: 2 })
+                              .shadow({
+                                radius: 8,
+                                color: '#000000',
+                                offsetX: 0,
+                                offsetY: 1
+                              })
+                            // 按钮
+                            Text(item.actionText || '观看解锁')
+                              .fontSize(15)
+                              .fontWeight(700)
+                              .fontColor('#2c2c2c')
+                              .backgroundColor('#22c55e')
+                              .borderRadius(6)
+                              .padding({ left: 24, right: 24, top: 8, bottom: 8 })
+                              .margin({ top: 10 })
                           }
                           .margin({ bottom: 16 })
 
@@ -1753,12 +1775,7 @@ struct Index {
                                 .fontColor('rgba(255, 255, 255, 0.9)')
                             }
                           }
-                          .margin({ top: 12 })
-
-                          // 点击提示
-                          Text(item.actionText || '观看解锁 >')
-                            .fontSize(11)
-                            .fontColor('rgba(255, 255, 255, 0.6)')
+                          .margin({ top: 8 })
                             .margin({ top: 8 })
                         }
                       }
