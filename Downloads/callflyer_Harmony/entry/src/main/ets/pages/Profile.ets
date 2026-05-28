@@ -519,7 +519,7 @@ struct Profile {
                 Column() {
                   Row() {
                     TextInput({ placeholder: '主营业务', text: this.currentBusinessScope })
-                      .layoutWeight(1)
+                      .width('100%')
                       .height(44)
                       .fontSize(12)
                       .fontColor($r('app.color.text_primary'))
@@ -528,12 +528,6 @@ struct Profile {
                       .borderRadius(8)
                       .padding({ left: 10, right: 10 })
                       .onChange((v: string) => this.currentBusinessScope = v)
-                      .onSubmit(() => this.handleAddBusinessScope())
-                    Text('添加')
-                      .fontSize($r('app.float.input_action_font_size'))
-                      .fontColor($r('app.color.text_primary'))
-                      .margin({ left: 10 })
-                      .onClick(() => this.handleAddBusinessScope())
                   }
                   if (this.form.businessScope.length > 0) {
                     Flex({ wrap: FlexWrap.Wrap }) {
@@ -558,7 +552,7 @@ struct Profile {
                 Column() {
                   Row() {
                     TextInput({ placeholder: '常用机型', text: this.currentDroneModel })
-                      .layoutWeight(1)
+                      .width('100%')
                       .height(44)
                       .fontSize(12)
                       .fontColor($r('app.color.text_primary'))
@@ -567,12 +561,6 @@ struct Profile {
                       .borderRadius(8)
                       .padding({ left: 10, right: 10 })
                       .onChange((v: string) => this.currentDroneModel = v)
-                      .onSubmit(() => this.handleAddDroneModel())
-                    Text('添加')
-                      .fontSize($r('app.float.input_action_font_size'))
-                      .fontColor($r('app.color.text_primary'))
-                      .margin({ left: 10 })
-                      .onClick(() => this.handleAddDroneModel())
                   }
                   if (this.form.droneModels.length > 0) {
                     Flex({ wrap: FlexWrap.Wrap }) {
