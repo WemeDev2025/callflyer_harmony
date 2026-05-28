@@ -661,10 +661,10 @@ struct Profile {
                 Column() {
                   Row() {
                     Text('我的机构码')
-                      .fontSize(15)
+                      .fontSize(14)
                       .fontColor($r('app.color.text_primary'))
                     Text(this.form.orgCode || '输入6位机构码')
-                      .fontSize(15)
+                      .fontSize(14)
                       .fontColor(this.form.orgCode ? $r('app.color.text_primary') : $r('app.color.text_secondary'))
                       .layoutWeight(1)
                       .textAlign(TextAlign.End)
