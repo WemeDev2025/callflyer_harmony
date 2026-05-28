@@ -231,21 +231,18 @@ struct Index {
   @State totalEmployerCount: number = 0;
 
   // 奖励位光晕动画状态
-  @State lightAOffsetX: number = -25;
-  @State lightAOffsetY: number = 5;
-  @State lightAOpacity: number = 0.5;
-  @State lightAScale: number = 0.8;
-  @State lightARadius: number = 80;
-  @State lightBOffsetX: number = 15;
-  @State lightBOffsetY: number = -10;
-  @State lightBOpacity: number = 0.4;
-  @State lightBScale: number = 0.8;
-  @State lightBRadius: number = 80;
-  @State lightCOffsetX: number = 25;
-  @State lightCOffsetY: number = -35;
-  @State lightCOpacity: number = 0.5;
-  @State lightCScale: number = 0.9;
-  @State lightCRadius: number = 80;
+  @State lightAOffsetX: number = 160;  // 左上
+  @State lightAOffsetY: number = 60;
+  @State lightAOpacity: number = 0.7;
+  @State lightAScale: number = 1.0;
+  @State lightBOffsetX: number = 180;  // 右上
+  @State lightBOffsetY: number = 40;
+  @State lightBOpacity: number = 0.7;
+  @State lightBScale: number = 1.0;
+  @State lightCOffsetX: number = 170;  // 右下
+  @State lightCOffsetY: number = 100;
+  @State lightCOpacity: number = 0.7;
+  @State lightCScale: number = 1.0;
 
   // 奖励位状态
   @State rewardSlotClaimed: boolean = false;  // 当前用户是否已认领奖励位
@@ -468,53 +465,81 @@ struct Index {
 
   // 启动光晕流动动画
   startLightAnimations() {
-    // 光晕 A - 青色 8秒周期
-    setTimeout(() => {
-      animateTo({
-        duration: 8000,
-        curve: Curve.EaseInOut,
-        iterations: -1,
-        playMode: PlayMode.Alternate,
-      }, () => {
-        this.lightAOffsetX = 125;
-        this.lightAOffsetY = 25;
-        this.lightAOpacity = 0.8;
-        this.lightAScale = 1.2;
-        this.lightARadius = 255;
-      });
-    }, 0);
+    const MIN_DISTANCE = 120;  // 最小间距
 
-    // 光晕 B - 橙色 11秒周期
-    setTimeout(() => {
-      animateTo({
-        duration: 11000,
-        curve: Curve.EaseInOut,
-        iterations: -1,
-        playMode: PlayMode.Alternate,
-      }, () => {
-        this.lightBOffsetX = -100;
-        this.lightBOffsetY = 40;
-        this.lightBOpacity = 0.8;
-        this.lightBScale = 1.3;
-        this.lightBRadius = 255;
-      });
-    }, 0);
+    // 检查位置是否与其它光斑重叠
+    const isValidPosition = (x: number, y: number, exclude: string): boolean => {
+      if (exclude !== 'A' && Math.hypot(x - this.lightAOffsetX, y - this.lightAOffsetY) < MIN_DISTANCE) {
+        return false;
+      }
+      if (exclude !== 'B' && Math.hypot(x - this.lightBOffsetX, y - this.lightBOffsetY) < MIN_DISTANCE) {
+        return false;
+      }
+      if (exclude !== 'C' && Math.hypot(x - this.lightCOffsetX, y - this.lightCOffsetY) < MIN_DISTANCE) {
+        return false;
+      }
+      return true;
+    };
 
-    // 光晕 C - 蓝色 14秒周期
-    setTimeout(() => {
+    // 生成不重叠的随机位置
+    const getRandomPosition = (exclude: string): number[] => {
+      let x = 0, y = 0;
+      let attempts = 0;
+      do {
+        x = Math.random() * 280;
+        y = Math.random() * 180;
+        attempts++;
+      } while (!isValidPosition(x, y, exclude) && attempts < 50);
+      return [x, y];
+    };
+
+    // 光晕 A - 青色 全屏随机移动
+    const animateA = () => {
+      const pos = getRandomPosition('A');
       animateTo({
-        duration: 14000,
+        duration: 6000 + Math.random() * 4000,
         curve: Curve.EaseInOut,
-        iterations: -1,
-        playMode: PlayMode.Alternate,
       }, () => {
-        this.lightCOffsetX = 120;
-        this.lightCOffsetY = -75;
-        this.lightCOpacity = 0.7;
-        this.lightCScale = 1.2;
-        this.lightCRadius = 255;
+        this.lightAOffsetX = pos[0];
+        this.lightAOffsetY = pos[1];
+        this.lightAOpacity = 0.6 + Math.random() * 0.4;
+        this.lightAScale = 0.8 + Math.random() * 0.4;
       });
-    }, 0);
+      setTimeout(animateA, 6000 + Math.random() * 4000);
+    };
+    setTimeout(animateA, 0);
+
+    // 光晕 B - 橙色 全屏随机移动
+    const animateB = () => {
+      const pos = getRandomPosition('B');
+      animateTo({
+        duration: 8000 + Math.random() * 4000,
+        curve: Curve.EaseInOut,
+      }, () => {
+        this.lightBOffsetX = pos[0];
+        this.lightBOffsetY = pos[1];
+        this.lightBOpacity = 0.6 + Math.random() * 0.4;
+        this.lightBScale = 0.8 + Math.random() * 0.4;
+      });
+      setTimeout(animateB, 8000 + Math.random() * 4000);
+    };
+    setTimeout(animateB, 500);
+
+    // 光晕 C - 蓝色 全屏随机移动
+    const animateC = () => {
+      const pos = getRandomPosition('C');
+      animateTo({
+        duration: 10000 + Math.random() * 4000,
+        curve: Curve.EaseInOut,
+      }, () => {
+        this.lightCOffsetX = pos[0];
+        this.lightCOffsetY = pos[1];
+        this.lightCOpacity = 0.6 + Math.random() * 0.4;
+        this.lightCScale = 0.8 + Math.random() * 0.4;
+      });
+      setTimeout(animateC, 10000 + Math.random() * 4000);
+    };
+    setTimeout(animateC, 1000);
   }
 
   async loadConfig() {
@@ -1206,6 +1231,7 @@ struct Index {
         Blank()
         Text(this.standbyIsJoined ? '取消等待' : '等待任务')
           .fontSize(13)
+          .fontFamily('DouyinSansBold')
           .fontColor('#FFFFFF')
           .backgroundColor(this.standbyIsJoined ? '#EF4444' : '#22C55E')
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
@@ -1458,156 +1484,169 @@ struct Index {
                         .backgroundColor('#242325')
                         .onClick(() => { this.onRewardSlotClick(); })
 
-                      // 装饰光晕 A - 青色 (径向渐变模拟边缘弥散)
+                      // 光斑层 - 圆角矩形包裹
                       Stack() {
-                        // 第1层 - 最外圈，最透明
+                        // 装饰光晕 A - 青色
                         Column()
-                          .width(200)
-                          .height(200)
-                          .borderRadius(100)
+                          .width(640)
+                          .height(640)
+                          .borderRadius(320)
                           .backgroundColor('#06b6d4')
                           .opacity(this.lightAOpacity * 0.1)
-                          .scale({ x: this.lightAScale, y: this.lightAScale })
+                          .scale({ x: this.lightAScale * 0.3, y: this.lightAScale * 0.3 })
+                          .position({ left: this.lightAOffsetX - 320, top: this.lightAOffsetY - 320 })
                         Column()
-                          .width(170)
-                          .height(170)
-                          .borderRadius(85)
+                          .width(540)
+                          .height(540)
+                          .borderRadius(270)
                           .backgroundColor('#06b6d4')
                           .opacity(this.lightAOpacity * 0.15)
-                          .scale({ x: this.lightAScale, y: this.lightAScale })
+                          .scale({ x: this.lightAScale * 0.3, y: this.lightAScale * 0.3 })
+                          .position({ left: this.lightAOffsetX - 270, top: this.lightAOffsetY - 270 })
+                        Column()
+                          .width(440)
+                          .height(440)
+                          .borderRadius(220)
+                          .backgroundColor('#06b6d4')
+                          .opacity(this.lightAOpacity * 0.2)
+                          .scale({ x: this.lightAScale * 0.3, y: this.lightAScale * 0.3 })
+                          .position({ left: this.lightAOffsetX - 220, top: this.lightAOffsetY - 220 })
+                        Column()
+                          .width(340)
+                          .height(340)
+                          .borderRadius(170)
+                          .backgroundColor('#06b6d4')
+                          .opacity(this.lightAOpacity * 0.3)
+                          .scale({ x: this.lightAScale * 0.3, y: this.lightAScale * 0.3 })
+                          .position({ left: this.lightAOffsetX - 170, top: this.lightAOffsetY - 170 })
+                        Column()
+                          .width(240)
+                          .height(240)
+                          .borderRadius(120)
+                          .backgroundColor('#06b6d4')
+                          .opacity(this.lightAOpacity * 0.4)
+                          .scale({ x: this.lightAScale * 0.3, y: this.lightAScale * 0.3 })
+                          .position({ left: this.lightAOffsetX - 120, top: this.lightAOffsetY - 120 })
                         Column()
                           .width(140)
                           .height(140)
                           .borderRadius(70)
-                          .backgroundColor('#06b6d4')
-                          .opacity(this.lightAOpacity * 0.2)
-                          .scale({ x: this.lightAScale, y: this.lightAScale })
-                        Column()
-                          .width(110)
-                          .height(110)
-                          .borderRadius(55)
-                          .backgroundColor('#06b6d4')
-                          .opacity(this.lightAOpacity * 0.3)
-                          .scale({ x: this.lightAScale, y: this.lightAScale })
-                        Column()
-                          .width(80)
-                          .height(80)
-                          .borderRadius(40)
-                          .backgroundColor('#06b6d4')
-                          .opacity(this.lightAOpacity * 0.4)
-                          .scale({ x: this.lightAScale, y: this.lightAScale })
-                        Column()
-                          .width(50)
-                          .height(50)
-                          .borderRadius(25)
                           .backgroundColor('#FFFFFF')
                           .opacity(this.lightAOpacity * 0.25)
-                          .scale({ x: this.lightAScale, y: this.lightAScale })
-                      }
-                      .position({ left: this.lightAOffsetX - 30, top: this.lightAOffsetY - 30 })
-                      .blur(40)
+                          .scale({ x: this.lightAScale * 0.3, y: this.lightAScale * 0.3 })
+                          .position({ left: this.lightAOffsetX - 70, top: this.lightAOffsetY - 70 })
 
-                      // 装饰光晕 B - 橙色 (径向渐变模拟边缘弥散)
-                      Stack() {
+                        // 装饰光晕 B - 橙色
                         Column()
-                          .width(180)
-                          .height(180)
-                          .borderRadius(90)
+                          .width(600)
+                          .height(600)
+                          .borderRadius(300)
                           .backgroundColor('#f97316')
                           .opacity(this.lightBOpacity * 0.1)
-                          .scale({ x: this.lightBScale, y: this.lightBScale })
+                          .scale({ x: this.lightBScale * 0.3, y: this.lightBScale * 0.3 })
+                          .position({ right: this.lightBOffsetX - 300, top: this.lightBOffsetY - 300 })
                         Column()
-                          .width(150)
-                          .height(150)
-                          .borderRadius(75)
+                          .width(500)
+                          .height(500)
+                          .borderRadius(250)
                           .backgroundColor('#f97316')
                           .opacity(this.lightBOpacity * 0.15)
-                          .scale({ x: this.lightBScale, y: this.lightBScale })
+                          .scale({ x: this.lightBScale * 0.3, y: this.lightBScale * 0.3 })
+                          .position({ right: this.lightBOffsetX - 250, top: this.lightBOffsetY - 250 })
+                        Column()
+                          .width(400)
+                          .height(400)
+                          .borderRadius(200)
+                          .backgroundColor('#f97316')
+                          .opacity(this.lightBOpacity * 0.2)
+                          .scale({ x: this.lightBScale * 0.3, y: this.lightBScale * 0.3 })
+                          .position({ right: this.lightBOffsetX - 200, top: this.lightBOffsetY - 200 })
+                        Column()
+                          .width(300)
+                          .height(300)
+                          .borderRadius(150)
+                          .backgroundColor('#f97316')
+                          .opacity(this.lightBOpacity * 0.3)
+                          .scale({ x: this.lightBScale * 0.3, y: this.lightBScale * 0.3 })
+                          .position({ right: this.lightBOffsetX - 150, top: this.lightBOffsetY - 150 })
+                        Column()
+                          .width(200)
+                          .height(200)
+                          .borderRadius(100)
+                          .backgroundColor('#f97316')
+                          .opacity(this.lightBOpacity * 0.4)
+                          .scale({ x: this.lightBScale * 0.3, y: this.lightBScale * 0.3 })
+                          .position({ right: this.lightBOffsetX - 100, top: this.lightBOffsetY - 100 })
                         Column()
                           .width(120)
                           .height(120)
                           .borderRadius(60)
-                          .backgroundColor('#f97316')
-                          .opacity(this.lightBOpacity * 0.2)
-                          .scale({ x: this.lightBScale, y: this.lightBScale })
-                        Column()
-                          .width(90)
-                          .height(90)
-                          .borderRadius(45)
-                          .backgroundColor('#f97316')
-                          .opacity(this.lightBOpacity * 0.3)
-                          .scale({ x: this.lightBScale, y: this.lightBScale })
-                        Column()
-                          .width(60)
-                          .height(60)
-                          .borderRadius(30)
-                          .backgroundColor('#f97316')
-                          .opacity(this.lightBOpacity * 0.4)
-                          .scale({ x: this.lightBScale, y: this.lightBScale })
-                        Column()
-                          .width(40)
-                          .height(40)
-                          .borderRadius(20)
                           .backgroundColor('#FFFFFF')
                           .opacity(this.lightBOpacity * 0.25)
-                          .scale({ x: this.lightBScale, y: this.lightBScale })
-                      }
-                      .position({ right: this.lightBOffsetX - 30, top: this.lightBOffsetY - 30 })
-                      .blur(40)
+                          .scale({ x: this.lightBScale * 0.3, y: this.lightBScale * 0.3 })
+                          .position({ right: this.lightBOffsetX - 60, top: this.lightBOffsetY - 60 })
 
-                      // 装饰光晕 C - 蓝色 (径向渐变模拟边缘弥散)
-                      Stack() {
+                        // 装饰光晕 C - 蓝色
+                        Column()
+                          .width(720)
+                          .height(720)
+                          .borderRadius(360)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.1)
+                          .scale({ x: this.lightCScale * 0.25, y: this.lightCScale * 0.25 })
+                          .position({ right: this.lightCOffsetX - 360, bottom: this.lightCOffsetY - 360 })
+                        Column()
+                          .width(600)
+                          .height(600)
+                          .borderRadius(300)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.12)
+                          .scale({ x: this.lightCScale * 0.25, y: this.lightCScale * 0.25 })
+                          .position({ right: this.lightCOffsetX - 300, bottom: this.lightCOffsetY - 300 })
+                        Column()
+                          .width(480)
+                          .height(480)
+                          .borderRadius(240)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.18)
+                          .scale({ x: this.lightCScale * 0.25, y: this.lightCScale * 0.25 })
+                          .position({ right: this.lightCOffsetX - 240, bottom: this.lightCOffsetY - 240 })
+                        Column()
+                          .width(360)
+                          .height(360)
+                          .borderRadius(180)
+                          .backgroundColor('#3b82f6')
+                          .opacity(this.lightCOpacity * 0.25)
+                          .scale({ x: this.lightCScale * 0.25, y: this.lightCScale * 0.25 })
+                          .position({ right: this.lightCOffsetX - 180, bottom: this.lightCOffsetY - 180 })
                         Column()
                           .width(240)
                           .height(240)
                           .borderRadius(120)
                           .backgroundColor('#3b82f6')
-                          .opacity(this.lightCOpacity * 0.1)
-                          .scale({ x: this.lightCScale, y: this.lightCScale })
-                        Column()
-                          .width(200)
-                          .height(200)
-                          .borderRadius(100)
-                          .backgroundColor('#3b82f6')
-                          .opacity(this.lightCOpacity * 0.12)
-                          .scale({ x: this.lightCScale, y: this.lightCScale })
-                        Column()
-                          .width(160)
-                          .height(160)
-                          .borderRadius(80)
-                          .backgroundColor('#3b82f6')
-                          .opacity(this.lightCOpacity * 0.18)
-                          .scale({ x: this.lightCScale, y: this.lightCScale })
-                        Column()
-                          .width(120)
-                          .height(120)
-                          .borderRadius(60)
-                          .backgroundColor('#3b82f6')
-                          .opacity(this.lightCOpacity * 0.25)
-                          .scale({ x: this.lightCScale, y: this.lightCScale })
-                        Column()
-                          .width(80)
-                          .height(80)
-                          .borderRadius(40)
-                          .backgroundColor('#3b82f6')
                           .opacity(this.lightCOpacity * 0.35)
-                          .scale({ x: this.lightCScale, y: this.lightCScale })
+                          .scale({ x: this.lightCScale * 0.25, y: this.lightCScale * 0.25 })
+                          .position({ right: this.lightCOffsetX - 120, bottom: this.lightCOffsetY - 120 })
                         Column()
-                          .width(50)
-                          .height(50)
-                          .borderRadius(25)
+                          .width(140)
+                          .height(140)
+                          .borderRadius(70)
                           .backgroundColor('#FFFFFF')
                           .opacity(this.lightCOpacity * 0.2)
-                          .scale({ x: this.lightCScale, y: this.lightCScale })
+                          .scale({ x: this.lightCScale * 0.25, y: this.lightCScale * 0.25 })
+                          .position({ right: this.lightCOffsetX - 70, bottom: this.lightCOffsetY - 70 })
                       }
-                      .position({ right: this.lightCOffsetX - 30, bottom: this.lightCOffsetY - 30 })
-                      .blur(40)
+                      .width('100%')
+                      .height('100%')
+                      .borderRadius(12)
+                      .clip(true)
+                      .blur(50)
 
                       // 中层蒙版 - 黑色半透明提升文字可读性
                       Column()
                         .width('100%')
                         .height('100%')
-                        .backgroundColor('rgba(0, 0, 0, 0.3)')
+                        .backgroundColor('rgba(0, 0, 0, 0.45)')
 
                       // 内容层
                       Column() {
@@ -1715,34 +1754,24 @@ struct Index {
                             Text(item.title || '')
                               .fontSize(28)
                               .fontWeight(900)
+                              .fontFamily('DouyinSansBold')
                               .fontColor('#FFFFFF')
                               .textAlign(TextAlign.Center)
-                              .shadow({
-                                radius: 16,
-                                color: '#06b6d4',
-                                offsetX: 0,
-                                offsetY: 2
-                              })
                             Text(item.subtitle || '')
                               .fontSize(16)
                               .fontWeight(500)
                               .fontColor('#cffafe')
                               .textAlign(TextAlign.Center)
-                              .margin({ top: 2 })
-                              .shadow({
-                                radius: 8,
-                                color: '#000000',
-                                offsetX: 0,
-                                offsetY: 1
-                              })
+                              .margin({ top: 10 })
                             // 按钮 - 菱形绿色渐变
                             Text(item.actionText || '观看解锁')
                               .fontSize(15)
                               .fontWeight(700)
+                              .fontFamily('DouyinSansBold')
                               .fontColor('#2c2c2c')
                               .padding({ left: 24, right: 24, top: 8, bottom: 8 })
                               .margin({ top: 10 })
-                              .borderRadius(12)
+                              .borderRadius(10)
                               .border({ width: 1, color: 'rgba(103, 232, 249, 0.5)' })
                               .shadow({
                                 radius: 12,
@@ -1751,7 +1780,7 @@ struct Index {
                                 offsetY: 4
                               })
                               .linearGradient({
-                                direction: GradientDirection.Top,
+                                direction: GradientDirection.Left,
                                 colors: [['#b2e933', 0], ['#4ace39', 1]]
                               })
                           }
@@ -1761,27 +1790,27 @@ struct Index {
                           Row() {
                             if (this.todayActiveUsers > 0) {
                               Text('今日访问 ' + this.todayActiveUsers + ' 人')
-                                .fontSize(12)
+                                .fontSize(10)
                                 .fontColor('rgba(255, 255, 255, 0.9)')
                             }
                             if (this.todayActiveUsers > 0 && this.totalPilotCount > 0) {
                               Text(' · ')
-                                .fontSize(12)
+                                .fontSize(10)
                                 .fontColor('rgba(255, 255, 255, 0.4)')
                             }
                             if (this.totalPilotCount > 0) {
                               Text('报道飞手 ' + this.totalPilotCount + ' 人')
-                                .fontSize(12)
+                                .fontSize(10)
                                 .fontColor('rgba(255, 255, 255, 0.9)')
                             }
                             if ((this.todayActiveUsers > 0 || this.totalPilotCount > 0) && this.totalEmployerCount > 0) {
                               Text(' · ')
-                                .fontSize(12)
+                                .fontSize(10)
                                 .fontColor('rgba(255, 255, 255, 0.4)')
                             }
                             if (this.totalEmployerCount > 0) {
                               Text('注册雇主 ' + this.totalEmployerCount + ' 人')
-                                .fontSize(12)
+                                .fontSize(10)
                                 .fontColor('rgba(255, 255, 255, 0.9)')
                             }
                           }
@@ -1823,7 +1852,7 @@ struct Index {
               }
               .width('100%')
               .height(200)
-              .autoPlay(this.autoplay)
+              .autoPlay(false)
               .interval(8000)
               .loop(true)
               .indicator(false)

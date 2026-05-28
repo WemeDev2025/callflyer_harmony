@@ -58,6 +58,7 @@ interface RawRewardAdConfig {
   enabled?: boolean;
   slot_key?: string;
   slotKey?: string;
+  slot_name?: string;
 }
 
 interface RawBannerItem {
