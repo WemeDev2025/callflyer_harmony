@@ -528,6 +528,7 @@ struct Profile {
                       .borderRadius(8)
                       .padding({ left: 10, right: 10 })
                       .onChange((v: string) => this.currentBusinessScope = v)
+                      .onSubmit(() => this.handleAddBusinessScope())
                   }
                   if (this.form.businessScope.length > 0) {
                     Flex({ wrap: FlexWrap.Wrap }) {
@@ -561,6 +562,7 @@ struct Profile {
                       .borderRadius(8)
                       .padding({ left: 10, right: 10 })
                       .onChange((v: string) => this.currentDroneModel = v)
+                      .onSubmit(() => this.handleAddDroneModel())
                   }
                   if (this.form.droneModels.length > 0) {
                     Flex({ wrap: FlexWrap.Wrap }) {
