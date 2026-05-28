@@ -1139,7 +1139,7 @@ struct Index {
           .fontColor(this.standbyIsJoined ? '#FFFFFF' : '#FFFFFF')
           .backgroundColor(this.standbyIsJoined ? '#22C55E' : '#22C55E')
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-          .borderRadius(16)
+          .borderRadius(8)
           .onClick(() => this.toggleStandbyJoin())
       }
       .width('100%')
