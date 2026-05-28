@@ -326,6 +326,12 @@ struct Index {
     }
   }
 
+  // 手机号脱敏
+  private maskPhone(phone: string): string {
+    if (!phone || phone.length < 11) return phone;
+    return phone.substring(0, 3) + '****' + phone.substring(7);
+  }
+
   // 更新跑马灯渐变色（跟随深浅色模式）
   private updateMarqueeGradient(): void {
     const isDarkMode = this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
@@ -1542,29 +1548,103 @@ struct Index {
                       // 内容层
                       Column() {
                         if (this.rewardSlotClaimed && this.rewardSlotUser) {
-                          // 已领取：显示用户名片
+                          // 已领取：显示用户名片（参考小程序样式）
                           Column() {
-                            Image(this.rewardSlotUser.avatar || DEFAULT_AVATAR)
-                              .width(80)
-                              .height(80)
-                              .borderRadius(40)
-                              .border({ width: 3, color: '#06b6d4' })
-                              .shadow({
-                                radius: 16,
-                                color: '#06b6d4',
-                                offsetX: 0,
-                                offsetY: 4
-                              })
-                            Text(this.rewardSlotUser.nickname || '匿名用户')
-                              .fontSize(18)
-                              .fontWeight(600)
-                              .fontColor('#FFFFFF')
-                              .margin({ top: 8 })
-                            Text('已展示我的名片')
-                              .fontSize(12)
-                              .fontColor('#cffafe')
-                              .margin({ top: 4 })
+                            // 用户信息行
+                            Row() {
+                              Image(this.rewardSlotUser.avatar || DEFAULT_AVATAR)
+                                .width(56)
+                                .height(56)
+                                .borderRadius(28)
+                                .border({ width: 2, color: '#06b6d4' })
+                              Column() {
+                                Text(this.rewardSlotUser.nickname || '匿名用户')
+                                  .fontSize(18)
+                                  .fontWeight(600)
+                                  .fontColor('#FFFFFF')
+                                Row() {
+                                  Text(this.rewardSlotUser.city || '')
+                                    .fontSize(12)
+                                    .fontColor('rgba(255,255,255,0.7)')
+                                  if (this.rewardSlotUser.city && this.rewardSlotUser.roleLabel) {
+                                    Text(' | ')
+                                      .fontSize(12)
+                                      .fontColor('rgba(255,255,255,0.4)')
+                                  }
+                                  Text(this.rewardSlotUser.roleLabel || '')
+                                    .fontSize(12)
+                                    .fontColor('rgba(255,255,255,0.7)')
+                                  // 执照标签
+                                  if (this.rewardSlotUser.licenseType === 'CAAC' || this.rewardSlotUser.licenseType === 'caac') {
+                                    Text('CAAC')
+                                      .fontSize(10)
+                                      .fontColor('#FFFFFF')
+                                      .backgroundColor('#06b6d4')
+                                      .borderRadius(4)
+                                      .padding({ left: 4, right: 4, top: 2, bottom: 2 })
+                                      .margin({ left: 6 })
+                                  } else if (this.rewardSlotUser.licenseType === 'UTC' || this.rewardSlotUser.licenseType === 'utc') {
+                                    Text('UTC')
+                                      .fontSize(10)
+                                      .fontColor('#FFFFFF')
+                                      .backgroundColor('#8b5cf6')
+                                      .borderRadius(4)
+                                      .padding({ left: 4, right: 4, top: 2, bottom: 2 })
+                                      .margin({ left: 6 })
+                                  } else if (this.rewardSlotUser.licenseType) {
+                                    Text(this.rewardSlotUser.licenseType)
+                                      .fontSize(10)
+                                      .fontColor('#FFFFFF')
+                                      .backgroundColor('#f59e0b')
+                                      .borderRadius(4)
+                                      .padding({ left: 4, right: 4, top: 2, bottom: 2 })
+                                      .margin({ left: 6 })
+                                  }
+                                }
+                              }
+                              .alignItems(HorizontalAlign.Start)
+                              .margin({ left: 12 })
+                            }
+
+                            // 信息行
+                            Row() {
+                              if (this.rewardSlotUser.phone) {
+                                Text(this.maskPhone(this.rewardSlotUser.phone))
+                                  .fontSize(11)
+                                  .fontColor('rgba(255,255,255,0.6)')
+                              }
+                              if (this.rewardSlotUser.phone && this.rewardSlotUser.businessScopeText) {
+                                Text(' · ')
+                                  .fontSize(11)
+                                  .fontColor('rgba(255,255,255,0.3)')
+                              }
+                              if (this.rewardSlotUser.businessScopeText) {
+                                Text(this.rewardSlotUser.businessScopeText)
+                                  .fontSize(11)
+                                  .fontColor('rgba(255,255,255,0.6)')
+                                  .maxLines(1)
+                                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                              }
+                              if ((this.rewardSlotUser.phone || this.rewardSlotUser.businessScopeText) && this.rewardSlotUser.droneModel) {
+                                Text(' · ')
+                                  .fontSize(11)
+                                  .fontColor('rgba(255,255,255,0.3)')
+                              }
+                              if (this.rewardSlotUser.droneModel) {
+                                Text(this.rewardSlotUser.droneModel)
+                                  .fontSize(11)
+                                  .fontColor('rgba(255,255,255,0.6)')
+                                  .maxLines(1)
+                                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                              }
+                            }
+                            .margin({ top: 10 })
                           }
+                          .width('100%')
+                          .padding(16)
+                          .backgroundColor('rgba(255,255,255,0.08)')
+                          .borderRadius(12)
+                          .border({ width: 1, color: 'rgba(255,255,255,0.1)' })
                         } else {
                           // 未领取：显示统计数据
                           Text(item.title || '呼叫飞手')
