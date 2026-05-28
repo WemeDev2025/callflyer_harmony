@@ -1647,31 +1647,6 @@ struct Index {
                           .border({ width: 1, color: 'rgba(255,255,255,0.1)' })
                         } else {
                           // 未领取：显示统计数据
-                          Text(item.title || '呼叫飞手')
-                            .fontSize(28)
-                            .fontWeight(900)
-                            .fontColor('#FFFFFF')
-                            .textAlign(TextAlign.Center)
-                            .shadow({
-                              radius: 16,
-                              color: '#06b6d4',
-                              offsetX: 0,
-                              offsetY: 4
-                            })
-                            .margin({ bottom: 8 })
-
-                          Text(item.subtitle || '打造职业飞手库')
-                            .fontSize(16)
-                            .fontColor('#cffafe')
-                            .fontWeight(500)
-                            .textAlign(TextAlign.Center)
-                            .shadow({
-                              radius: 8,
-                              color: '#000000',
-                              offsetX: 0,
-                              offsetY: 2
-                            })
-
                           Row() {
                             if (this.todayActiveUsers > 0) {
                               Text('今日访问 ' + this.todayActiveUsers + ' 人')
