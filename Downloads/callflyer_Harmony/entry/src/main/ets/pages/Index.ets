@@ -1757,12 +1757,24 @@ struct Index {
                               .fontFamily('DouyinSansBold')
                               .fontColor('#FFFFFF')
                               .textAlign(TextAlign.Center)
+                              .textShadow({
+                                radius: 6,
+                                color: '#87CEEB',
+                                offsetX: 0,
+                                offsetY: 0
+                              })
                             Text(item.subtitle || '')
                               .fontSize(16)
                               .fontWeight(500)
                               .fontColor('#cffafe')
                               .textAlign(TextAlign.Center)
                               .margin({ top: 10 })
+                              .textShadow({
+                                radius: 4,
+                                color: '#87CEEB',
+                                offsetX: 0,
+                                offsetY: 0
+                              })
                             // 按钮 - 菱形绿色渐变
                             Text(item.actionText || '观看解锁')
                               .fontSize(15)
