@@ -251,6 +251,9 @@ struct Index {
   @State rewardSlotClaimed: boolean = false;  // 当前用户是否已认领奖励位
   @State rewardSlotUser: PilotItem | null = null;  // 奖励位展示的用户名片
   @State isAdLoading: boolean = false;  // 广告加载中
+  @State rewardTitle: string = '';  // 奖励位标题
+  @State rewardSubtitle: string = '';  // 奖励位副标题
+  @State rewardButtonText: string = '';  // 奖励位按钮文字
 
   // 飞手列表
   @State pilots: PilotItem[] = [];
@@ -393,6 +396,17 @@ struct Index {
 
   async loadBanner() {
     try {
+      // 先获取配置获取奖励位标题等
+      const config = await fetchConfig();
+      this.rewardTitle = config.rewardTitle || '呼叫飞手';
+      this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
+      this.rewardButtonText = config.rewardButtonText || '观看解锁';
+      this.marqueeText = config.defaultTopTitle || '呼叫飞手';
+      this.marqueeNeedsScroll = this.marqueeText.length > 12;
+      this.todayActiveUsers = config.todayActiveUsers ?? 0;
+      this.totalPilotCount = config.totalPilotCount ?? 0;
+      this.totalEmployerCount = config.totalEmployerCount ?? 0;
+
       const banners = await fetchBanners();
       const baseBanners = banners.length > 0 ? banners : this.getDefaultBanners();
       const rewardBanner = this.getRewardBanner();
@@ -465,6 +479,9 @@ struct Index {
       this.todayActiveUsers = config.todayActiveUsers ?? 0;
       this.totalPilotCount = config.totalPilotCount ?? 0;
       this.totalEmployerCount = config.totalEmployerCount ?? 0;
+      this.rewardTitle = config.rewardTitle || '呼叫飞手';
+      this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
+      this.rewardButtonText = config.rewardButtonText || '观看解锁';
     } catch {
       this.marqueeText = '呼叫飞手';
       this.marqueeNeedsScroll = false;
@@ -871,8 +888,9 @@ struct Index {
       clickPage: '',
       clickUrl: '',
       isRewardSlot: true,
-      title: '呼叫飞手 - 无人机服务调度平台',
-      subtitle: '打造职业飞手库'
+      title: this.rewardTitle || '呼叫飞手',
+      subtitle: this.rewardSubtitle || '打造职业飞手库',
+      actionText: this.rewardButtonText || '观看解锁'
     };
   }
 
@@ -1677,7 +1695,7 @@ struct Index {
                           .margin({ top: 12 })
 
                           // 点击提示
-                          Text('点击领取奖励位 >')
+                          Text(item.actionText || '观看解锁 >')
                             .fontSize(11)
                             .fontColor('rgba(255, 255, 255, 0.6)')
                             .margin({ top: 8 })

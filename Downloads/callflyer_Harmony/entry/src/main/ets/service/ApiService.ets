@@ -42,6 +42,22 @@ interface RawConfig {
   todayActiveUsers?: number;
   totalPilotCount?: number;
   totalEmployerCount?: number;
+  rewardAdConfig?: RawRewardAdConfig;
+}
+
+interface RawRewardAdConfig {
+  display_title?: string;
+  title?: string;
+  cta_text?: string;
+  ctaText?: string;
+  buttonText?: string;
+  display_subtitle?: string;
+  subtitle?: string;
+  occupied_subtitle?: string;
+  occupiedSubtitle?: string;
+  enabled?: boolean;
+  slot_key?: string;
+  slotKey?: string;
 }
 
 interface RawBannerItem {
@@ -134,6 +150,10 @@ export interface ConfigResult {
   todayActiveUsers?: number;
   totalPilotCount?: number;
   totalEmployerCount?: number;
+  rewardTitle?: string;
+  rewardSubtitle?: string;
+  rewardButtonText?: string;
+  rewardOccupiedSubtitle?: string;
 }
 
 export async function fetchConfig(): Promise<ConfigResult> {
@@ -159,11 +179,16 @@ export async function fetchConfig(): Promise<ConfigResult> {
           console.info('【接口返回】fetchConfig:', data.result as string);
           try {
             const response = JSON.parse(data.result as string) as RawConfig;
+            const rewardConfig = response.rewardAdConfig || {};
             resolve({
               defaultTopTitle: response.defaultTopTitle || '',
               todayActiveUsers: response.todayActiveUsers || 0,
               totalPilotCount: response.totalPilotCount || 0,
-              totalEmployerCount: response.totalEmployerCount || 0
+              totalEmployerCount: response.totalEmployerCount || 0,
+              rewardTitle: rewardConfig.display_title || rewardConfig.title || '',
+              rewardSubtitle: rewardConfig.display_subtitle || rewardConfig.subtitle || '',
+              rewardButtonText: rewardConfig.cta_text || rewardConfig.ctaText || rewardConfig.buttonText || '',
+              rewardOccupiedSubtitle: rewardConfig.occupied_subtitle || rewardConfig.occupiedSubtitle || ''
             });
           } catch (parseErr) {
             reject(parseErr);
