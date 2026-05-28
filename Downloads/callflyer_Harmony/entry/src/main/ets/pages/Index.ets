@@ -1,5 +1,5 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
@@ -272,6 +272,8 @@ struct Index {
 
   // 今日有空
   @State standbyItems: StandbyItem[] = [];
+  @State standbyIsJoined: boolean = false;
+  @State standbyLoading: boolean = false;
   @State expandedStandbyItem: StandbyItem | null = null;
   @State expandedPilotCardData: PilotCardData | null = null;
   @State showExpandedStandby: boolean = false;
@@ -641,10 +643,15 @@ struct Index {
     try {
       const result = await fetchStandby();
       this.standbyItems = result.items;
-      console.info('【今日有空】加载成功，数量:', this.standbyItems.length);
+      // 检查当前用户是否在等待列表中
+      const currentUser = AuthService.getCurrentUser();
+      const myOpenid = currentUser?.openId || '';
+      this.standbyIsJoined = this.standbyItems.some(item => item.openid === myOpenid);
+      console.info('【今日有空】加载成功，数量:', this.standbyItems.length, '已加入:', this.standbyIsJoined);
     } catch (err) {
       console.error('【今日有空】加载失败:', JSON.stringify(err));
       this.standbyItems = [];
+      this.standbyIsJoined = false;
     }
     // 获取屏幕尺寸（转换为vp）
     try {
@@ -652,6 +659,37 @@ struct Index {
       this.screenWidth = px2vp(d.width);
       this.screenHeight = px2vp(d.height);
     } catch (e) {}
+  }
+
+  async toggleStandbyJoin() {
+    if (this.standbyLoading) return;
+    const wasJoined = this.standbyIsJoined;
+    const token = AuthService.getAuthToken();
+    if (!token) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+
+    this.standbyLoading = true;
+    try {
+      if (wasJoined) {
+        await leaveStandby(token);
+        this.standbyIsJoined = false;
+        promptAction.showToast({ message: '已取消等待' });
+      } else {
+        await joinStandby(token);
+        this.standbyIsJoined = true;
+        promptAction.showToast({ message: '已加入等待' });
+      }
+      // 重新加载列表
+      await this.loadStandby();
+    } catch (err) {
+      console.error('【今日有空】切换失败:', JSON.stringify(err));
+      this.standbyIsJoined = wasJoined;
+      promptAction.showToast({ message: wasJoined ? '取消失败' : '加入失败' });
+    } finally {
+      this.standbyLoading = false;
+    }
   }
 
   onStandbyCardTap(item: StandbyItem) {
@@ -1095,9 +1133,17 @@ struct Index {
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_title'))
           .fontFamily('DouyinSansBold')
+        Blank()
+        Text(this.standbyIsJoined ? '取消等待' : '等待任务')
+          .fontSize(13)
+          .fontColor(this.standbyIsJoined ? '#FFFFFF' : '#FFFFFF')
+          .backgroundColor(this.standbyIsJoined ? '#22C55E' : '#22C55E')
+          .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+          .borderRadius(16)
+          .onClick(() => this.toggleStandbyJoin())
       }
       .width('100%')
-      .padding({ left: 18 })
+      .padding({ left: 18, right: 18 })
       .margin({ bottom: 12, top: 22 })
 
       // 白色圆角容器
@@ -1246,6 +1292,16 @@ struct Index {
         .backgroundColor($r('app.color.page_bg'))
         .expandSafeArea([SafeAreaType.SYSTEM])
         .clip(false)
+        .onVisibleAreaChange([0, 1], (isVisible: boolean) => {
+          if (isVisible) {
+            // 页面显示时静默刷新数据
+            this.loadBanner();
+            this.loadConfig();
+            this.loadPilots();
+            this.loadOrders();
+            this.loadStandby();
+          }
+        })
 
       HdsNavigation() {
         Scroll(this.scroller) {

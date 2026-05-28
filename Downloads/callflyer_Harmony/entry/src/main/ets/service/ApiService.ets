@@ -1544,6 +1544,76 @@ export async function fetchStandby(): Promise<StandbyResult> {
   });
 }
 
+export async function joinStandby(token: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/standby`;
+    console.info('【接口请求】joinStandby url:', url);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】joinStandby:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】joinStandby:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 201) {
+          resolve();
+        } else {
+          reject(new Error('加入等待失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+export async function leaveStandby(token: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/standby`;
+    console.info('【接口请求】leaveStandby url:', url);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.DELETE,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】leaveStandby:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】leaveStandby:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 204) {
+          resolve();
+        } else {
+          reject(new Error('取消等待失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
 export async function unlikeProfile(openid: string, token: string): Promise<LikeResult> {
   return new Promise<LikeResult>((resolve, reject) => {
     const httpRequest = http.createHttp();
