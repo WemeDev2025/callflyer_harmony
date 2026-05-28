@@ -1894,3 +1894,58 @@ export async function fetchContactLogFeed(params: ContactLogParams): Promise<Con
     );
   });
 }
+
+// 奖励位认领结果
+export interface RewardSlotClaimResult {
+  success: boolean;
+  message?: string;
+}
+
+// 领取奖励位（激励视频看完后调用）
+export async function claimRewardSlot(): Promise<RewardSlotClaimResult> {
+  return new Promise<RewardSlotClaimResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/carousel/reward/claim`;
+    const token = AppStorage.get<string>('authToken');
+
+    console.info('【接口请求】claimRewardSlot url:', url);
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】claimRewardSlot:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        httpRequest.destroy();
+        if (data.result && typeof data.result === 'string' && data.result.length > 0) {
+          try {
+            const res = JSON.parse(data.result as string) as RewardSlotClaimResult;
+            console.info('【接口返回】claimRewardSlot:', JSON.stringify(res));
+            resolve(res);
+          } catch (e) {
+            console.error('【claimRewardSlot解析失败】', JSON.stringify(e));
+            reject(err);
+          }
+        } else {
+          console.error('【claimRewardSlot无数据】');
+          reject(err);
+        }
+      }
+    );
+  });
+}

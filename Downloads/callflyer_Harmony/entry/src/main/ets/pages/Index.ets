@@ -1,11 +1,14 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
 import { pushService } from '@kit.PushKit';
-import { BusinessError } from '@kit.BasicServicesKit';
+import { BusinessError, commonEventManager } from '@kit.BasicServicesKit';
+import { advertising, identifier } from '@kit.AdsKit';
+import { abilityAccessCtrl, common } from '@kit.AbilityKit';
 import type { Context } from '@kit.AbilityKit';
+import hilog from '@kit.PerformanceAnalysisKit';
 import promptAction from '@ohos.promptAction';
 import call from '@ohos.telephony.call';
 import pasteboard from '@ohos.pasteboard';
@@ -19,8 +22,10 @@ import http from '@ohos.net.http';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import fileIo from '@ohos.file.fs';
 import fileUri from '@ohos.file.fileuri';
-import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+
+// 默认头像
+const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 
 // 防抖标记：确保每次启动只上报一次访问
 let visitReported = false;
@@ -34,6 +39,107 @@ interface FeatureCardParam {
 
 interface SystemBarStyleInterface {
   statusBarContentColor?: string;
+}
+
+// 激励广告状态订阅处理器
+const KEY_REWARD_DATA = 'reward_ad_data';
+const KEY_REWARD_STATUS = 'reward_ad_status';
+
+class RewardAdStatusHandler {
+  private subscriber: commonEventManager.CommonEventSubscriber | null = null;
+  onRewardGranted: (() => void) | null = null;
+
+  // 订阅激励广告状态变化
+  registerPPSReceiver(onReward: () => void): void {
+    this.onRewardGranted = onReward;
+    if (this.subscriber) {
+      this.unRegisterPPSReceiver();
+    }
+
+    const subscribeInfo: commonEventManager.CommonEventSubscribeInfo = {
+      events: ['com.huawei.hms.pps.action.PPS_REWARD_STATUS_CHANGED'],
+      publisherBundleName: 'com.huawei.hms.adsservice'
+    };
+
+    commonEventManager.createSubscriber(subscribeInfo, (err: BusinessError, commonEventSubscriber:
+      commonEventManager.CommonEventSubscriber) => {
+      if (err) {
+        hilog.error(0x0000, 'RewardAd', `Failed to create subscriber. Code is ${err.code}, message is ${err.message}`);
+        return;
+      }
+      hilog.info(0x0000, 'RewardAd', 'Succeeded in creating subscriber');
+      this.subscriber = commonEventSubscriber;
+
+      commonEventManager.subscribe(this.subscriber, (err: BusinessError, commonEventSubscriber:
+        commonEventManager.CommonEventData) => {
+        if (err) {
+          hilog.error(0x0000, 'RewardAd', `Failed to subscribe. Code is ${err.code}, message is ${err.message}`);
+        } else {
+          const status: string = commonEventSubscriber?.parameters?.[KEY_REWARD_STATUS];
+          switch (status) {
+            case 'onAdClose':
+              hilog.info(0x0000, 'RewardAd', 'Status is onAdClose');
+              this.unRegisterPPSReceiver();
+              break;
+            case 'onAdReward':
+              hilog.info(0x0000, 'RewardAd', 'Status is onAdReward - 激励发放');
+              if (this.onRewardGranted) {
+                this.onRewardGranted();
+              }
+              break;
+            case 'onVideoPlayBegin':
+              hilog.info(0x0000, 'RewardAd', 'Status is onVideoPlayBegin');
+              break;
+            case 'onVideoPlayEnd':
+              hilog.info(0x0000, 'RewardAd', 'Status is onVideoPlayEnd');
+              break;
+            default:
+              break;
+          }
+        }
+      });
+    });
+  }
+
+  // 取消订阅
+  unRegisterPPSReceiver(): void {
+    if (this.subscriber) {
+      commonEventManager.unsubscribe(this.subscriber, (err: BusinessError) => {
+        if (err) {
+          hilog.error(0x0000, 'RewardAd', `Failed to unsubscribe. Code is ${err.code}, message is ${err.message}`);
+        } else {
+          hilog.info(0x0000, 'RewardAd', 'Succeeded in unsubscribing');
+          this.subscriber = null;
+        }
+      });
+    }
+  }
+}
+
+// 获取 OAID
+async function requestOAID(context: Context): Promise<string | undefined> {
+  let isPermissionGranted: boolean = false;
+  try {
+    const atManager = abilityAccessCtrl.createAtManager();
+    const result = await atManager.requestPermissionsFromUser(context, ['ohos.permission.APP_TRACKING_CONSENT']);
+    isPermissionGranted = result.authResults[0] === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED;
+  } catch (err) {
+    hilog.error(0x0000, 'RewardAd', `Failed to request permission. Code is ${(err as BusinessError).code}, message is ${(err as BusinessError).message}`);
+  }
+
+  if (isPermissionGranted) {
+    hilog.info(0x0000, 'RewardAd', 'Succeeded in requesting permission');
+    try {
+      const oaid = await identifier.getOAID();
+      hilog.info(0x0000, 'RewardAd', 'Succeeded in getting OAID');
+      return oaid;
+    } catch (err) {
+      hilog.error(0x0000, 'RewardAd', `Failed to get OAID. Code is ${(err as BusinessError).code}, message is ${(err as BusinessError).message}`);
+    }
+  } else {
+    hilog.error(0x0000, 'RewardAd', 'Failed to request permission. User rejected');
+  }
+  return undefined;
 }
 
 /**
@@ -117,6 +223,7 @@ struct Index {
 
   // 跑马灯
   @State marqueeText: string = '';
+  @State marqueeNeedsScroll: boolean = false;
 
   // 运营数据
   @State todayActiveUsers: number = 0;
@@ -139,6 +246,11 @@ struct Index {
   @State lightCOpacity: number = 0.5;
   @State lightCScale: number = 0.9;
   @State lightCRadius: number = 80;
+
+  // 奖励位状态
+  @State rewardSlotClaimed: boolean = false;  // 当前用户是否已认领奖励位
+  @State rewardSlotUser: PilotItem | null = null;  // 奖励位展示的用户名片
+  @State isAdLoading: boolean = false;  // 广告加载中
 
   // 飞手列表
   @State pilots: PilotItem[] = [];
@@ -341,12 +453,149 @@ struct Index {
     try {
       const config = await fetchConfig();
       this.marqueeText = config.defaultTopTitle || '呼叫飞手';
+      this.marqueeNeedsScroll = this.marqueeText.length > 12;
       this.todayActiveUsers = config.todayActiveUsers ?? 0;
       this.totalPilotCount = config.totalPilotCount ?? 0;
       this.totalEmployerCount = config.totalEmployerCount ?? 0;
     } catch {
       this.marqueeText = '呼叫飞手';
+      this.marqueeNeedsScroll = false;
     }
+  }
+
+  // 加载并展示激励视频广告
+  async loadRewardedAd(): Promise<void> {
+    hilog.info(0x0000, 'RewardAd', 'loadRewardedAd start');
+
+    const context = getContext(this) as common.UIAbilityContext;
+
+    // 广告请求回调监听
+    const adLoadListener: advertising.AdLoadListener = {
+      onAdLoadFailure: (errorCode: number, errorMsg: string) => {
+        hilog.error(0x0000, 'RewardAd', `Failed to load ad. Code is ${errorCode}, message is ${errorMsg}`);
+        this.isAdLoading = false;
+        promptAction.showToast({ message: '广告加载失败，请重试' });
+      },
+      onAdLoadSuccess: (ads: Array<advertising.Advertisement>) => {
+        hilog.info(0x0000, 'RewardAd', 'Succeeded in loading ad');
+        try {
+          // 创建激励广告状态处理器并注册监听
+          const rewardHandler = new RewardAdStatusHandler();
+          rewardHandler.registerPPSReceiver(() => {
+            // 激励发放回调 - 调用后端接口领取奖励位
+            hilog.info(0x0000, 'RewardAd', 'onAdReward triggered - calling claimRewardSlot');
+            this.onRewardClaimed();
+          });
+
+          // 广告展示参数
+          const adDisplayOptions: advertising.AdDisplayOptions = {
+            mute: false
+          };
+
+          // 展示广告
+          advertising.showAd(ads[0], adDisplayOptions, context);
+        } catch (e) {
+          hilog.error(0x0000, 'RewardAd', `Failed to show ad. Code is ${(e as BusinessError).code}, message is ${(e as BusinessError).message}`);
+          this.isAdLoading = false;
+        }
+      }
+    };
+
+    // 广告请求参数
+    const adRequestParams: advertising.AdRequestParams = {
+      adId: 'j14rx3xtac',  // 测试广告位ID
+      adType: 7,  // 激励广告类型
+      oaid: await requestOAID(context)
+    };
+
+    // 广告配置参数
+    const adOptions: advertising.AdOptions = {};
+
+    // 创建AdLoader广告对象并请求广告
+    const adLoader: advertising.AdLoader = new advertising.AdLoader(context);
+    try {
+      adLoader.loadAd(adRequestParams, adOptions, adLoadListener);
+    } catch (e) {
+      hilog.error(0x0000, 'RewardAd', `Failed to load ad. Code is ${(e as BusinessError).code}, message is ${(e as BusinessError).message}`);
+      this.isAdLoading = false;
+      promptAction.showToast({ message: '广告加载失败，请重试' });
+    }
+  }
+
+  // 激励视频看完后，领取奖励位
+  async onRewardClaimed(): Promise<void> {
+    try {
+      hilog.info(0x0000, 'RewardAd', 'onRewardClaimed called');
+      const result = await claimRewardSlot();
+      if (result.success) {
+        hilog.info(0x0000, 'RewardAd', 'Reward slot claimed successfully');
+        promptAction.showToast({ message: '奖励位领取成功' });
+        // 更新UI - 展示用户自己的名片
+        const currentUser = AuthService.getCurrentUser();
+        if (currentUser) {
+          this.rewardSlotUser = {
+            openid: currentUser.openId || '',
+            nickname: currentUser.nickname || '',
+            avatar: currentUser.avatar || '',
+            city: currentUser.city || '',
+            userRole: currentUser.userRole || '',
+            roleLabel: currentUser.roleLabel || '',
+            licenseType: currentUser.licenseType || '',
+            licenseStatus: currentUser.licenseStatus || '',
+            pilotCode: currentUser.pilotCode || '',
+            company: currentUser.company || '',
+            position: currentUser.position || '',
+            droneModel: currentUser.droneModel || '',
+            businessScopeText: currentUser.businessScopeText || '',
+            recentActiveText: '刚刚活跃',
+            likeCount: 0,
+            likedByMe: false,
+            phone: currentUser.phone || '',
+            wechatId: currentUser.wechatId || '',
+            distanceText: '',
+            isNew: false
+          };
+          this.rewardSlotClaimed = true;
+        }
+      } else {
+        hilog.info(0x0000, 'RewardAd', `Reward slot claim failed: ${result.message}`);
+        promptAction.showToast({ message: result.message || '领取失败，请重试' });
+      }
+    } catch (e) {
+      hilog.error(0x0000, 'RewardAd', `claimRewardSlot error: ${JSON.stringify(e)}`);
+      promptAction.showToast({ message: '领取失败，请重试' });
+    }
+    this.isAdLoading = false;
+  }
+
+  // 检查用户资料是否完整（可以领取奖励位）
+  isProfileComplete(): boolean {
+    const user = AuthService.getCurrentUser();
+    if (!user) {
+      return false;
+    }
+    // 检查必要字段
+    const hasNickname = !!(user.nickname && user.nickname.trim().length > 0);
+    const hasAvatar = !!(user.avatar && user.avatar.trim().length > 0);
+    const hasPhone = !!(user.phone && user.phone.trim().length > 0);
+    return hasNickname && hasAvatar && hasPhone;
+  }
+
+  // 点击奖励位
+  onRewardSlotClick(): void {
+    if (this.rewardSlotClaimed) {
+      // 已经领取，显示提示
+      promptAction.showToast({ message: '您已领取奖励位' });
+      return;
+    }
+
+    if (!this.isProfileComplete()) {
+      promptAction.showToast({ message: '请先完善个人资料' });
+      return;
+    }
+
+    this.isAdLoading = true;
+    this.loadRewardedAd();
   }
 
   async loadPilots() {
@@ -992,23 +1241,34 @@ struct Index {
 
               // 跑马灯容器（限制宽度，两侧留出渐变位置）
               Column() {
-                Marquee({
-                  src: this.marqueeText || '呼叫飞手',
-                  start: true,
-                  fromStart: true,
-                  step: 6,
-                  loop: -1
-                })
-                .fontSize(18)
-                .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
-                .fontWeight(FontWeight.Medium)
-                .fontFamily('DouyinSansBold')
-                .width('100%')
+                if (this.marqueeNeedsScroll) {
+                  // 长文字：滚动播放
+                  Marquee({
+                    src: this.marqueeText || '呼叫飞手',
+                    start: true,
+                    fromStart: true,
+                    step: 6,
+                    loop: -1
+                  })
+                  .fontSize(18)
+                  .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
+                  .fontWeight(FontWeight.Medium)
+                  .fontFamily('DouyinSansBold')
+                  .width('100%')
+                } else {
+                  // 短文字：居中显示
+                  Text(this.marqueeText || '呼叫飞手')
+                    .fontSize(18)
+                    .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
+                    .fontWeight(FontWeight.Medium)
+                    .fontFamily('DouyinSansBold')
+                    .textAlign(TextAlign.Center)
+                    .width('100%')
+                }
               }
               .width('100%')
               .constraintSize({ maxWidth: '100%' })
               .padding({ left: 32, right: 32 })
-              // .backgroundColor('rgba(0,0,0,0)')
 
               // 左侧渐变（实色→透明）
               Column()
@@ -1050,6 +1310,7 @@ struct Index {
                         .width('100%')
                         .height('100%')
                         .backgroundColor('#242325')
+                        .onClick(() => { this.onRewardSlotClick(); })
 
                       // 装饰光晕 A - 青色 (径向渐变模拟边缘弥散)
                       Stack() {
@@ -1196,61 +1457,100 @@ struct Index {
                       .position({ right: this.lightCOffsetX - 30, bottom: this.lightCOffsetY - 30 })
                       .blur(40)
 
+                      // 中层蒙版 - 黑色半透明提升文字可读性
+                      Column()
+                        .width('100%')
+                        .height('100%')
+                        .backgroundColor('rgba(0, 0, 0, 0.3)')
+
                       // 内容层
                       Column() {
-                        Text(item.title || '呼叫飞手')
-                          .fontSize(28)
-                          .fontWeight(900)
-                          .fontColor('#FFFFFF')
-                          .textAlign(TextAlign.Center)
-                          .shadow({
-                            radius: 16,
-                            color: '#06b6d4',
-                            offsetX: 0,
-                            offsetY: 4
-                          })
-                          .margin({ bottom: 8 })
+                        if (this.rewardSlotClaimed && this.rewardSlotUser) {
+                          // 已领取：显示用户名片
+                          Column() {
+                            Image(this.rewardSlotUser.avatar || DEFAULT_AVATAR)
+                              .width(80)
+                              .height(80)
+                              .borderRadius(40)
+                              .border({ width: 3, color: '#06b6d4' })
+                              .shadow({
+                                radius: 16,
+                                color: '#06b6d4',
+                                offsetX: 0,
+                                offsetY: 4
+                              })
+                            Text(this.rewardSlotUser.nickname || '匿名用户')
+                              .fontSize(18)
+                              .fontWeight(600)
+                              .fontColor('#FFFFFF')
+                              .margin({ top: 8 })
+                            Text('已展示我的名片')
+                              .fontSize(12)
+                              .fontColor('#cffafe')
+                              .margin({ top: 4 })
+                          }
+                        } else {
+                          // 未领取：显示统计数据
+                          Text(item.title || '呼叫飞手')
+                            .fontSize(28)
+                            .fontWeight(900)
+                            .fontColor('#FFFFFF')
+                            .textAlign(TextAlign.Center)
+                            .shadow({
+                              radius: 16,
+                              color: '#06b6d4',
+                              offsetX: 0,
+                              offsetY: 4
+                            })
+                            .margin({ bottom: 8 })
 
-                        Text(item.subtitle || '打造职业飞手库')
-                          .fontSize(16)
-                          .fontColor('#cffafe')
-                          .fontWeight(500)
-                          .textAlign(TextAlign.Center)
-                          .shadow({
-                            radius: 8,
-                            color: '#000000',
-                            offsetX: 0,
-                            offsetY: 2
-                          })
+                          Text(item.subtitle || '打造职业飞手库')
+                            .fontSize(16)
+                            .fontColor('#cffafe')
+                            .fontWeight(500)
+                            .textAlign(TextAlign.Center)
+                            .shadow({
+                              radius: 8,
+                              color: '#000000',
+                              offsetX: 0,
+                              offsetY: 2
+                            })
 
-                        Row() {
-                          if (this.todayActiveUsers > 0) {
-                            Text('今日访问 ' + this.todayActiveUsers + ' 人')
-                              .fontSize(12)
-                              .fontColor('rgba(255, 255, 255, 0.9)')
+                          Row() {
+                            if (this.todayActiveUsers > 0) {
+                              Text('今日访问 ' + this.todayActiveUsers + ' 人')
+                                .fontSize(12)
+                                .fontColor('rgba(255, 255, 255, 0.9)')
+                            }
+                            if (this.todayActiveUsers > 0 && this.totalPilotCount > 0) {
+                              Text(' · ')
+                                .fontSize(12)
+                                .fontColor('rgba(255, 255, 255, 0.4)')
+                            }
+                            if (this.totalPilotCount > 0) {
+                              Text('报道飞手 ' + this.totalPilotCount + ' 人')
+                                .fontSize(12)
+                                .fontColor('rgba(255, 255, 255, 0.9)')
+                            }
+                            if ((this.todayActiveUsers > 0 || this.totalPilotCount > 0) && this.totalEmployerCount > 0) {
+                              Text(' · ')
+                                .fontSize(12)
+                                .fontColor('rgba(255, 255, 255, 0.4)')
+                            }
+                            if (this.totalEmployerCount > 0) {
+                              Text('注册雇主 ' + this.totalEmployerCount + ' 人')
+                                .fontSize(12)
+                                .fontColor('rgba(255, 255, 255, 0.9)')
+                            }
                           }
-                          if (this.todayActiveUsers > 0 && this.totalPilotCount > 0) {
-                            Text(' · ')
-                              .fontSize(12)
-                              .fontColor('rgba(255, 255, 255, 0.4)')
-                          }
-                          if (this.totalPilotCount > 0) {
-                            Text('报道飞手 ' + this.totalPilotCount + ' 人')
-                              .fontSize(12)
-                              .fontColor('rgba(255, 255, 255, 0.9)')
-                          }
-                          if ((this.todayActiveUsers > 0 || this.totalPilotCount > 0) && this.totalEmployerCount > 0) {
-                            Text(' · ')
-                              .fontSize(12)
-                              .fontColor('rgba(255, 255, 255, 0.4)')
-                          }
-                          if (this.totalEmployerCount > 0) {
-                            Text('注册雇主 ' + this.totalEmployerCount + ' 人')
-                              .fontSize(12)
-                              .fontColor('rgba(255, 255, 255, 0.9)')
-                          }
+                          .margin({ top: 12 })
+
+                          // 点击提示
+                          Text('点击领取奖励位 >')
+                            .fontSize(11)
+                            .fontColor('rgba(255, 255, 255, 0.6)')
+                            .margin({ top: 8 })
                         }
-                        .margin({ top: 12 })
                       }
                       .width('100%')
                       .height('100%')
