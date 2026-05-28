@@ -2079,3 +2079,51 @@ export async function claimRewardSlot(): Promise<RewardSlotClaimResult> {
     );
   });
 }
+
+// 获取奖励位状态（检查用户是否已认领）
+export async function fetchRewardSlotStatus(): Promise<RewardSlotClaimResult | null> {
+  return new Promise<RewardSlotClaimResult | null>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/carousel/reward/status`;
+    const token = AppStorage.get<string>('authToken');
+
+    console.info('【接口请求】fetchRewardSlotStatus url:', url);
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: headers,
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchRewardSlotStatus:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】fetchRewardSlotStatus:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 201) {
+          try {
+            const res = JSON.parse(data.result as string) as RewardSlotClaimResult;
+            resolve(res);
+          } catch (e) {
+            console.error('【fetchRewardSlotStatus解析失败】', JSON.stringify(e));
+            resolve(null);
+          }
+        } else {
+          resolve(null);
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}

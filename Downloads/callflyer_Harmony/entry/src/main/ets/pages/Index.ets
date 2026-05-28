@@ -1,5 +1,5 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
@@ -309,6 +309,7 @@ struct Index {
       this.loadPilots();
       this.loadOrders();
       this.loadStandby();
+      this.loadRewardSlotStatus();
     });
 
     // 获取状态栏高度并设置状态栏颜色（跟随深浅色模式）
@@ -333,6 +334,51 @@ struct Index {
   private maskPhone(phone: string): string {
     if (!phone || phone.length < 11) return phone;
     return phone.substring(0, 3) + '****' + phone.substring(7);
+  }
+
+  // 加载奖励位状态（检查用户是否已认领）
+  async loadRewardSlotStatus(): Promise<void> {
+    try {
+      const status = await fetchRewardSlotStatus();
+      if (status && status.claimed && status.profileCard) {
+        hilog.info(0x0000, 'RewardAd', '用户已认领奖励位，加载用户信息');
+        const card = status.profileCard;
+        this.rewardSlotUser = {
+          openid: '',
+          nickname: card.nickname || '匿名用户',
+          avatar: card.avatarUrl || DEFAULT_AVATAR,
+          city: card.city || '',
+          roleLabel: card.userRole || '',
+          licenseType: card.licenseType || '',
+          licenseStatus: card.licenseType === '已审核' ? '审核通过' : card.licenseType || '',
+          pilotCode: '',
+          company: card.company || '',
+          position: card.position || '',
+          droneModel: card.droneModel || '',
+          businessScope: '',
+          businessScopeText: (card.businessScope || []).join('、'),
+          recentActiveText: '刚刚活跃',
+          likeCount: card.viewCount || 0,
+          likedByMe: false,
+          phone: card.phone || '',
+          wechatId: card.wechatId || '',
+          distanceText: '',
+          isVipSlot: false,
+          vipRadiusKm: 0,
+          vipLabel: '',
+          latitude: 0,
+          longitude: 0,
+          score: '',
+          licenseUrl: '',
+          channelsId: '',
+          isNew: false,
+          licenseStatusClass: ''
+        };
+        this.rewardSlotClaimed = true;
+      }
+    } catch (e) {
+      hilog.error(0x0000, 'RewardAd', '加载奖励位状态失败: ' + JSON.stringify(e));
+    }
   }
 
   // 更新跑马灯渐变色（跟随深浅色模式）
