@@ -834,6 +834,7 @@ struct Index {
 
   // 保存网络图片到本地相册（使用安全弹窗方式，无需WRITE权限）
   async saveImageToGallery(imageUrl: string): Promise<void> {
+    let tempFilePath: string = '';
     try {
       console.info('【保存图片】开始保存: ' + imageUrl);
 
@@ -856,7 +857,7 @@ struct Index {
       // 先保存到临时目录
       const tempDir = getContext(this).cacheDir;
       const tempFileName = 'temp_image_' + Date.now() + '.jpg';
-      const tempFilePath = tempDir + '/' + tempFileName;
+      tempFilePath = tempDir + '/' + tempFileName;
       const tempFile = fileIo.openSync(tempFilePath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE);
       fileIo.writeSync(tempFile.fd, imageData);
       fileIo.closeSync(tempFile.fd);
@@ -870,18 +871,20 @@ struct Index {
         photoType: photoAccessHelper.PhotoType.IMAGE
       };
 
+      const srcFileUri = fileUri.getUriFromPath(tempFilePath);
       const resultUris = await helper.showAssetsCreationDialog(
-        [fileUri.getUriFromPath(tempFilePath)],
+        [srcFileUri],
         [photoCreationConfig]
       );
       console.info('【保存图片】安全弹窗结果: ' + JSON.stringify(resultUris));
 
-      // 删除临时文件
-      try {
-        fileIo.unlinkSync(tempFilePath);
-      } catch (e) {}
-
       if (resultUris && resultUris.length > 0) {
+        // 弹窗授权后，需要手动复制文件到目标URI
+        const srcFile = fileIo.openSync(tempFilePath, fileIo.OpenMode.READ_ONLY);
+        const desFile = fileIo.openSync(resultUris[0], fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE);
+        fileIo.copyFileSync(srcFile.fd, desFile.fd);
+        fileIo.closeSync(srcFile);
+        fileIo.closeSync(desFile);
         console.info('【保存图片】成功: ' + resultUris[0]);
         promptAction.showToast({ message: '已保存到相册' });
       } else {
@@ -891,6 +894,13 @@ struct Index {
       const errMsg = e instanceof Error ? e.message : JSON.stringify(e);
       console.error('【保存图片】异常: ' + errMsg);
       promptAction.showToast({ message: '保存失败: ' + errMsg });
+    } finally {
+      // 删除临时文件
+      if (tempFilePath) {
+        try {
+          fileIo.unlinkSync(tempFilePath);
+        } catch (e) {}
+      }
     }
   }
 
