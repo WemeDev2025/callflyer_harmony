@@ -398,13 +398,13 @@ struct Profile {
                   })
                 }
                 .width('100%')
-                .padding(12)
+                .padding(14)
                 .backgroundColor('#f5f5f5')
                 .borderRadius(10)
                 // 图片认证
                 Row() {
                   Text(this.form.userRole === 'pilot' ? '执照认证' : '图片认证')
-                    .fontSize(15)
+                    .fontSize(14)
                     .fontColor($r('app.color.text_primary'))
                   if (this.form.licenseVerified) {
                     Text('已认证')
@@ -430,7 +430,7 @@ struct Profile {
                     .onClick(() => this.handleUploadLicense())
                 }
                 .width('100%')
-                .padding(12)
+                .padding(14)
                 .backgroundColor('#f5f5f5')
                 .borderRadius(10)
               }
@@ -441,22 +441,23 @@ struct Profile {
               .margin({ top: 44 })
 
               // 飞手专属字段
-              Column({ space: 8 }) {
+              Column({ space: 12 }) {
                 // 主营业务
                 Column() {
                   Row() {
                     TextInput({ placeholder: '主营业务', text: this.currentBusinessScope })
                       .layoutWeight(1)
                       .height(44)
-                      .fontSize(15)
+                      .fontSize(12)
                       .fontColor($r('app.color.text_primary'))
-                      .placeholderFont({ size: 15 })
+                      .placeholderFont({ size: 14 })
+                      .placeholderColor($r('app.color.text_secondary'))
                       .borderRadius(8)
                       .padding({ left: 10, right: 10 })
                       .onChange((v: string) => this.currentBusinessScope = v)
                       .onSubmit(() => this.handleAddBusinessScope())
                     Text('添加')
-                      .fontSize(14)
+                      .fontSize($r('app.float.input_action_font_size'))
                       .fontColor('#000000')
                       .margin({ left: 10 })
                       .onClick(() => this.handleAddBusinessScope())
@@ -479,25 +480,23 @@ struct Profile {
                     .margin({ top: 8 })
                   }
                 }
-                .width('100%')
-                .padding(12)
-                .borderRadius(10)
-
+                .width('88%')
                 // 常用机型
                 Column() {
                   Row() {
                     TextInput({ placeholder: '常用机型', text: this.currentDroneModel })
                       .layoutWeight(1)
                       .height(44)
-                      .fontSize(15)
+                      .fontSize(12)
                       .fontColor($r('app.color.text_primary'))
-                      .placeholderFont({ size: 15 })
+                      .placeholderFont({ size: 14 })
+                      .placeholderColor($r('app.color.text_secondary'))
                       .borderRadius(8)
                       .padding({ left: 10, right: 10 })
                       .onChange((v: string) => this.currentDroneModel = v)
                       .onSubmit(() => this.handleAddDroneModel())
                     Text('添加')
-                      .fontSize(14)
+                      .fontSize($r('app.float.input_action_font_size'))
                       .fontColor('#000000')
                       .margin({ left: 10 })
                       .onClick(() => this.handleAddDroneModel())
@@ -520,32 +519,31 @@ struct Profile {
                     .margin({ top: 8 })
                   }
                 }
-                .width('100%')
-                .padding(12)
-                .borderRadius(10)
-
+                .width('88%')
                 // 机构码
-                Row() {
-                  Text('我的机构码')
-                    .fontSize(15)
-                    .fontColor($r('app.color.text_primary'))
-                  Text(this.form.orgCode || '输入6位机构码')
-                    .fontSize(15)
-                    .fontColor(this.form.orgCode ? $r('app.color.text_primary') : $r('app.color.text_secondary'))
-                    .layoutWeight(1)
-                    .textAlign(TextAlign.End)
-                    .onClick(() => this.handleOrgCodeTap())
+                Column() {
+                  Row() {
+                    Text('我的机构码')
+                      .fontSize(15)
+                      .fontColor($r('app.color.text_primary'))
+                    Text(this.form.orgCode || '输入6位机构码')
+                      .fontSize(15)
+                      .fontColor(this.form.orgCode ? $r('app.color.text_primary') : $r('app.color.text_secondary'))
+                      .layoutWeight(1)
+                      .textAlign(TextAlign.End)
+                  }
+                  .alignItems(VerticalAlign.Center)
+                  .padding(14)
+                  .onClick(() => this.handleOrgCodeTap())
                 }
-                .width('100%')
-                .height(48)
-                .padding({ left: 14, right: 14 })
+                .width('88%')
                 .backgroundColor('#f5f5f5')
                 .borderRadius(10)
               }
               .width('100%')
+              .padding({ top: 16, bottom: 16 })
               .opacity(this.form.userRole === 'pilot' ? 1 : 0)
               .clip(true)
-              .padding({ left: 12, right: 12, top: 12, bottom: 12 })
               .backgroundColor($r('app.color.card_bg'))
               .borderRadius(16)
               .margin({ top: 12 })
@@ -651,14 +649,22 @@ struct Profile {
   }
 
   // 机构码弹窗
-  @State showOrgCodeModal: boolean = false;
   @State orgCodeInput: string = '';
   @State orgCodeError: string = '';
+  dialogController: CustomDialogController = new CustomDialogController({
+    builder: OrgCodeDialog({
+      orgCodeInput: $orgCodeInput,
+      orgCodeError: $orgCodeError,
+      onConfirm: this.handleOrgCodeConfirm.bind(this),
+      onCancel: this.handleOrgCodeCancel.bind(this)
+    }),
+    alignment: DialogAlignment.Center
+  });
 
   handleOrgCodeTap() {
     this.orgCodeInput = this.form.orgCode || '';
     this.orgCodeError = '';
-    this.showOrgCodeModal = true;
+    this.dialogController.open();
   }
 
   handleOrgCodeConfirm() {
@@ -667,10 +673,69 @@ struct Profile {
       return;
     }
     this.form.orgCode = this.orgCodeInput;
-    this.showOrgCodeModal = false;
+    this.dialogController.close();
   }
 
   handleOrgCodeCancel() {
-    this.showOrgCodeModal = false;
+    this.dialogController.close();
+  }
+}
+
+// 机构码输入弹窗
+@CustomDialog
+struct OrgCodeDialog {
+  @Link orgCodeInput: string;
+  @Link orgCodeError: string;
+  onConfirm: () => void = () => {};
+  onCancel: () => void = () => {};
+  controller: CustomDialogController = new CustomDialogController({ builder: () => {} });
+
+  build() {
+    Column({ space: 16 }) {
+      Text('输入机构码')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+
+      TextInput({ text: this.orgCodeInput, placeholder: '请输入6位机构码' })
+        .width('100%')
+        .height(48)
+        .fontSize(16)
+        .placeholderColor($r('app.color.text_secondary'))
+        .type(InputType.Number)
+        .maxLength(6)
+        .onChange((v: string) => {
+          this.orgCodeInput = v;
+          this.orgCodeError = '';
+        })
+
+      if (this.orgCodeError) {
+        Text(this.orgCodeError)
+          .fontSize(12)
+          .fontColor('#FF3B30')
+      }
+
+      Row() {
+        Button('取消')
+          .width('45%')
+          .height(40)
+          .backgroundColor('#f5f5f5')
+          .fontColor('#666666')
+          .borderRadius(8)
+          .onClick(() => this.onCancel())
+
+        Button('确定')
+          .width('45%')
+          .height(40)
+          .backgroundColor($r('app.color.badge_green'))
+          .fontColor('#FFFFFF')
+          .borderRadius(8)
+          .onClick(() => this.onConfirm())
+      }
+    }
+    .width('85%')
+    .padding(20)
+    .backgroundColor('#FFFFFF')
+    .borderRadius(16)
   }
 }
