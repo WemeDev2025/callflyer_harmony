@@ -1136,10 +1136,10 @@ struct Index {
         Blank()
         Text(this.standbyIsJoined ? '取消等待' : '等待任务')
           .fontSize(13)
-          .fontColor(this.standbyIsJoined ? '#FFFFFF' : '#FFFFFF')
-          .backgroundColor(this.standbyIsJoined ? '#22C55E' : '#22C55E')
+          .fontColor('#FFFFFF')
+          .backgroundColor(this.standbyIsJoined ? '#EF4444' : '#22C55E')
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-          .borderRadius(8)
+          .borderRadius(4)
           .onClick(() => this.toggleStandbyJoin())
       }
       .width('100%')
