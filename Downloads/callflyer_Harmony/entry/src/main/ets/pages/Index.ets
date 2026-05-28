@@ -8,7 +8,7 @@ import { BusinessError, commonEventManager } from '@kit.BasicServicesKit';
 import { advertising, identifier } from '@kit.AdsKit';
 import { abilityAccessCtrl, common } from '@kit.AbilityKit';
 import type { Context } from '@kit.AbilityKit';
-import hilog from '@kit.PerformanceAnalysisKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 import promptAction from '@ohos.promptAction';
 import call from '@ohos.telephony.call';
 import pasteboard from '@ohos.pasteboard';
@@ -540,7 +540,6 @@ struct Index {
           nickname: card.nickname || '匿名用户',
           avatar: card.avatarUrl || DEFAULT_AVATAR,
           city: card.city || '',
-          userRole: card.userRole || '',
           roleLabel: '',
           licenseType: card.licenseType || '',
           licenseStatus: card.licenseType === '已审核' ? '审核通过' : card.licenseType || '',
@@ -548,6 +547,7 @@ struct Index {
           company: card.company || '',
           position: card.position || '',
           droneModel: card.droneModel || '',
+          businessScope: '',
           businessScopeText: (card.businessScope || []).join('、'),
           recentActiveText: '刚刚活跃',
           likeCount: card.viewCount || 0,
@@ -555,7 +555,16 @@ struct Index {
           phone: card.phone || '',
           wechatId: card.wechatId || '',
           distanceText: '',
-          isNew: false
+          isVipSlot: false,
+          vipRadiusKm: 0,
+          vipLabel: '',
+          latitude: 0,
+          longitude: 0,
+          score: '',
+          licenseUrl: '',
+          channelsId: '',
+          isNew: false,
+          licenseStatusClass: ''
         };
         this.rewardSlotClaimed = true;
       } else {
@@ -576,7 +585,7 @@ struct Index {
       return false;
     }
     // 检查必要字段
-    const hasNickname = !!(user.nickname && user.nickname.trim().length > 0);
+    const hasNickname = !!(user.displayName && user.displayName.trim().length > 0);
     const hasAvatar = !!(user.avatar && user.avatar.trim().length > 0);
     const hasPhone = !!(user.phone && user.phone.trim().length > 0);
     return hasNickname && hasAvatar && hasPhone;

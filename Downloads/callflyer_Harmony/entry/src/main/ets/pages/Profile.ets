@@ -10,6 +10,15 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 const PHONE_REGEX = /^1[3-9]\d{9}$/;
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 
+class RoleOption {
+  label: string;
+  value: string;
+  constructor(label: string, value: string) {
+    this.label = label;
+    this.value = value;
+  }
+}
+
 @Entry
 @Component
 struct Profile {
@@ -23,9 +32,9 @@ struct Profile {
   @State licenseUploadVisible: boolean = false;
 
   // 角色选项
-  roleOptions: Array<{ label: string, value: string }> = [
-    { label: '我是飞手', value: 'pilot' },
-    { label: '我是雇主', value: 'employer' }
+  roleOptions: RoleOption[] = [
+    new RoleOption('我是飞手', 'pilot'),
+    new RoleOption('我是雇主', 'employer')
   ];
 
   aboutToAppear() {
@@ -325,21 +334,21 @@ struct Profile {
 
               // 基础信息卡片
               Column() {
-                this.buildInputItem('昵称', this.form.nickname, (v) => this.form.nickname = v, '输入昵称')
+                this.buildInputItem('昵称', this.form.nickname, '输入昵称')
                 this.buildDivider()
-                this.buildInputItem('手机号码', this.form.phone, (v) => this.form.phone = v, '输入手机号', InputType.PhoneNumber)
+                this.buildInputItem('手机号码', this.form.phone, '输入手机号', InputType.PhoneNumber)
                 this.buildDivider()
-                this.buildInputItem('微信号', this.form.wechatId, (v) => this.form.wechatId = v, '输入微信号')
+                this.buildInputItem('微信号', this.form.wechatId, '输入微信号')
                 this.buildDivider()
-                this.buildInputItem('抖音号', this.form.douyinId, (v) => this.form.douyinId = v, '输入抖音号')
+                this.buildInputItem('抖音号', this.form.douyinId, '输入抖音号')
                 this.buildDivider()
-                this.buildInputItem('视频号ID', this.form.channelsId, (v) => this.form.channelsId = v, 'sph开头')
+                this.buildInputItem('视频号ID', this.form.channelsId, 'sph开头')
                 this.buildDivider()
-                this.buildInputItem('公司简称', this.form.company, (v) => this.form.company = v, '输入公司简称')
+                this.buildInputItem('公司简称', this.form.company, '输入公司简称')
                 this.buildDivider()
-                this.buildInputItem('职位', this.form.position, (v) => this.form.position = v, '输入职位')
+                this.buildInputItem('职位', this.form.position, '输入职位')
                 this.buildDivider()
-                this.buildInputItem('城市', this.form.city, (v) => this.form.city = v, '输入城市')
+                this.buildInputItem('城市', this.form.city, '输入城市')
               }
               .width('100%')
               .backgroundColor($r('app.color.card_bg'))
@@ -353,11 +362,10 @@ struct Profile {
                   .fontColor($r('app.color.text_secondary'))
                   .margin({ bottom: 12 })
                 Row() {
-                  ForEach(this.roleOptions, (item: { label: string, value: string }) => {
+                  ForEach(this.roleOptions, (item: RoleOption) => {
                     Row() {
-                      Radio(value: item.value)
+                      Radio({ value: item.value, group: 'userRoleGroup' })
                         .checked(this.form.userRole === item.value)
-                        .radioStyle({ checkedColor: '#4A9EFF' })
                         .onChange((isChecked: boolean) => {
                           if (isChecked) {
                             this.form.userRole = item.value;
@@ -601,7 +609,7 @@ struct Profile {
 
   // 构建输入项
   @Builder
-  buildInputItem(label: string, value: string, onChange: (v: string) => void, placeholder: string, inputType: InputType = InputType.Normal) {
+  buildInputItem(label: string, value: string, placeholder: string, inputType: InputType = InputType.Normal) {
     Row() {
       Text(label)
         .fontSize(15)
@@ -614,7 +622,16 @@ struct Profile {
         .fontSize(15)
         .type(inputType)
         .padding(0)
-        .onChange((v: string) => onChange(v))
+        .onChange((v: string) => {
+          if (label === '昵称') this.form.nickname = v;
+          else if (label === '手机号码') this.form.phone = v;
+          else if (label === '微信号') this.form.wechatId = v;
+          else if (label === '抖音号') this.form.douyinId = v;
+          else if (label === '视频号ID') this.form.channelsId = v;
+          else if (label === '公司简称') this.form.company = v;
+          else if (label === '职位') this.form.position = v;
+          else if (label === '城市') this.form.city = v;
+        })
     }
     .width('100%')
     .padding({ top: 12, bottom: 12 })
@@ -652,3 +669,4 @@ struct Profile {
   handleOrgCodeCancel() {
     this.showOrgCodeModal = false;
   }
+}
