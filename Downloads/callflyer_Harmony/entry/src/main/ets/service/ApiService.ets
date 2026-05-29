@@ -1891,7 +1891,10 @@ export async function matchDisciple(discipleOpenid: string, token: string): Prom
   return new Promise<void>((resolve, reject) => {
     const httpRequest = http.createHttp();
     const url = `${BASE_URL}/api/standby/match`;
-    console.info('【接口请求】matchDisciple url:', url, 'discipleOpenid:', discipleOpenid);
+    console.info('【接口请求】matchDisciple url:', url);
+    console.info('【接口请求】matchDisciple discipleOpenid:', discipleOpenid);
+    console.info('【接口请求】matchDisciple token:', token);
+    console.info('【接口请求】matchDisciple header Authorization:', 'Bearer ' + token);
     httpRequest.request(
       url,
       {
@@ -1905,12 +1908,13 @@ export async function matchDisciple(discipleOpenid: string, token: string): Prom
         readTimeout: 10000
       },
       (err: Error, data: http.HttpResponse) => {
+        console.info('【接口返回】matchDisciple responseCode:', data.responseCode);
+        console.info('【接口返回】matchDisciple result:', data.result as string);
         if (err) {
           console.error('【接口错误】matchDisciple:', JSON.stringify(err));
           reject(err);
           return;
         }
-        console.info('【接口返回】matchDisciple:', data.result as string);
         if (data.responseCode === 200 || data.responseCode === 201) {
           resolve();
         } else {

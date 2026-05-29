@@ -128,6 +128,8 @@ struct Standby {
 
   async onMatchTap(item: DiscipleItem) {
     const token = AuthService.getAuthToken();
+    console.info('【收徒】onMatchTap token:', token);
+    console.info('【收徒】onMatchTap item.openid:', item.openid);
     if (!token) {
       promptAction.showToast({ message: '登录后才能收徒' });
       return;
@@ -138,6 +140,7 @@ struct Standby {
       promptAction.showToast({ message: '收徒成功' });
       this.loadData();
     } catch (err) {
+      console.error('【收徒】onMatchTap error:', JSON.stringify(err));
       promptAction.showToast({ message: '操作失败' });
     }
   }
