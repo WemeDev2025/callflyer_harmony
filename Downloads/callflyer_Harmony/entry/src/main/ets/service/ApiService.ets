@@ -1622,6 +1622,45 @@ export async function fetchStandby(): Promise<StandbyResult> {
   });
 }
 
+// 上报查看次数（静默，不影响主流程）
+export async function reportStandbyView(openid: string): Promise<number> {
+  return new Promise<number>((resolve) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/standby/view`;
+    console.info('【接口请求】reportStandbyView url:', url, 'openid:', openid);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: { 'Content-Type': 'application/json' },
+        extraData: JSON.stringify({ openid }),
+        connectTimeout: 5000,
+        readTimeout: 5000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】reportStandbyView:', JSON.stringify(err));
+          resolve(0);
+          return;
+        }
+        console.info('【接口返回】reportStandbyView:', data.result as string);
+        try {
+          if (data.result && typeof data.result === 'string') {
+            const res: Record<string, Object> = JSON.parse(data.result as string);
+            const viewCount = (res['view_count'] as number) || (res['viewCount'] as number) || 0;
+            resolve(viewCount);
+          } else {
+            resolve(0);
+          }
+        } catch (e) {
+          resolve(0);
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
 export async function joinStandby(token: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const httpRequest = http.createHttp();

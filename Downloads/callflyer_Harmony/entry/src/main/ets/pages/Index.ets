@@ -1,5 +1,5 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus, CarouselItem, fetchProfile, ConfigResult } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus, CarouselItem, fetchProfile, ConfigResult, reportStandbyView } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
@@ -851,6 +851,11 @@ struct Index {
         institutionId: this.rewardSlotUser.institutionId || '',
         licenseUrl: this.rewardSlotUser.licenseUrl || '',
       };
+      // 静默上报查看次数
+      const ownerOpenid = this.rewardSlotUser.openid;
+      if (ownerOpenid) {
+        reportStandbyView(ownerOpenid).catch(() => {});
+      }
       this.rewardSlotDialogController = new CustomDialogController({
         builder: StandbyPilotCardDialog({
           user: user,
@@ -1034,6 +1039,29 @@ struct Index {
       institutionId: '',
       licenseUrl: '',
     };
+
+    // 静默上报查看次数
+    if (p.openid) {
+      reportStandbyView(p.openid).then((viewCount) => {
+        if (viewCount > 0) {
+          // 更新列表中对应的 viewCount（创建新数组引用以触发 UI 刷新）
+          const idx = this.standbyItems.findIndex((s: StandbyItem) => s.profile.openid === p.openid);
+          if (idx >= 0) {
+            const item = this.standbyItems[idx];
+            const updated: StandbyItem = {
+              openid: item.openid,
+              joined_at: item.joined_at,
+              profile: item.profile,
+              likeCount: item.likeCount,
+              viewCount: viewCount
+            };
+            const newItems = this.standbyItems.slice();
+            newItems[idx] = updated;
+            this.standbyItems = newItems;
+          }
+        }
+      }).catch(() => {});
+    }
 
     this.standbyDialogController = new CustomDialogController({
       builder: StandbyPilotCardDialog({
