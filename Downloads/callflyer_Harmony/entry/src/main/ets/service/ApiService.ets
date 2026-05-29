@@ -1936,10 +1936,10 @@ export async function removeDisciple(discipleOpenid: string, token: string): Pro
       url,
       {
         method: http.RequestMethod.DELETE,
-        header: [
-          { 'Content-Type': 'application/json' },
-          { 'Authorization': 'Bearer ' + token }
-        ],
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
         extraData: JSON.stringify({ discipleOpenid: discipleOpenid }),
         connectTimeout: 10000,
         readTimeout: 10000
