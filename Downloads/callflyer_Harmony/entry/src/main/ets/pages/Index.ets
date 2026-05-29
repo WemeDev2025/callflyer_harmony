@@ -173,13 +173,14 @@ struct StandbyPilotCardDialog {
   };
   onWechatClick: () => void = () => {};
   onCallClick: () => void = () => {};
+  onLikeChanged: (likeCount: number, likedByMe: boolean) => void = () => {};
 
   build() {
     Stack() {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('rgba(0, 0, 0, 0.01)')
+        .backgroundColor('rgba(0, 0, 0, 0.05)')
         .onClick(() => { this.controller?.close(); })
 
       Column() {
@@ -192,7 +193,8 @@ struct StandbyPilotCardDialog {
             console.info('【StandbyPilotCardDialog onWechatClick】被调用');
             this.onWechatClick();
           },
-          onCallClick: () => { this.onCallClick(); }
+          onCallClick: () => { this.onCallClick(); },
+          onLikeChanged: (likeCount: number, likedByMe: boolean) => { this.onLikeChanged(likeCount, likedByMe); }
         })
       }
       .width('92%')
@@ -279,6 +281,7 @@ struct Index {
   @State showExpandedStandby: boolean = false;
   @State showCopySuccess: boolean = false;
   standbyDialogController: CustomDialogController | null = null;
+  rewardSlotDialogController: CustomDialogController | null = null;
   @State screenWidth: number = 360;
   @State screenHeight: number = 780;
   @State navBarHeight: number = 0;
@@ -355,7 +358,7 @@ struct Index {
           businessScope: '',
           businessScopeText: (card.businessScope || []).join('、'),
           recentActiveText: '刚刚活跃',
-          likeCount: card.viewCount || 0,
+          likeCount: card.likeCount || 0,
           likedByMe: false,
           phone: card.phone || '',
           wechatId: card.wechatId || '',
@@ -464,7 +467,7 @@ struct Index {
           if (rewardSlot.profile_card) {
             const card = rewardSlot.profile_card;
             this.rewardSlotUser = {
-              openid: '',
+              openid: rewardSlot.publisher_openid || '',
               nickname: card.nickname || '匿名用户',
               avatar: card.avatar_url || DEFAULT_AVATAR,
               city: card.city || '',
@@ -480,7 +483,7 @@ struct Index {
               pilotCode: '',
               company: '',
               position: '',
-              likeCount: 0,
+              likeCount: card.likeCount || card.like_count || 0,
               likedByMe: false,
               isVipSlot: false,
               vipRadiusKm: 0,
@@ -695,7 +698,7 @@ struct Index {
           businessScope: '',
           businessScopeText: (card.businessScope || []).join('、'),
           recentActiveText: '刚刚活跃',
-          likeCount: card.viewCount || 0,
+          likeCount: card.likeCount || 0,
           likedByMe: false,
           phone: card.phone || '',
           wechatId: card.wechatId || '',
@@ -738,9 +741,61 @@ struct Index {
 
   // 点击奖励位
   onRewardSlotClick(): void {
-    if (this.rewardSlotClaimed) {
-      // 已经领取，显示提示
-      promptAction.showToast({ message: '您已领取奖励位' });
+    console.info('【奖励位点击】rewardSlotClaimed: ' + this.rewardSlotClaimed + ', rewardSlotUser: ' + JSON.stringify(this.rewardSlotUser));
+    if (this.rewardSlotClaimed && this.rewardSlotUser) {
+      const user: PilotCardData = {
+        openid: this.rewardSlotUser.openid,
+        nickname: this.rewardSlotUser.nickname,
+        avatar: this.rewardSlotUser.avatar,
+        city: this.rewardSlotUser.city,
+        userRole: '',
+        roleLabel: '',
+        licenseType: this.rewardSlotUser.licenseType,
+        licenseStatus: this.rewardSlotUser.licenseStatus,
+        pilotCode: this.rewardSlotUser.pilotCode,
+        company: this.rewardSlotUser.company,
+        position: this.rewardSlotUser.position,
+        droneModel: this.rewardSlotUser.droneModel,
+        businessScopeText: this.rewardSlotUser.businessScopeText,
+        recentActiveText: this.rewardSlotUser.recentActiveText,
+        likeCount: this.rewardSlotUser.likeCount,
+        likedByMe: false,
+        phone: this.rewardSlotUser.phone,
+        wechatId: this.rewardSlotUser.wechatId,
+        distanceText: this.rewardSlotUser.distanceText,
+        isNew: false,
+      };
+      this.rewardSlotDialogController = new CustomDialogController({
+        builder: StandbyPilotCardDialog({
+          user: user,
+          onWechatClick: () => {
+            if (user.wechatId) {
+              promptAction.showToast({ message: '微信号: ' + user.wechatId });
+            } else {
+              promptAction.showToast({ message: '暂无微信号' });
+            }
+          },
+          onCallClick: () => {
+            if (user.phone) {
+              call.makeCall(user.phone, (err) => {
+                if (err) {
+                  promptAction.showToast({ message: '拨打电话失败' });
+                }
+              });
+            }
+          },
+          onLikeChanged: (likeCount: number, likedByMe: boolean) => {
+            if (this.rewardSlotUser) {
+              this.rewardSlotUser.likeCount = likeCount;
+              this.rewardSlotUser.likedByMe = likedByMe;
+            }
+          }
+        }),
+        customStyle: true,
+        maskColor: 'rgba(0, 0, 0, 0.7)',
+        alignment: DialogAlignment.Center,
+      });
+      this.rewardSlotDialogController.open();
       return;
     }
 
@@ -748,9 +803,6 @@ struct Index {
       promptAction.showToast({ message: '请先完善个人资料' });
       return;
     }
-
-    this.isAdLoading = true;
-    this.loadRewardedAd();
   }
 
   async loadPilots() {
@@ -1821,6 +1873,7 @@ struct Index {
                           .borderRadius(13)
                           .border({ width: 1, color: 'rgba(255,255,255,0.1)' })
                           .alignItems(HorizontalAlign.Start)
+                          .onClick(() => { this.onRewardSlotClick(); })
                         } else {
                           // 未领取：显示标题副标题和按钮
                           Column() {
@@ -1906,6 +1959,16 @@ struct Index {
                       .height('100%')
                       .justifyContent(FlexAlign.Center)
                       .alignItems(HorizontalAlign.Center)
+
+                      // 顶部透明点击蒙层（确保点击能传递到背景层）
+                      Column()
+                        .width('100%')
+                        .height('100%')
+                        .backgroundColor('rgba(0,0,0,0)')
+                        .onClick(() => {
+                          console.info('【奖励位蒙层点击】');
+                          this.onRewardSlotClick();
+                        })
                     }
                     .width('100%')
                     .height('100%')

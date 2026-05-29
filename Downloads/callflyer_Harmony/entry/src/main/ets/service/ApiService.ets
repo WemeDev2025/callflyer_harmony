@@ -163,6 +163,7 @@ export interface CarouselItem {
   image_url?: string;
   reward_meta?: RewardMeta;
   profile_card?: ProfileCard;
+  publisher_openid?: string;
 }
 
 export interface RewardMeta {
@@ -181,6 +182,8 @@ export interface ProfileCard {
   user_role?: string;
   business_scope?: string[];
   drone_model?: string;
+  likeCount?: number;
+  like_count?: number;
 }
 
 export async function fetchConfig(): Promise<ConfigResult> {
@@ -2047,6 +2050,7 @@ export interface RewardProfileCard {
   userRole?: string;
   businessScope?: string[];
   viewCount?: number;
+  likeCount?: number;
 }
 
 // 奖励位认领结果（匹配后端 RewardClaimResponse）
