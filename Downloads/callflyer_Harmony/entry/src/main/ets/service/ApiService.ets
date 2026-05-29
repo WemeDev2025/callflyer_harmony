@@ -272,6 +272,10 @@ export interface PilotItem {
   isNew: boolean;
   licenseStatusClass: string;
   roleLabel: string;
+  institutionId: string;
+  workMu: number | null;
+  workKg: number | null;
+  droneImages: string[];
 }
 
 interface NearbyPilotsResponse {
@@ -333,6 +337,14 @@ interface RawPilot {
   channelsId?: string;
   user_role?: string;
   userRole?: string;
+  institution_id?: string;
+  institutionId?: string;
+  work_mu?: number;
+  workMu?: number;
+  work_kg?: number;
+  workKg?: number;
+  drone_images?: string[];
+  droneImages?: string[];
 }
 
 export async function fetchNearbyPilots(lat?: number, lng?: number, page: number = 1, pageSize: number = 50): Promise<NearbyPilotsResult> {
@@ -422,7 +434,11 @@ export async function fetchNearbyPilots(lat?: number, lng?: number, page: number
                   channelsId: p.channels_id || p.channelsId || '',
                   isNew: !!(p.isNew || p.is_new),
                   licenseStatusClass: licenseStatusClass,
-                  roleLabel: roleLabel
+                  roleLabel: roleLabel,
+                  institutionId: p.institution_id || p.institutionId || '',
+                  workMu: p.work_mu ?? p.workMu ?? null,
+                  workKg: p.work_kg ?? p.workKg ?? null,
+                  droneImages: p.drone_images || p.droneImages || [],
                 };
                 pilots.push(item);
               }
@@ -2058,6 +2074,12 @@ export interface RewardProfileCard {
   businessScope?: string[];
   viewCount?: number;
   likeCount?: number;
+  channelsId?: string;
+  institutionId?: string;
+  licenseUrl?: string;
+  workMu?: number;
+  workKg?: number;
+  droneImages?: string[];
 }
 
 // 奖励位认领结果（匹配后端 RewardClaimResponse）

@@ -171,6 +171,12 @@ struct StandbyPilotCardDialog {
     douyinId: '',
     distanceText: '',
     isNew: false,
+    workMu: null,
+    workKg: null,
+    droneImages: [],
+    channelsId: '',
+    institutionId: '',
+    licenseUrl: '',
   };
   onWechatClick: () => void = () => {};
   onCallClick: () => void = () => {};
@@ -388,10 +394,14 @@ struct Index {
           latitude: 0,
           longitude: 0,
           score: '',
-          licenseUrl: '',
-          channelsId: '',
+          licenseUrl: card.licenseUrl || '',
+          channelsId: card.channelsId || '',
           isNew: false,
-          licenseStatusClass: ''
+          licenseStatusClass: '',
+          institutionId: card.institutionId || '',
+          workMu: card.workMu ?? null,
+          workKg: card.workKg ?? null,
+          droneImages: card.droneImages || [],
         };
         this.rewardSlotClaimed = true;
       }
@@ -548,7 +558,11 @@ struct Index {
               channelsId: '',
               isNew: false,
               licenseStatusClass: '',
-              roleLabel: card.user_role === 'pilot' ? '飞手' : (card.user_role === 'employer' ? '雇主' : '')
+              roleLabel: card.user_role === 'pilot' ? '飞手' : (card.user_role === 'employer' ? '雇主' : ''),
+              institutionId: '',
+              workMu: null,
+              workKg: null,
+              droneImages: [],
             };
             this.rewardSlotClaimed = true;
           }
@@ -767,10 +781,14 @@ struct Index {
           latitude: 0,
           longitude: 0,
           score: '',
-          licenseUrl: '',
-          channelsId: '',
+          licenseUrl: card.licenseUrl || '',
+          channelsId: card.channelsId || '',
           isNew: false,
-          licenseStatusClass: ''
+          licenseStatusClass: '',
+          institutionId: card.institutionId || '',
+          workMu: card.workMu ?? null,
+          workKg: card.workKg ?? null,
+          droneImages: card.droneImages || [],
         };
         this.rewardSlotClaimed = true;
       } else {
@@ -826,6 +844,12 @@ struct Index {
         douyinId: this.rewardSlotUser.douyinId,
         distanceText: this.rewardSlotUser.distanceText,
         isNew: false,
+        workMu: this.rewardSlotUser.workMu ?? null,
+        workKg: this.rewardSlotUser.workKg ?? null,
+        droneImages: this.rewardSlotUser.droneImages || [],
+        channelsId: this.rewardSlotUser.channelsId || '',
+        institutionId: this.rewardSlotUser.institutionId || '',
+        licenseUrl: this.rewardSlotUser.licenseUrl || '',
       };
       this.rewardSlotDialogController = new CustomDialogController({
         builder: StandbyPilotCardDialog({
@@ -1003,6 +1027,12 @@ struct Index {
       douyinId: p.douyinId || '',
       distanceText: '',
       isNew: p.isNew,
+      workMu: null,
+      workKg: null,
+      droneImages: [],
+      channelsId: '',
+      institutionId: '',
+      licenseUrl: '',
     };
 
     this.standbyDialogController = new CustomDialogController({
@@ -2510,6 +2540,12 @@ struct Index {
                 douyinId: pilot.douyinId,
                 distanceText: pilot.distanceText,
                 isNew: pilot.isNew,
+                workMu: pilot.workMu ?? null,
+                workKg: pilot.workKg ?? null,
+                droneImages: pilot.droneImages || [],
+                channelsId: pilot.channelsId || '',
+                institutionId: pilot.institutionId || '',
+                licenseUrl: pilot.licenseUrl || '',
               },
               showDistance: true,
               showActions: true,

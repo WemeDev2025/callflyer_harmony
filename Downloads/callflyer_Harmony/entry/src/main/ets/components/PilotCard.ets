@@ -31,6 +31,16 @@ export class PilotCardData {
   douyinId: string = '';
   distanceText: string = '';
   isNew: boolean = false;
+  // 作业数据
+  workMu: number | null = null;
+  workKg: number | null = null;
+  // 机型图片
+  droneImages: string[] = [];
+  // 视频号
+  channelsId: string = '';
+  // 机构认证
+  institutionId: string = '';
+  licenseUrl: string = '';
 }
 
 @Component
@@ -61,6 +71,12 @@ export struct PilotCard {
     douyinId: '',
     distanceText: '',
     isNew: false,
+    workMu: null,
+    workKg: null,
+    droneImages: [],
+    channelsId: '',
+    institutionId: '',
+    licenseUrl: '',
   };
   // 是否显示距离标签（附近飞手用）
   showDistance: boolean = false;
@@ -352,6 +368,103 @@ export struct PilotCard {
         .width('100%')
         .justifyContent(FlexAlign.SpaceBetween)
         .margin({ top: 9 })
+      }
+
+      // 作业数据（亩/千克）
+      if (this.user.workMu != null || this.user.workKg != null) {
+        Row() {
+          Text('任务进度')
+            .fontSize(14)
+            .fontColor($r('app.color.text_label'))
+            .fontWeight(FontWeight.Medium)
+          Row() {
+            if (this.user.workMu != null) {
+              Text(this.user.workMu + '亩')
+                .fontSize(14)
+                .fontColor($r('app.color.text_primary'))
+                .fontWeight(FontWeight.Medium)
+            }
+            if (this.user.workMu != null && this.user.workKg != null) {
+              Text(' / ')
+                .fontSize(14)
+                .fontColor($r('app.color.text_secondary'))
+            }
+            if (this.user.workKg != null) {
+              Text(this.user.workKg + '千克')
+                .fontSize(14)
+                .fontColor($r('app.color.text_primary'))
+                .fontWeight(FontWeight.Medium)
+            }
+          }
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.SpaceBetween)
+        .margin({ top: 9 })
+      }
+
+      // 机构认证
+      if (this.user.institutionId) {
+        Row() {
+          Text('机构认证')
+            .fontSize(14)
+            .fontColor($r('app.color.text_label'))
+            .fontWeight(FontWeight.Medium)
+          Text('已认证')
+            .fontSize(14)
+            .fontColor($r('app.color.accent_green'))
+            .fontWeight(FontWeight.Medium)
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.SpaceBetween)
+        .margin({ top: 9 })
+      }
+
+      // 视频号
+      if (this.user.channelsId) {
+        Row() {
+          Text('视频号')
+            .fontSize(14)
+            .fontColor($r('app.color.text_label'))
+            .fontWeight(FontWeight.Medium)
+          Text(this.user.channelsId)
+            .fontSize(14)
+            .fontColor($r('app.color.text_primary'))
+            .fontWeight(FontWeight.Medium)
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.SpaceBetween)
+        .margin({ top: 9 })
+      }
+
+      // 机型图片横滑
+      if (this.user.droneImages && this.user.droneImages.length > 0) {
+        Column() {
+          Text('机型图片')
+            .fontSize(14)
+            .fontColor($r('app.color.text_label'))
+            .fontWeight(FontWeight.Medium)
+            .alignSelf(ItemAlign.Start)
+            .margin({ top: 9 })
+          Scroll() {
+            Row() {
+              ForEach(this.user.droneImages, (img: string) => {
+                Image(img)
+                  .width(80)
+                  .height(60)
+                  .borderRadius(4)
+                  .margin({ right: 8 })
+                  .onClick(() => {
+                    imagePreview.show(this.user.droneImages, { showIndex: false });
+                  })
+              })
+            }
+          }
+          .scrollable(ScrollDirection.Horizontal)
+          .scrollBar(BarState.Off)
+          .margin({ top: 8 })
+        }
+        .width('100%')
+        .alignItems(HorizontalAlign.Start)
       }
 
       // 底部操作区域

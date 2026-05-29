@@ -97,6 +97,12 @@ struct PilotCardDialog {
     douyinId: '',
     distanceText: '',
     isNew: false,
+    workMu: null,
+    workKg: null,
+    droneImages: [],
+    channelsId: '',
+    institutionId: '',
+    licenseUrl: '',
   };
   onWechatClick: () => void = () => {};
   onCallClick: () => void = () => {};
@@ -208,6 +214,12 @@ struct ReferralLeaderboard {
           douyinId: (p['douyinId'] as string) || (p['douyin_id'] as string) || '',
           distanceText: '',
           isNew: false,
+          workMu: (p['workMu'] as number) || (p['work_mu'] as number) || null,
+          workKg: (p['workKg'] as number) || (p['work_kg'] as number) || null,
+          droneImages: (p['droneImages'] as string[]) || [],
+          channelsId: (p['channelsId'] as string) || (p['channels_id'] as string) || '',
+          institutionId: (p['institutionId'] as string) || (p['institution_id'] as string) || '',
+          licenseUrl: (p['licenseUrl'] as string) || (p['license_url'] as string) || '',
         };
 
         this.dialogController = new CustomDialogController({
