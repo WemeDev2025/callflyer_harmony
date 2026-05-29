@@ -448,6 +448,9 @@ struct Standby {
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor($r('app.color.text_primary'))
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .width('100%')
             Text(item.city || '')
               .fontSize(12)
               .fontColor($r('app.color.text_secondary'))
@@ -455,6 +458,7 @@ struct Standby {
           }
           .alignItems(HorizontalAlign.Start)
           .margin({ left: 12 })
+          .width('60%')
         }
         .alignItems(VerticalAlign.Center)
         .width('42%')
@@ -492,19 +496,27 @@ struct Standby {
               .onClick(() => { this.onCancelMatch(item); })
           } else {
             Row() {
-              Image($r('app.media.icon_gan'))
-                .width(18)
-                .height(18)
+              // 图标 - 圆形绿色背景
+              Column() {
+                Image($r('app.media.icon_gan'))
+                  .width(24)
+                  .height(24)
+              }
+              .width(32)
+              .height(32)
+              .backgroundColor('#07c160')
+              .borderRadius(16)
+              .alignItems(HorizontalAlign.Center)
+              .justifyContent(FlexAlign.Center)
+
+              // 文字
               Text('我收了')
                 .fontSize(13)
-                .fontColor('#FFFFFF')
-                .margin({ left: 4 })
+                .fontColor('#6f7c90')
+                .fontWeight(FontWeight.Medium)
+                .margin({ left: 8 })
             }
             .alignItems(VerticalAlign.Center)
-            .padding({ left: 12, right: 12 })
-            .height(32)
-            .backgroundColor('#07c160')
-            .borderRadius(16)
             .onClick(() => { this.onMatchTap(item); })
           }
         }
