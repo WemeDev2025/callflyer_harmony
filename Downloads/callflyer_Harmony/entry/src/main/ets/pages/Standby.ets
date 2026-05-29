@@ -495,7 +495,7 @@ struct Standby {
               .margin({ top: 4 })
           }
           .alignItems(HorizontalAlign.Start)
-          .margin({ left: 12 })
+          .margin({ left: 8 })
           .width('60%')
         }
         .alignItems(VerticalAlign.Center)
@@ -503,7 +503,7 @@ struct Standby {
         .height('100%')
         .backgroundColor('#F5F5F5')
         .borderRadius(8)
-        .padding(10)
+        .padding({ top: 6, bottom: 6, left: 8, right: 8 })
 
         // 中间连接线 - 短横线
         Column() {
@@ -536,7 +536,7 @@ struct Standby {
                   .margin({ top: 4 })
               }
               .alignItems(HorizontalAlign.Start)
-              .margin({ left: 12 })
+              .margin({ left: 8 })
               .width('60%')
               .onClick(() => { this.onCancelMatch(item); })
             }
@@ -566,10 +566,10 @@ struct Standby {
         .height('100%')
         .backgroundColor('#F5F5F5')
         .borderRadius(8)
-        .padding(10)
+        .padding({ top: 6, bottom: 6, left: 8, right: 8 })
       }
       .width('100%')
-      .height(90)
+      .height(70)
 
       // 自我介绍
       if (item.intro) {
