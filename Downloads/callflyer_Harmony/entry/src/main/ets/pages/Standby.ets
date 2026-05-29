@@ -2,6 +2,8 @@ import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
+import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
+import { LengthMetrics } from '@kit.ArkUI';
 import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, DiscipleItem, DiscipleMaster, MyDisciplesResult } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
@@ -83,6 +85,7 @@ struct Standby {
   @State ratingIndex: number = -1;
 
   private ratingDialogController: CustomDialogController | null = null;
+  private scroller: Scroller = new Scroller();
 
   aboutToAppear() {
     this.loadData();
@@ -255,94 +258,40 @@ struct Standby {
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
 
-      // 顶部动态模糊层
-      Column()
-        .width('100%')
-        .height(180)
-        .backgroundColor($r('app.color.card_bg'))
-        .blur(50)
-        .position({ y: 0 })
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
-
-      Scroll() {
-        Column() {
-          // 标题区域
-          Column() {
-            Text('师徒匹配')
-              .fontSize(24)
-              .fontWeight(FontWeight.Bold)
-              .fontColor($r('app.color.text_primary'))
-              .fontFamily('DouyinSansBold')
-
-            Text('找师傅带入门，找徒弟传承技术')
-              .fontSize(14)
-              .fontColor($r('app.color.text_secondary'))
-              .margin({ top: 8 })
-          }
-          .width('90%')
-          .margin({ top: 20, bottom: 16 })
-          .alignItems(HorizontalAlign.Start)
-
-          // 顶部区域 - 16:9圆角矩形图片+阴影
-          Column() {
-            Image(BANNER_URL)
-              .width('100%')
-              .aspectRatio(16 / 9)
-              .borderRadius(12)
-              .objectFit(ImageFit.Cover)
-              .shadow({
-                radius: 8,
-                color: 'rgba(0, 0, 0, 0.15)',
-                offsetX: 0,
-                offsetY: 4
-              })
-          }
-          .width('90%')
-          .margin({ bottom: 16 })
-          .alignItems(HorizontalAlign.Center)
-
-          // 搜索框
-          Search({ placeholder: '搜索城市' })
-            .width('90%')
-            .margin({ top: 16 })
-            .backgroundColor($r('app.color.card_bg'))
-            .borderRadius(20)
-            .onChange((value: string) => { this.onSearchChange(value); })
-
-          // 加载状态
-          if (this.loading) {
-            LoadingProgress()
-              .width(40)
-              .height(40)
-              .margin({ top: 40 })
-          } else if (this.filteredList.length === 0) {
-            // 空状态
-            Column() {
-              Text('暂无徒弟信息')
-                .fontSize(16)
-                .fontColor($r('app.color.text_secondary'))
-                .margin({ top: 40 })
+      // 使用HdsNavigation实现官方动态模糊效果
+      HdsNavigation()
+        .titleMode(HdsNavigationTitleMode.MINI)
+        .navDestination(this.BuilderStandbyContent.bind(this))
+        .titleBar({
+          enableComponentSafeArea: true,
+          style: {
+            scrollEffectOpts: {
+              enableScrollEffect: true,
+              scrollEffectType: ScrollEffectType.GRADIENT_BLUR,
+              blurEffectiveStartOffset: LengthMetrics.vp(0),
+              blurEffectiveEndOffset: LengthMetrics.vp(20)
+            },
+            originalStyle: {
+              backgroundStyle: {
+                backgroundColor: $r('app.color.card_bg'),
+              }
+            },
+            scrollEffectStyle: {
+              backgroundStyle: {
+                backgroundColor: $r('app.color.card_bg'),
+              }
             }
-          } else {
-            // 徒弟列表
-            List() {
-              ForEach(this.filteredList, (item: DiscipleItem, index: number) => {
-                ListItem() {
-                  this.DiscipleCard(item, index)
-                }
-                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-              })
-            }
-            .width('100%')
-            .padding({ bottom: 100 })
+          },
+          content: {
+            title: { mainTitle: '师徒匹配' },
           }
-        }
-        .width('100%')
-      }
-      .width('100%')
-      .height('100%')
-      .scrollBar(BarState.Off)
-      .edgeEffect(EdgeEffect.Spring)
+        })
+        .bindToScrollable([this.scroller])
+        .expandSafeArea([SafeAreaType.SYSTEM])
+        .systemBarStyle(
+          { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' },
+          { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' }
+        )
 
       // 底部悬浮按钮
       Column() {
@@ -430,6 +379,82 @@ struct Standby {
     }
     .width('100%')
     .height('100%')
+  }
+
+  @Builder
+  BuilderStandbyContent() {
+    Scroll(this.scroller) {
+      Column() {
+        // 标题区域
+        Column() {
+          Text('找师傅带入门，找徒弟传承技术')
+            .fontSize(14)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ top: 8 })
+        }
+        .width('90%')
+        .margin({ top: 12, bottom: 16 })
+        .alignItems(HorizontalAlign.Start)
+
+        // 顶部区域 - 16:9圆角矩形图片+阴影
+        Column() {
+          Image(BANNER_URL)
+            .width('100%')
+            .aspectRatio(16 / 9)
+            .borderRadius(12)
+            .objectFit(ImageFit.Cover)
+            .shadow({
+              radius: 8,
+              color: 'rgba(0, 0, 0, 0.15)',
+              offsetX: 0,
+              offsetY: 4
+            })
+        }
+        .width('90%')
+        .margin({ bottom: 16 })
+        .alignItems(HorizontalAlign.Center)
+
+        // 搜索框
+        Search({ placeholder: '搜索城市' })
+          .width('90%')
+          .margin({ top: 16 })
+          .backgroundColor($r('app.color.card_bg'))
+          .borderRadius(20)
+          .onChange((value: string) => { this.onSearchChange(value); })
+
+        // 加载状态
+        if (this.loading) {
+          LoadingProgress()
+            .width(40)
+            .height(40)
+            .margin({ top: 40 })
+        } else if (this.filteredList.length === 0) {
+          // 空状态
+          Column() {
+            Text('暂无徒弟信息')
+              .fontSize(16)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 40 })
+          }
+        } else {
+          // 徒弟列表
+          List() {
+            ForEach(this.filteredList, (item: DiscipleItem, index: number) => {
+              ListItem() {
+                this.DiscipleCard(item, index)
+              }
+              .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+            })
+          }
+          .width('100%')
+          .padding({ bottom: 100 })
+        }
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring)
   }
 
   @Builder
