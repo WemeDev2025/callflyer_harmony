@@ -28,6 +28,7 @@ export class PilotCardData {
   likedByMe: boolean = false;
   phone: string = '';
   wechatId: string = '';
+  douyinId: string = '';
   distanceText: string = '';
   isNew: boolean = false;
 }
@@ -57,6 +58,7 @@ export struct PilotCard {
     likedByMe: false,
     phone: '',
     wechatId: '',
+    douyinId: '',
     distanceText: '',
     isNew: false,
   };
@@ -351,40 +353,6 @@ export struct PilotCard {
         .justifyContent(FlexAlign.SpaceBetween)
         .margin({ top: 9 })
       }
-
-      // 电话
-      // if (this.user.phone) {
-      //   Row() {
-      //     Text('电话')
-      //       .fontSize(14)
-      //       .fontColor('#455066')
-      //       .fontWeight(FontWeight.Medium)
-      //     Text(this.user.phone)
-      //       .fontSize(14)
-      //       .fontColor('#1f2a3a')
-      //       .fontWeight(FontWeight.Medium)
-      //   }
-      //   .width('100%')
-      //   .justifyContent(FlexAlign.SpaceBetween)
-      //   .margin({ top: 9 })
-      // }
-
-      // 微信
-      // if (this.user.wechatId) {
-      //   Row() {
-      //     Text('微信')
-      //       .fontSize(14)
-      //       .fontColor('#455066')
-      //       .fontWeight(FontWeight.Medium)
-      //     Text(this.user.wechatId)
-      //       .fontSize(14)
-      //       .fontColor('#1f2a3a')
-      //       .fontWeight(FontWeight.Medium)
-      //   }
-      //   .width('100%')
-      //   .justifyContent(FlexAlign.SpaceBetween)
-      //   .margin({ top: 9 })
-      // }
 
       // 底部操作区域
       if (this.showActions || this.showDistance) {

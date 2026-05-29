@@ -178,6 +178,7 @@ export interface ProfileCard {
   city?: string;
   phone?: string;
   wechat_id?: string;
+  douyin_id?: string;
   license_type?: string;
   user_role?: string;
   business_scope?: string[];
@@ -254,6 +255,7 @@ export interface PilotItem {
   recentActiveText: string;
   phone: string;
   wechatId: string;
+  douyinId: string;
   pilotCode: string;
   company: string;
   position: string;
@@ -306,6 +308,8 @@ interface RawPilot {
   phone?: string;
   wechat_id?: string;
   wechatId?: string;
+  douyin_id?: string;
+  douyinId?: string;
   pilot_code?: string;
   pilotCode?: string;
   company?: string;
@@ -402,6 +406,7 @@ export async function fetchNearbyPilots(lat?: number, lng?: number, page: number
                   recentActiveText: recentActiveText,
                   phone: p.phone || '',
                   wechatId: p.wechat_id || p.wechatId || '',
+                  douyinId: p.douyin_id || p.douyinId || '',
                   pilotCode: p.pilot_code || p.pilotCode || '',
                   company: p.company || '',
                   position: p.position || '',
@@ -1489,6 +1494,7 @@ export interface StandbyProfile {
   isNew: boolean;
   phone?: string;
   wechatId?: string;
+  douyinId?: string;
   company?: string;
   position?: string;
   droneModel?: string;
@@ -2042,6 +2048,7 @@ export interface RewardProfileCard {
   nickname: string;
   phone?: string;
   wechatId?: string;
+  douyinId?: string;
   city?: string;
   company?: string;
   position?: string;

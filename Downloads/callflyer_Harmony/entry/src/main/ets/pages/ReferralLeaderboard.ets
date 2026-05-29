@@ -94,6 +94,7 @@ struct PilotCardDialog {
     likedByMe: false,
     phone: '',
     wechatId: '',
+    douyinId: '',
     distanceText: '',
     isNew: false,
   };
@@ -204,6 +205,7 @@ struct ReferralLeaderboard {
           likedByMe: (p['likedByMe'] as boolean) || (p['liked_by_me'] as boolean) || false,
           phone: phone,
           wechatId: wechatId,
+          douyinId: (p['douyinId'] as string) || (p['douyin_id'] as string) || '',
           distanceText: '',
           isNew: false,
         };

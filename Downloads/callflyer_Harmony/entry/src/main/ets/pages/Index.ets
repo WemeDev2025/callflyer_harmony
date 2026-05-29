@@ -168,6 +168,7 @@ struct StandbyPilotCardDialog {
     likedByMe: false,
     phone: '',
     wechatId: '',
+    douyinId: '',
     distanceText: '',
     isNew: false,
   };
@@ -379,6 +380,7 @@ struct Index {
           likedByMe: false,
           phone: card.phone || '',
           wechatId: card.wechatId || '',
+          douyinId: card.douyinId || '',
           distanceText: '',
           isVipSlot: false,
           vipRadiusKm: 0,
@@ -530,6 +532,7 @@ struct Index {
               recentActiveText: '',
               phone: card.phone || '',
               wechatId: card.wechat_id || '',
+              douyinId: card.douyin_id || '',
               pilotCode: '',
               company: '',
               position: '',
@@ -756,6 +759,7 @@ struct Index {
           likedByMe: false,
           phone: card.phone || '',
           wechatId: card.wechatId || '',
+          douyinId: card.douyinId || '',
           distanceText: '',
           isVipSlot: false,
           vipRadiusKm: 0,
@@ -819,6 +823,7 @@ struct Index {
         likedByMe: false,
         phone: this.rewardSlotUser.phone,
         wechatId: this.rewardSlotUser.wechatId,
+        douyinId: this.rewardSlotUser.douyinId,
         distanceText: this.rewardSlotUser.distanceText,
         isNew: false,
       };
@@ -995,6 +1000,7 @@ struct Index {
       likedByMe: false,
       phone: p.phone || '',
       wechatId: p.wechatId || '',
+      douyinId: p.douyinId || '',
       distanceText: '',
       isNew: p.isNew,
     };
@@ -1902,54 +1908,95 @@ struct Index {
                             .justifyContent(FlexAlign.Start)
 
                             // 信息行
-                            Row() {
+                            Column() {
+                              // 手机
                               if (this.rewardSlotUser.phone) {
-                                Image($r('app.media.icon_phone'))
-                                  .width(14)
-                                  .height(14)
-                                  .margin({ right: 4 })
-                                Text(this.maskPhone(this.rewardSlotUser.phone))
-                                  .fontSize(14)
-                                  .fontColor('rgba(255,255,255,0.6)')
+                                Row() {
+                                  Image($r('app.media.icon_phone'))
+                                    .width(14)
+                                    .height(14)
+                                    .margin({ right: 4 })
+                                  Text(this.maskPhone(this.rewardSlotUser.phone))
+                                    .fontSize(14)
+                                    .fontColor('rgba(255,255,255,0.6)')
+                                }
+                                .width('100%')
+                                .justifyContent(FlexAlign.Start)
+                                .margin({ top: 6 })
                               }
-                              if (this.rewardSlotUser.phone && this.rewardSlotUser.businessScopeText) {
-                                Text(' · ')
-                                  .fontSize(14)
-                                  .fontColor('rgba(255,255,255,0.3)')
-                              }
+
+                              // 主营业务
                               if (this.rewardSlotUser.businessScopeText) {
-                                Image($r('app.media.icon_work'))
-                                  .width(14)
-                                  .height(14)
-                                  .margin({ right: 4 })
-                                Text(this.rewardSlotUser.businessScopeText)
-                                  .fontSize(14)
-                                  .fontColor('rgba(255,255,255,0.6)')
-                                  .maxLines(1)
-                                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                                Row() {
+                                  Image($r('app.media.icon_work'))
+                                    .width(14)
+                                    .height(14)
+                                    .margin({ right: 4 })
+                                  Text(this.rewardSlotUser.businessScopeText)
+                                    .fontSize(14)
+                                    .fontColor('rgba(255,255,255,0.6)')
+                                    .maxLines(1)
+                                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                                }
+                                .width('100%')
+                                .justifyContent(FlexAlign.Start)
+                                .margin({ top: 6 })
                               }
-                              if ((this.rewardSlotUser.phone || this.rewardSlotUser.businessScopeText) && this.rewardSlotUser.droneModel) {
-                                Text(' · ')
-                                  .fontSize(14)
-                                  .fontColor('rgba(255,255,255,0.3)')
-                              }
+
+                              // 机型
                               if (this.rewardSlotUser.droneModel) {
-                                Image($r('app.media.icon_device'))
-                                  .width(14)
-                                  .height(14)
-                                  .margin({ right: 4 })
-                                Text(this.rewardSlotUser.droneModel)
-                                  .fontSize(14)
-                                  .fontColor('rgba(255,255,255,0.6)')
-                                  .maxLines(1)
-                                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                                Row() {
+                                  Image($r('app.media.icon_device'))
+                                    .width(14)
+                                    .height(14)
+                                    .margin({ right: 4 })
+                                  Text(this.rewardSlotUser.droneModel)
+                                    .fontSize(14)
+                                    .fontColor('rgba(255,255,255,0.6)')
+                                    .maxLines(1)
+                                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                                }
+                                .width('100%')
+                                .justifyContent(FlexAlign.Start)
+                                .margin({ top: 6 })
+                              }
+
+                              // 微信
+                              if (this.rewardSlotUser.wechatId) {
+                                Row() {
+                                  Image($r('app.media.iconwechat'))
+                                    .width(14)
+                                    .height(14)
+                                    .margin({ right: 4 })
+                                  Text(this.rewardSlotUser.wechatId)
+                                    .fontSize(14)
+                                    .fontColor('rgba(255,255,255,0.6)')
+                                }
+                                .width('100%')
+                                .justifyContent(FlexAlign.Start)
+                                .margin({ top: 6 })
+                              }
+
+                              // 抖音
+                              if (this.rewardSlotUser.douyinId) {
+                                Row() {
+                                  Image($r('app.media.icon_douyin'))
+                                    .width(14)
+                                    .height(14)
+                                    .margin({ right: 4 })
+                                  Text(this.rewardSlotUser.douyinId)
+                                    .fontSize(14)
+                                    .fontColor('rgba(255,255,255,0.6)')
+                                }
+                                .width('100%')
+                                .justifyContent(FlexAlign.Start)
+                                .margin({ top: 6 })
                               }
                             }
                             .width('100%')
                             .backgroundColor('rgba(255,255,255,0.1)')
                             .borderRadius(4)
                             .padding(8)
-                            .justifyContent(FlexAlign.Start)
                             .margin({ top: 22 })
                           }
                           .width('95%')
@@ -2242,12 +2289,12 @@ struct Index {
           },
           originalStyle: {
             backgroundStyle: {
-              backgroundColor: '#000000',
+              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#000000' : '#E7F8FC',
             }
           },
           scrollEffectStyle: {
             backgroundStyle: {
-              backgroundColor: '#40FFFFFF',
+              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#40000000' : '#40FFFFFF',
             }
           }
         },
@@ -2460,6 +2507,7 @@ struct Index {
                 likedByMe: pilot.likedByMe,
                 phone: pilot.phone,
                 wechatId: pilot.wechatId,
+                douyinId: pilot.douyinId,
                 distanceText: pilot.distanceText,
                 isNew: pilot.isNew,
               },
