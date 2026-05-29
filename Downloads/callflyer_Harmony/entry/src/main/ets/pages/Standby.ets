@@ -257,7 +257,7 @@ struct Standby {
 
       Scroll() {
         Column() {
-          // 顶部区域 - 动态模糊背景
+          // 顶部区域 - 动态模糊背景，延伸至状态栏
           Column() {
             // 标题
             Text('师徒匹配')
@@ -265,7 +265,7 @@ struct Standby {
               .fontWeight(FontWeight.Bold)
               .fontColor('#FFFFFF')
               .fontFamily('DouyinSansBold')
-              .margin({ top: 40, bottom: 16 })
+              .margin({ top: 50, bottom: 16 })
 
             // 副标题
             Text('找师傅带入门，找徒弟传承技术')
@@ -280,7 +280,8 @@ struct Standby {
           .backgroundImagePosition(Alignment.Center)
           .backgroundImageSize(ImageSize.Cover)
           .width('100%')
-          .height(160)
+          .height(180)
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
 
           // 搜索框
           Search({ placeholder: '搜索城市' })
@@ -350,7 +351,7 @@ struct Standby {
       .width('100%')
       .padding({ bottom: 30 })
       .alignItems(HorizontalAlign.Center)
-      .position({ y: '88%' })
+      .position({ y: '92%' })
 
       // 自我介绍弹窗
       if (this.showIntroPopup) {
@@ -420,7 +421,7 @@ struct Standby {
         Row() {
           // 入行感谢金标签 - 左边，黑色粗体
           Text('入行感谢金')
-            .fontSize(15)
+            .fontSize(17)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_primary'))
 
