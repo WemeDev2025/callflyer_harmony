@@ -155,6 +155,32 @@ export interface ConfigResult {
   rewardSubtitle?: string;
   rewardButtonText?: string;
   rewardOccupiedSubtitle?: string;
+  carousel?: CarouselItem[];
+}
+
+export interface CarouselItem {
+  slot?: string;
+  image_url?: string;
+  reward_meta?: RewardMeta;
+  profile_card?: ProfileCard;
+}
+
+export interface RewardMeta {
+  title?: string;
+  subtitle?: string;
+  cta_text?: string;
+}
+
+export interface ProfileCard {
+  avatar_url?: string;
+  nickname?: string;
+  city?: string;
+  phone?: string;
+  wechat_id?: string;
+  license_type?: string;
+  user_role?: string;
+  business_scope?: string[];
+  drone_model?: string;
 }
 
 export async function fetchConfig(): Promise<ConfigResult> {
@@ -189,7 +215,8 @@ export async function fetchConfig(): Promise<ConfigResult> {
               rewardTitle: rewardConfig.display_title || rewardConfig.title || '',
               rewardSubtitle: rewardConfig.display_subtitle || rewardConfig.subtitle || '',
               rewardButtonText: rewardConfig.cta_text || rewardConfig.ctaText || rewardConfig.buttonText || '',
-              rewardOccupiedSubtitle: rewardConfig.occupied_subtitle || rewardConfig.occupiedSubtitle || ''
+              rewardOccupiedSubtitle: rewardConfig.occupied_subtitle || rewardConfig.occupiedSubtitle || '',
+              carousel: response.carousel || []
             });
           } catch (parseErr) {
             reject(parseErr);

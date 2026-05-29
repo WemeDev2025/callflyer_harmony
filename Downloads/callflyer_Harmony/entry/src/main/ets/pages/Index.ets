@@ -1,5 +1,5 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus, CarouselItem } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
@@ -449,6 +449,55 @@ struct Index {
       this.todayActiveUsers = config.todayActiveUsers ?? 0;
       this.totalPilotCount = config.totalPilotCount ?? 0;
       this.totalEmployerCount = config.totalEmployerCount ?? 0;
+
+      // 解析carousel中的奖励位数据
+      if (config.carousel && config.carousel.length > 0) {
+        const rewardSlot = config.carousel.find((item: CarouselItem) => item.slot === 'homepage_carousel_top');
+        if (rewardSlot) {
+          // 使用接口返回的reward_meta
+          if (rewardSlot.reward_meta) {
+            this.rewardTitle = rewardSlot.reward_meta.title || this.rewardTitle;
+            this.rewardSubtitle = rewardSlot.reward_meta.subtitle || this.rewardSubtitle;
+            this.rewardButtonText = rewardSlot.reward_meta.cta_text || this.rewardButtonText;
+          }
+          // 如果有profile_card，说明奖励位已被认领，显示用户名片
+          if (rewardSlot.profile_card) {
+            const card = rewardSlot.profile_card;
+            this.rewardSlotUser = {
+              openid: '',
+              nickname: card.nickname || '匿名用户',
+              avatar: card.avatar_url || DEFAULT_AVATAR,
+              city: card.city || '',
+              licenseType: card.license_type || '',
+              licenseStatus: '已认证',
+              droneModel: card.drone_model || '',
+              businessScope: card.business_scope?.join(',') || '',
+              businessScopeText: card.business_scope?.join(',') || '',
+              distanceText: '',
+              recentActiveText: '',
+              phone: card.phone || '',
+              wechatId: card.wechat_id || '',
+              pilotCode: '',
+              company: '',
+              position: '',
+              likeCount: 0,
+              likedByMe: false,
+              isVipSlot: false,
+              vipRadiusKm: 0,
+              vipLabel: '',
+              latitude: 0,
+              longitude: 0,
+              score: '',
+              licenseUrl: '',
+              channelsId: '',
+              isNew: false,
+              licenseStatusClass: '',
+              roleLabel: card.user_role === 'pilot' ? '飞手' : (card.user_role === 'employer' ? '雇主' : '')
+            };
+            this.rewardSlotClaimed = true;
+          }
+        }
+      }
 
       const banners = await fetchBanners();
       const baseBanners = banners.length > 0 ? banners : this.getDefaultBanners();
@@ -1659,14 +1708,15 @@ struct Index {
                                 .width(56)
                                 .height(56)
                                 .borderRadius(28)
-                                .border({ width: 2, color: '#06b6d4' })
                               Column() {
                                 Text(this.rewardSlotUser.nickname || '匿名用户')
                                   .fontSize(18)
                                   .fontWeight(600)
                                   .fontColor('#FFFFFF')
+                                  .fontFamily('DouyinSansBold')
+                                  .margin({ bottom: 8 })
                                 Row() {
-                                  Text(this.rewardSlotUser.city || '')
+                                  Text('北京')
                                     .fontSize(12)
                                     .fontColor('rgba(255,255,255,0.7)')
                                   if (this.rewardSlotUser.city && this.rewardSlotUser.roleLabel) {
@@ -1694,7 +1744,7 @@ struct Index {
                                       .borderRadius(4)
                                       .padding({ left: 4, right: 4, top: 2, bottom: 2 })
                                       .margin({ left: 6 })
-                                  } else if (this.rewardSlotUser.licenseType) {
+                                  } else if (this.rewardSlotUser.licenseType && this.rewardSlotUser.licenseType !== '已审核' && this.rewardSlotUser.licenseType !== '审核通过') {
                                     Text(this.rewardSlotUser.licenseType)
                                       .fontSize(10)
                                       .fontColor('#FFFFFF')
@@ -1704,50 +1754,73 @@ struct Index {
                                       .margin({ left: 6 })
                                   }
                                 }
+                                .justifyContent(FlexAlign.Start)
                               }
                               .alignItems(HorizontalAlign.Start)
                               .margin({ left: 12 })
                             }
+                            .width('100%')
+                            .alignItems(VerticalAlign.Center)
+                            .justifyContent(FlexAlign.Start)
 
                             // 信息行
                             Row() {
                               if (this.rewardSlotUser.phone) {
+                                Image($r('app.media.icon_phone'))
+                                  .width(14)
+                                  .height(14)
+                                  .margin({ right: 4 })
                                 Text(this.maskPhone(this.rewardSlotUser.phone))
-                                  .fontSize(11)
+                                  .fontSize(14)
                                   .fontColor('rgba(255,255,255,0.6)')
                               }
                               if (this.rewardSlotUser.phone && this.rewardSlotUser.businessScopeText) {
                                 Text(' · ')
-                                  .fontSize(11)
+                                  .fontSize(14)
                                   .fontColor('rgba(255,255,255,0.3)')
                               }
                               if (this.rewardSlotUser.businessScopeText) {
+                                Image($r('app.media.icon_work'))
+                                  .width(14)
+                                  .height(14)
+                                  .margin({ right: 4 })
                                 Text(this.rewardSlotUser.businessScopeText)
-                                  .fontSize(11)
+                                  .fontSize(14)
                                   .fontColor('rgba(255,255,255,0.6)')
                                   .maxLines(1)
                                   .textOverflow({ overflow: TextOverflow.Ellipsis })
                               }
                               if ((this.rewardSlotUser.phone || this.rewardSlotUser.businessScopeText) && this.rewardSlotUser.droneModel) {
                                 Text(' · ')
-                                  .fontSize(11)
+                                  .fontSize(14)
                                   .fontColor('rgba(255,255,255,0.3)')
                               }
                               if (this.rewardSlotUser.droneModel) {
+                                Image($r('app.media.icon_device'))
+                                  .width(14)
+                                  .height(14)
+                                  .margin({ right: 4 })
                                 Text(this.rewardSlotUser.droneModel)
-                                  .fontSize(11)
+                                  .fontSize(14)
                                   .fontColor('rgba(255,255,255,0.6)')
                                   .maxLines(1)
                                   .textOverflow({ overflow: TextOverflow.Ellipsis })
                               }
                             }
-                            .margin({ top: 10 })
+                            .width('100%')
+                            .backgroundColor('rgba(255,255,255,0.1)')
+                            .borderRadius(4)
+                            .padding(8)
+                            .justifyContent(FlexAlign.Start)
+                            .margin({ top: 22 })
                           }
-                          .width('100%')
+                          .width('95%')
+                          .height('92%')
                           .padding(16)
                           .backgroundColor('rgba(255,255,255,0.08)')
-                          .borderRadius(12)
+                          .borderRadius(13)
                           .border({ width: 1, color: 'rgba(255,255,255,0.1)' })
+                          .alignItems(HorizontalAlign.Start)
                         } else {
                           // 未领取：显示标题副标题和按钮
                           Column() {
@@ -1836,7 +1909,7 @@ struct Index {
                     }
                     .width('100%')
                     .height('100%')
-                    .borderRadius(12)
+                    .borderRadius(18)
                     .clip(true)
                   } else {
                     Image(item.src)
