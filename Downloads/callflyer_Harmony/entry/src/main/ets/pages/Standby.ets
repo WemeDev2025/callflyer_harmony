@@ -261,28 +261,21 @@ struct Standby {
       Column() {
         Scroll() {
           Column() {
-            // 顶部区域 - 16:9圆角矩形图片+阴影
+            // 顶部区域 - 横幅图片
             Column() {
               Image(BANNER_URL)
                 .width('100%')
-                .aspectRatio(16 / 9)
-                .borderRadius(12)
+                .borderRadius(16)
                 .objectFit(ImageFit.Cover)
-                .shadow({
-                  radius: 8,
-                  color: 'rgba(0, 0, 0, 0.15)',
-                  offsetX: 0,
-                  offsetY: 4
-                })
             }
             .width('90%')
-            .margin({ top: 80 })
+            .margin({ top: 16 })
             .alignItems(HorizontalAlign.Center)
 
             // 搜索框
             Search({ placeholder: '搜索城市' })
               .width('90%')
-              .margin({ top: 16 })
+              .margin({ top: 80 })
               .backgroundColor($r('app.color.card_bg'))
               .borderRadius(20)
               .onChange((value: string) => { this.onSearchChange(value); })
