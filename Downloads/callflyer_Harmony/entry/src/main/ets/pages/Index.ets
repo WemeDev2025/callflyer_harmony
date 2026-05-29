@@ -1453,6 +1453,16 @@ struct Index {
           .fontColor($r('app.color.text_title'))
           .fontFamily('DouyinSansBold')
         Blank()
+        Text('师徒匹配')
+          .fontSize(13)
+          .fontFamily('DouyinSansBold')
+          .fontColor('#FFFFFF')
+          .backgroundColor('#3B82F6')
+          .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+          .borderRadius(4)
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/Standby' });
+          })
         Text(this.standbyIsJoined ? '取消等待' : '等待任务')
           .fontSize(13)
           .fontFamily('DouyinSansBold')
@@ -1460,6 +1470,7 @@ struct Index {
           .backgroundColor(this.standbyIsJoined ? '#EF4444' : '#22C55E')
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
           .borderRadius(4)
+          .margin({ left: 10 })
           .onClick(() => this.toggleStandbyJoin())
       }
       .width('100%')

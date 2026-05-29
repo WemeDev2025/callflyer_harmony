@@ -43,7 +43,7 @@ struct ShareGuideDialog {
 
       Column() {
         Image(this.imagePath)
-          .width('80%')
+          .width('90%')
           .objectFit(ImageFit.Contain)
       }
       .width('80%')

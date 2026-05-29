@@ -1692,6 +1692,388 @@ export async function leaveStandby(token: string): Promise<void> {
   });
 }
 
+// ============ 师徒匹配（Disciple）===========
+
+// 师傅信息
+export interface DiscipleMaster {
+  openid: string;
+  nickname: string;
+  avatar: string;
+}
+
+// 徒弟项（卡片数据）
+export interface DiscipleItem {
+  openid: string;
+  order_id: string;
+  out_trade_no: string;
+  name: string;
+  city: string;
+  avatar: string;
+  intro: string;
+  price: number;
+  paid_at: string;
+  finished_at: string;
+  masters: DiscipleMaster[];
+  masterCount: number;
+  hasMatchedMe: boolean;
+  isMine: boolean;
+  transfer_status: string;
+  rating: number | null;
+  masterRating: number | null;
+}
+
+// 评星请求参数
+export interface CreateRatingPayload {
+  disciple_openid: string;
+  role: string;
+  score: number;
+  comment: string;
+}
+
+// 评星结果
+export interface StandbyRatingResult {
+  id: string;
+  disciple_openid: string;
+  role: string;
+  score: number;
+  comment: string;
+}
+
+// 获取徒弟列表结果
+export interface DisciplesResult {
+  items: DiscipleItem[];
+}
+
+// 获取我的徒弟结果
+export interface MyDisciplesResult {
+  items: DiscipleItem[];
+}
+
+// 获取徒弟列表
+export async function fetchDisciples(): Promise<DisciplesResult> {
+  return new Promise<DisciplesResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/disciple`;
+    console.info('【接口请求】fetchDisciples url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: [{ 'Content-Type': 'application/json' }],
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchDisciples:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】fetchDisciples:', data.result as string);
+        if (data.result && typeof data.result === 'string') {
+          try {
+            const res: Record<string, Object> = JSON.parse(data.result as string);
+            const rawItems: Record<string, Object>[] = (res['items'] as Record<string, Object>[]) || [];
+            const items: DiscipleItem[] = rawItems.map((item: Record<string, Object>) => {
+              const masterRaw: Record<string, Object> = (item['master'] as Record<string, Object>) || {};
+              const master: DiscipleMaster = {
+                openid: (masterRaw['openid'] as string) || '',
+                nickname: (masterRaw['nickname'] as string) || '',
+                avatar: (masterRaw['avatar'] as string) || ''
+              };
+              const masters: DiscipleMaster[] = master.openid ? [master] : [];
+              return {
+                openid: (item['openid'] as string) || '',
+                order_id: (item['order_id'] as string) || '',
+                out_trade_no: (item['out_trade_no'] as string) || '',
+                name: (item['nickname'] as string) || (item['name'] as string) || '匿名飞手',
+                city: (item['city'] as string) || '',
+                avatar: (item['avatar'] as string) || '',
+                intro: (item['intro'] as string) || '',
+                price: (item['price'] as number) || 0,
+                paid_at: (item['paid_at'] as string) || '',
+                finished_at: (item['finished_at'] as string) || '',
+                masters: masters,
+                masterCount: (masterRaw['disciple_count'] as number) || 0,
+                hasMatchedMe: !!(item['matched_by_me'] || item['matchedByMe']),
+                isMine: !!(item['is_mine'] || item['isMine']),
+                transfer_status: (item['transfer_status'] as string) || 'none',
+                rating: (item['rating'] as number) || null,
+                masterRating: (item['master_rating'] as number) || null,
+              } as DiscipleItem;
+            });
+            resolve({ items: items });
+          } catch (e) {
+            console.error('【fetchDisciples解析失败】', JSON.stringify(e));
+            reject(new Error('解析失败'));
+          }
+        } else {
+          resolve({ items: [] });
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// 获取我的徒弟
+export async function fetchMyDisciples(token: string): Promise<MyDisciplesResult> {
+  return new Promise<MyDisciplesResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/standby/match`;
+    console.info('【接口请求】fetchMyDisciples url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.GET,
+        header: [
+          { 'Content-Type': 'application/json' },
+          { 'Authorization': 'Bearer ' + token }
+        ],
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】fetchMyDisciples:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】fetchMyDisciples:', data.result as string);
+        if (data.result && typeof data.result === 'string') {
+          try {
+            const res: Record<string, Object> = JSON.parse(data.result as string);
+            const rawItems: Record<string, Object>[] = (res['items'] as Record<string, Object>[]) || [];
+            const items: DiscipleItem[] = rawItems.map((item: Record<string, Object>) => {
+              const masterRaw: Record<string, Object> = (item['master'] as Record<string, Object>) || {};
+              const master: DiscipleMaster = {
+                openid: (masterRaw['openid'] as string) || '',
+                nickname: (masterRaw['nickname'] as string) || '',
+                avatar: (masterRaw['avatar'] as string) || ''
+              };
+              const masters: DiscipleMaster[] = master.openid ? [master] : [];
+              return {
+                openid: (item['openid'] as string) || '',
+                order_id: (item['order_id'] as string) || '',
+                out_trade_no: (item['out_trade_no'] as string) || '',
+                name: (item['nickname'] as string) || (item['name'] as string) || '匿名飞手',
+                city: (item['city'] as string) || '',
+                avatar: (item['avatar'] as string) || '',
+                intro: (item['intro'] as string) || '',
+                price: (item['price'] as number) || 0,
+                paid_at: (item['paid_at'] as string) || '',
+                finished_at: (item['finished_at'] as string) || '',
+                masters: masters,
+                masterCount: (masterRaw['disciple_count'] as number) || 0,
+                hasMatchedMe: !!(item['matched_by_me'] || item['matchedByMe']),
+                isMine: !!(item['is_mine'] || item['isMine']),
+                transfer_status: (item['transfer_status'] as string) || 'none',
+                rating: (item['rating'] as number) || null,
+                masterRating: (item['master_rating'] as number) || null,
+              } as DiscipleItem;
+            });
+            resolve({ items: items });
+          } catch (e) {
+            console.error('【fetchMyDisciples解析失败】', JSON.stringify(e));
+            reject(new Error('解析失败'));
+          }
+        } else {
+          resolve({ items: [] });
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// 收徒（匹配徒弟）
+export async function matchDisciple(discipleOpenid: string, token: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/standby/match`;
+    console.info('【接口请求】matchDisciple url:', url, 'discipleOpenid:', discipleOpenid);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: [
+          { 'Content-Type': 'application/json' },
+          { 'Authorization': 'Bearer ' + token }
+        ],
+        extraData: JSON.stringify({ disciple_openid: discipleOpenid }),
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】matchDisciple:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】matchDisciple:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 201) {
+          resolve();
+        } else {
+          reject(new Error('收徒失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// 取消收徒
+export async function removeDisciple(discipleOpenid: string, token: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/standby/match`;
+    console.info('【接口请求】removeDisciple url:', url, 'discipleOpenid:', discipleOpenid);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.DELETE,
+        header: [
+          { 'Content-Type': 'application/json' },
+          { 'Authorization': 'Bearer ' + token }
+        ],
+        extraData: JSON.stringify({ discipleOpenid: discipleOpenid }),
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】removeDisciple:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】removeDisciple:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 204) {
+          resolve();
+        } else {
+          reject(new Error('取消收徒失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// 加入匹配（发布自己）
+export async function joinDisciple(intro: string, price: number, token: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/disciple`;
+    console.info('【接口请求】joinDisciple url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: [
+          { 'Content-Type': 'application/json' },
+          { 'Authorization': 'Bearer ' + token }
+        ],
+        extraData: JSON.stringify({ intro, price }),
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】joinDisciple:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】joinDisciple:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 201) {
+          resolve();
+        } else {
+          reject(new Error('发布失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// 退出匹配
+export async function leaveDisciple(token: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/disciple`;
+    console.info('【接口请求】leaveDisciple url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.DELETE,
+        header: [
+          { 'Content-Type': 'application/json' },
+          { 'Authorization': 'Bearer ' + token }
+        ],
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】leaveDisciple:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】leaveDisciple:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 204) {
+          resolve();
+        } else {
+          reject(new Error('退出失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// 创建评星
+export async function createStandbyRating(payload: CreateRatingPayload, token: string): Promise<StandbyRatingResult> {
+  return new Promise<StandbyRatingResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/standby/ratings`;
+    console.info('【接口请求】createStandbyRating url:', url);
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: [
+          { 'Content-Type': 'application/json' },
+          { 'Authorization': 'Bearer ' + token }
+        ],
+        extraData: JSON.stringify(payload),
+        connectTimeout: 10000,
+        readTimeout: 10000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】createStandbyRating:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】createStandbyRating:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 201) {
+          if (data.result && typeof data.result === 'string') {
+            try {
+              const res = JSON.parse(data.result as string) as StandbyRatingResult;
+              resolve(res);
+            } catch (e) {
+              resolve({} as StandbyRatingResult);
+            }
+          } else {
+            resolve({} as StandbyRatingResult);
+          }
+        } else {
+          reject(new Error('评价失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
 export async function unlikeProfile(openid: string, token: string): Promise<LikeResult> {
   return new Promise<LikeResult>((resolve, reject) => {
     const httpRequest = http.createHttp();
