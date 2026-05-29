@@ -316,34 +316,36 @@ struct Standby {
           .layoutWeight(1)
           .scrollBar(BarState.Off)
         }
-
-        // 底部按钮
-        Column() {
-          if (this.isJoined) {
-            Button('不找了')
-              .width('60%')
-              .height(44)
-              .fontSize(16)
-              .fontColor('#FFFFFF')
-              .backgroundColor('#EF4444')
-              .borderRadius(22)
-              .onClick(() => { this.onLeaveStandby(); })
-          } else {
-            Button('加入匹配')
-              .width('60%')
-              .height(44)
-              .fontSize(16)
-              .fontColor('#FFFFFF')
-              .backgroundColor('#07c160')
-              .borderRadius(22)
-              .onClick(() => { this.showIntroDialog(); })
-          }
-        }
-        .width('100%')
-        .padding({ top: 16, bottom: 30 })
       }
       .width('100%')
       .height('100%')
+
+      // 底部悬浮按钮
+      Column() {
+        if (this.isJoined) {
+          Button('不找了')
+            .width('60%')
+            .height(44)
+            .fontSize(16)
+            .fontColor('#FFFFFF')
+            .backgroundColor('#EF4444')
+            .borderRadius(22)
+            .onClick(() => { this.onLeaveStandby(); })
+        } else {
+          Button('加入匹配')
+            .width('60%')
+            .height(44)
+            .fontSize(16)
+            .fontColor('#FFFFFF')
+            .backgroundColor('#07c160')
+            .borderRadius(22)
+            .onClick(() => { this.showIntroDialog(); })
+        }
+      }
+      .width('100%')
+      .padding({ bottom: 30 })
+      .alignItems(HorizontalAlign.Center)
+      .position({ y: '88%' })
 
       // 自我介绍弹窗
       if (this.showIntroPopup) {
@@ -496,12 +498,13 @@ struct Standby {
               Text('我收了')
                 .fontSize(13)
                 .fontColor('#FFFFFF')
+                .margin({ left: 4 })
             }
-            .width(90)
-            .height(34)
+            .alignItems(VerticalAlign.Center)
+            .padding({ left: 12, right: 12 })
+            .height(32)
             .backgroundColor('#07c160')
-            .borderRadius(17)
-            .justifyContent(FlexAlign.Center)
+            .borderRadius(16)
             .onClick(() => { this.onMatchTap(item); })
           }
         }
