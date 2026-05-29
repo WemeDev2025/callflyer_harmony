@@ -257,36 +257,37 @@ struct Standby {
 
       Scroll() {
         Column() {
-          // 顶部区域 - 动态模糊背景，延伸至状态栏
+          // 顶部区域 - 16:9圆角矩形图片
           Column() {
-            // 标题
-            Text('师徒匹配')
-              .fontSize(24)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#FFFFFF')
-              .fontFamily('DouyinSansBold')
-              .margin({ top: 50, bottom: 16 })
+            Image(BANNER_URL)
+              .width('100%')
+              .aspectRatio(16 / 9)
+              .borderRadius(12)
+              .objectFit(ImageFit.Cover)
 
-            // 副标题
-            Text('找师傅带入门，找徒弟传承技术')
-              .fontSize(14)
-              .fontColor('rgba(255,255,255,0.8)')
-              .margin({ bottom: 20 })
+            // 标题和副标题覆盖在图片上
+            Column() {
+              Text('师徒匹配')
+                .fontSize(24)
+                .fontWeight(FontWeight.Bold)
+                .fontColor('#FFFFFF')
+                .fontFamily('DouyinSansBold')
+
+              Text('找师傅带入门，找徒弟传承技术')
+                .fontSize(14)
+                .fontColor('rgba(255,255,255,0.8)')
+                .margin({ top: 8 })
+            }
+            .position({ x: 18, y: 20 })
           }
-          .width('100%')
-          .alignItems(HorizontalAlign.Start)
-          .padding({ left: 18, right: 18 })
-          .backgroundImage(BANNER_URL)
-          .backgroundImagePosition(Alignment.Center)
-          .backgroundImageSize(ImageSize.Cover)
-          .width('100%')
-          .height(180)
-          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
+          .width('90%')
+          .margin({ top: 10 })
+          .alignItems(HorizontalAlign.Center)
 
           // 搜索框
           Search({ placeholder: '搜索城市' })
             .width('90%')
-            .margin({ top: -20 })
+            .margin({ top: 16 })
             .backgroundColor($r('app.color.card_bg'))
             .borderRadius(20)
             .onChange((value: string) => { this.onSearchChange(value); })
