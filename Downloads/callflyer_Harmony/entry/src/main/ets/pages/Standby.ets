@@ -545,8 +545,8 @@ struct Standby {
             Row() {
               // 图标 - 绿色原始图标
               Image($r('app.media.icon_gan'))
-                .width(32)
-                .height(32)
+                .width(35)
+                .height(35)
 
               // 文字
               Text('我收了')
