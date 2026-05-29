@@ -137,28 +137,46 @@ struct Standby {
       await matchDisciple(item.openid, token);
       promptAction.showToast({ message: '收徒成功' });
 
-      // 静默更新UI
+      // 静默更新UI - 需要创建新对象触发UI更新
       const currentUser = AuthService.getCurrentUser();
       const currentOpenId = AuthService.getCurrentOpenId();
       const index = this.filteredList.findIndex((p: DiscipleItem) => p.openid === item.openid);
       if (index !== -1) {
-        const disciple = this.filteredList[index];
-        disciple.isMine = true;
-        disciple.masterCount = (disciple.masterCount || 0) + 1;
+        const oldDisciple = this.filteredList[index];
+        const oldMasters = oldDisciple.masters || [];
+        const newMasters: DiscipleMaster[] = oldMasters.slice();
         if (currentOpenId && currentUser) {
-          const newMaster: DiscipleMaster = {
+          newMasters.push({
             openid: currentOpenId,
             nickname: currentUser.displayName || currentUser.openId || '师傅',
             avatar: currentUser.avatar || ''
-          };
-          const mastersList = disciple.masters || [];
-          mastersList.push(newMaster);
-          disciple.masters = mastersList;
+          });
         }
+        const newDisciple: DiscipleItem = {
+          openid: oldDisciple.openid,
+          order_id: oldDisciple.order_id,
+          out_trade_no: oldDisciple.out_trade_no,
+          name: oldDisciple.name,
+          city: oldDisciple.city,
+          avatar: oldDisciple.avatar,
+          intro: oldDisciple.intro,
+          price: oldDisciple.price,
+          paid_at: oldDisciple.paid_at,
+          finished_at: oldDisciple.finished_at,
+          masters: newMasters,
+          masterCount: (oldDisciple.masterCount || 0) + 1,
+          hasMatchedMe: oldDisciple.hasMatchedMe,
+          isMine: true,
+          transfer_status: oldDisciple.transfer_status,
+          rating: oldDisciple.rating,
+          masterRating: oldDisciple.masterRating
+        };
+        this.filteredList[index] = newDisciple;
+
         // 同步更新 pilotList
         const pilotIndex = this.pilotList.findIndex((p: DiscipleItem) => p.openid === item.openid);
         if (pilotIndex !== -1) {
-          this.pilotList[pilotIndex] = disciple;
+          this.pilotList[pilotIndex] = newDisciple;
         }
       }
     } catch (err) {
@@ -175,20 +193,40 @@ struct Standby {
       await removeDisciple(item.openid, token);
       promptAction.showToast({ message: '已取消' });
 
-      // 静默更新UI
+      // 静默更新UI - 需要创建新对象触发UI更新
       const currentOpenId = AuthService.getCurrentOpenId();
       const index = this.filteredList.findIndex((p: DiscipleItem) => p.openid === item.openid);
       if (index !== -1) {
-        const disciple = this.filteredList[index];
-        disciple.isMine = false;
-        disciple.masterCount = Math.max(0, (disciple.masterCount || 0) - 1);
-        if (currentOpenId) {
-          disciple.masters = (disciple.masters || []).filter((m: DiscipleMaster) => m.openid !== currentOpenId);
-        }
+        const oldDisciple = this.filteredList[index];
+        const oldMasters = oldDisciple.masters || [];
+        const newMasters: DiscipleMaster[] = currentOpenId
+          ? oldMasters.filter((m: DiscipleMaster) => m.openid !== currentOpenId)
+          : oldMasters;
+        const newDisciple: DiscipleItem = {
+          openid: oldDisciple.openid,
+          order_id: oldDisciple.order_id,
+          out_trade_no: oldDisciple.out_trade_no,
+          name: oldDisciple.name,
+          city: oldDisciple.city,
+          avatar: oldDisciple.avatar,
+          intro: oldDisciple.intro,
+          price: oldDisciple.price,
+          paid_at: oldDisciple.paid_at,
+          finished_at: oldDisciple.finished_at,
+          masters: newMasters,
+          masterCount: Math.max(0, (oldDisciple.masterCount || 0) - 1),
+          hasMatchedMe: oldDisciple.hasMatchedMe,
+          isMine: false,
+          transfer_status: oldDisciple.transfer_status,
+          rating: oldDisciple.rating,
+          masterRating: oldDisciple.masterRating
+        };
+        this.filteredList[index] = newDisciple;
+
         // 同步更新 pilotList
         const pilotIndex = this.pilotList.findIndex((p: DiscipleItem) => p.openid === item.openid);
         if (pilotIndex !== -1) {
-          this.pilotList[pilotIndex] = disciple;
+          this.pilotList[pilotIndex] = newDisciple;
         }
       }
     } catch (err) {
