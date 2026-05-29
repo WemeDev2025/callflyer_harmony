@@ -193,15 +193,15 @@ struct DiscipleCard {
 
         // 右侧：师傅信息 - 带背景
         Row() {
-          if (this.item.masters && this.item.masters.length > 0) {
+          if (this.item.masterCount > 0) {
             Row() {
-              Image(this.item.masters[0].avatar || DEFAULT_AVATAR)
+              Image(this.item.masters && this.item.masters[0] ? this.item.masters[0].avatar || DEFAULT_AVATAR : DEFAULT_AVATAR)
                 .width(35)
                 .height(35)
                 .borderRadius(17.5)
 
               Column() {
-                Text(this.item.masters[0].nickname || '师傅')
+                Text(this.item.masters && this.item.masters[0] ? this.item.masters[0].nickname || '师傅' : '师傅')
                   .fontSize(14)
                   .fontWeight(FontWeight.Medium)
                   .fontColor($r('app.color.text_primary'))
@@ -221,8 +221,8 @@ struct DiscipleCard {
               // 绿色圆形背景包裹图标
               Column() {
                 Image($r('app.media.icon_gan'))
-                  .width(20)
-                  .height(20)
+                  .width(35)
+                  .height(35)
               }
               .width(35)
               .height(35)
@@ -342,11 +342,13 @@ struct Standby {
   private ratingDialogController: CustomDialogController | null = null;
 
   aboutToAppear() {
-    this.loadData();
+    this.loadData(true);
   }
 
-  async loadData() {
-    this.loading = true;
+  async loadData(showLoading: boolean = false) {
+    if (showLoading) {
+      this.loading = true;
+    }
     try {
       const discipleRes = await fetchDisciples();
       const token = AuthService.getAuthToken();
@@ -386,31 +388,11 @@ struct Standby {
       return;
     }
 
-    const currentOpenId = AuthService.getCurrentOpenId();
-    console.info('【收徒】openid=%{public}s, masters.length=%{public}d', item.openid, item.masters.length);
-
     try {
       await matchDisciple(item.openid, token);
       promptAction.showToast({ message: '收徒成功' });
-
-      // 静默更新UI - 替换整个masters数组触发@Observed更新
-      const currentUser = AuthService.getCurrentUser();
-      item.isMine = true;
-      item.masterCount = (item.masterCount || 0) + 1;
-      if (currentOpenId && currentUser) {
-        const newMaster: DiscipleMaster = {
-          openid: currentOpenId,
-          nickname: currentUser.displayName || currentUser.openId || '师傅',
-          avatar: currentUser.avatar || ''
-        };
-        console.info('【收徒】添加前masters=%{public}s', JSON.stringify(item.masters));
-        item.masters = [...item.masters, newMaster];
-        console.info('【收徒】添加后masters=%{public}s', JSON.stringify(item.masters));
-      }
-      // 强制刷新列表中的该项
-      this.filteredList = [...this.filteredList];
+      this.loadData();
     } catch (err) {
-      console.error('【收徒】失败:%{public}s', JSON.stringify(err));
       promptAction.showToast({ message: '操作失败' });
     }
   }
@@ -419,25 +401,11 @@ struct Standby {
     const token = AuthService.getAuthToken();
     if (!token) return;
 
-    const currentOpenId = AuthService.getCurrentOpenId();
-    console.info('【取消匹配】openid=%{public}s, currentOpenId=%{public}s, masters.length=%{public}d', item.openid, currentOpenId, item.masters.length);
-
     try {
       await removeDisciple(item.openid, token);
       promptAction.showToast({ message: '已取消' });
-
-      // 静默更新UI - 替换整个masters数组触发@Observed更新
-      item.isMine = false;
-      item.masterCount = Math.max(0, (item.masterCount || 0) - 1);
-      if (currentOpenId) {
-        console.info('【取消匹配】过滤前masters=%{public}s', JSON.stringify(item.masters));
-        item.masters = item.masters.filter((m: DiscipleMaster) => m.openid !== currentOpenId);
-        console.info('【取消匹配】过滤后masters=%{public}s', JSON.stringify(item.masters));
-      }
-      // 强制刷新列表中的该项
-      this.filteredList = [...this.filteredList];
+      this.loadData();
     } catch (err) {
-      console.error('【取消匹配】失败:%{public}s', JSON.stringify(err));
       promptAction.showToast({ message: '操作失败' });
     }
   }
@@ -767,9 +735,8 @@ struct Standby {
         }
       }
       .width('100%')
-      .padding({ bottom: 30 })
       .alignItems(HorizontalAlign.Center)
-      .position({ y: '92%' })
+      .position({ y: '95%' })
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
 
       // 自我介绍弹窗
