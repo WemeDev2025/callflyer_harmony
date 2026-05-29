@@ -2297,6 +2297,19 @@ struct Index {
               .justifyContent(FlexAlign.Center)
               .margin({ left: 12 })
               .onClick(() => { this.currentTab = 'orders'; })
+
+              Blank()
+
+              if (this.currentTab === 'pilots') {
+                Image($r('app.media.icon_search'))
+                  .width(25)
+                  .height(25)
+                  .fillColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#000000')
+                  .margin({ right: 18 })
+                  .onClick(() => {
+                    router.pushUrl({ url: 'pages/CertifiedUsers' });
+                  })
+              }
             }
             .width('100%')
             .padding({ left: 18, top: 6, bottom: 6 })

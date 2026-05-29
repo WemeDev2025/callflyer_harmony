@@ -479,7 +479,7 @@ export struct PilotCard {
               Text(this.user.distanceText)
                 .fontSize(12)
                 .fontColor('#FFFFFF')
-                .backgroundColor('rgba(0, 0, 0, 0.10)')
+                .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#07c160' : 'rgba(0, 0, 0, 0.1)')
                 .borderRadius(3)
                 .padding({ left: 8, right: 8, top: 4, bottom: 4 })
             }

@@ -67,6 +67,19 @@ struct RatingDialog {
   }
 }
 
+// 缓存数据结构
+interface StandbyCache {
+  items: DiscipleItem[];
+  isJoined: boolean;
+  fetchedAt: number;
+}
+
+// 缓存读取结果
+class StandbyCacheResult {
+  items: DiscipleItem[] = [];
+  isJoined: boolean = false;
+}
+
 // 可观察的徒弟项，用于精准更新UI
 @Observed
 class ObservedDiscipleItem {
@@ -115,6 +128,7 @@ class ObservedDiscipleItem {
 @Component
 struct DiscipleCard {
   @ObjectLink item: ObservedDiscipleItem;
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
   onMatch: (item: ObservedDiscipleItem) => void = () => {};
   onCancelMatch: (item: ObservedDiscipleItem) => void = () => {};
   onContactDisciple: (item: ObservedDiscipleItem) => void = () => {};
@@ -176,7 +190,7 @@ struct DiscipleCard {
         .alignItems(VerticalAlign.Center)
         .width('42%')
         .height('100%')
-        .backgroundColor('#F5F5F5')
+        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2A2A2A')
         .borderRadius(8)
         .padding({ top: 6, bottom: 6, left: 8, right: 8 })
 
@@ -185,7 +199,7 @@ struct DiscipleCard {
           Column()
             .width(30)
             .height(2)
-            .backgroundColor($r('app.color.divider'))
+            .backgroundColor(this.item.masterCount > 0 ? '#07c160' : $r('app.color.divider'))
         }
         .width('16%')
         .height('100%')
@@ -194,11 +208,13 @@ struct DiscipleCard {
         // 右侧：师傅信息 - 带背景
         Row() {
           if (this.item.masterCount > 0) {
+            // 已收徒状态 - 显示师傅头像
             Row() {
               Image(this.item.masters && this.item.masters[0] ? this.item.masters[0].avatar || DEFAULT_AVATAR : DEFAULT_AVATAR)
                 .width(35)
                 .height(35)
                 .borderRadius(17.5)
+                .transition(TransitionEffect.OPACITY.animation({ duration: 300 }))
 
               Column() {
                 Text(this.item.masters && this.item.masters[0] ? this.item.masters[0].nickname || '师傅' : '师傅')
@@ -217,8 +233,8 @@ struct DiscipleCard {
             }
             .alignItems(VerticalAlign.Center)
           } else {
+            // 未收徒状态 - 显示"我收了"图标
             Row() {
-              // 绿色圆形背景包裹图标
               Column() {
                 Image($r('app.media.icon_gan'))
                   .width(35)
@@ -231,7 +247,6 @@ struct DiscipleCard {
               .justifyContent(FlexAlign.Center)
               .alignItems(HorizontalAlign.Center)
 
-              // 文字
               Text('我收了')
                 .fontSize(13)
                 .fontColor('#6f7c90')
@@ -245,7 +260,7 @@ struct DiscipleCard {
         .alignItems(VerticalAlign.Center)
         .width('42%')
         .height('100%')
-        .backgroundColor('#F5F5F5')
+        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2A2A2A')
         .borderRadius(8)
         .padding({ top: 6, bottom: 6, left: 8, right: 8 })
       }
@@ -261,7 +276,7 @@ struct DiscipleCard {
         }
         .width('100%')
         .padding(12)
-        .backgroundColor('#F5F5F5')
+        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2A2A2A')
         .borderRadius(8)
         .margin({ top: 10 })
       }
@@ -287,7 +302,7 @@ struct DiscipleCard {
           .fontSize(12)
           .height(28)
           .fontColor('#07c160')
-          .backgroundColor('#E8F7ED')
+          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#E8F7ED' : '#1A3D2A')
           .borderRadius(14)
           .onClick(() => { this.onContactDisciple(this.item); })
         if (this.item.masterCount > 0) {
@@ -295,7 +310,7 @@ struct DiscipleCard {
             .fontSize(12)
             .height(28)
             .fontColor('#07c160')
-            .backgroundColor('#E8F7ED')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#E8F7ED' : '#1A3D2A')
             .borderRadius(14)
             .margin({ left: 10 })
             .onClick(() => { this.onContactMaster(this.item); })
@@ -305,7 +320,7 @@ struct DiscipleCard {
             .fontSize(12)
             .height(28)
             .fontColor('#FF9500')
-            .backgroundColor('#FFF5E6')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#FFF5E6' : '#3D3520')
             .borderRadius(14)
             .margin({ left: 10 })
             .onClick(() => { this.onRating(this.item, this.item.isMine ? 'disciple' : 'master'); })
@@ -341,14 +356,71 @@ struct Standby {
 
   private ratingDialogController: CustomDialogController | null = null;
 
+  // 缓存 key
+  private cacheKey: string = 'standby_page_data';
+  private cacheTTL: number = 3 * 60 * 1000; // 3分钟缓存
+
   aboutToAppear() {
     this.loadData(true);
   }
 
-  async loadData(showLoading: boolean = false) {
-    if (showLoading) {
+  // 读取缓存
+  private readCache(): StandbyCacheResult | null {
+    try {
+      const raw = AppStorage.get<string>(this.cacheKey);
+      if (raw) {
+        const cache: StandbyCache = JSON.parse(raw) as StandbyCache;
+        if (cache && cache.fetchedAt && Date.now() - cache.fetchedAt < this.cacheTTL && cache.items) {
+          const result = new StandbyCacheResult();
+          result.items = cache.items;
+          result.isJoined = cache.isJoined;
+          return result;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  // 写入缓存
+  private writeCache(items: DiscipleItem[], isJoined: boolean) {
+    try {
+      const data = JSON.stringify({ items, isJoined, fetchedAt: Date.now() });
+      AppStorage.setOrCreate(this.cacheKey, data);
+    } catch (e) {}
+  }
+
+  async loadData(showLoading: boolean = false, silentRefresh: boolean = false) {
+    // 如果是静默刷新，只更新数据不修改 UI
+    if (silentRefresh) {
+      try {
+        const discipleRes = await fetchDisciples();
+        const token = AuthService.getAuthToken();
+        const myDiscipleRes = token ? await fetchMyDisciples(token) : { items: [] } as MyDisciplesResult;
+        const items = discipleRes.items || [];
+        this.pilotList = items.map((item: DiscipleItem) => new ObservedDiscipleItem(item));
+        this.applyFilter();
+        this.isJoined = items.some((p: DiscipleItem) => p.isMine);
+        this.writeCache(items, this.isJoined);
+      } catch (err) {
+        console.error('【师徒匹配静默刷新失败】', JSON.stringify(err));
+      }
+      return;
+    }
+
+    // 优先读取缓存
+    const cachedData = this.readCache();
+    if (cachedData) {
+      this.pilotList = cachedData.items.map((item: DiscipleItem) => new ObservedDiscipleItem(item));
+      this.applyFilter();
+      this.isJoined = cachedData.isJoined;
+      if (!showLoading) {
+        this.loading = false;
+      }
+    } else if (showLoading) {
       this.loading = true;
     }
+
+    // 后台静默刷新
     try {
       const discipleRes = await fetchDisciples();
       const token = AuthService.getAuthToken();
@@ -360,9 +432,14 @@ struct Standby {
       this.pilotList = items.map((item: DiscipleItem) => new ObservedDiscipleItem(item));
       this.applyFilter();
       this.isJoined = items.some((p: DiscipleItem) => p.isMine);
+
+      // 更新缓存
+      this.writeCache(items, this.isJoined);
     } catch (err) {
       console.error('【师徒匹配加载失败】', JSON.stringify(err));
-      promptAction.showToast({ message: '加载失败' });
+      if (!cachedData) {
+        promptAction.showToast({ message: '加载失败' });
+      }
     }
     this.loading = false;
   }
@@ -391,7 +468,23 @@ struct Standby {
     try {
       await matchDisciple(item.openid, token);
       promptAction.showToast({ message: '收徒成功' });
-      this.loadData();
+
+      // 本地更新 UI（不重建列表）
+      const currentUser = AuthService.getCurrentUser();
+      const currentOpenId = AuthService.getCurrentOpenId();
+      item.isMine = true;
+      item.masterCount = (item.masterCount || 0) + 1;
+      if (currentOpenId && currentUser) {
+        const newMaster: DiscipleMaster = {
+          openid: currentOpenId,
+          nickname: currentUser.displayName || currentUser.openId || '师傅',
+          avatar: currentUser.avatar || ''
+        };
+        item.masters = [...item.masters, newMaster];
+      }
+
+      // 后台静默刷新数据
+      this.loadData(false, true);
     } catch (err) {
       promptAction.showToast({ message: '操作失败' });
     }
@@ -401,10 +494,34 @@ struct Standby {
     const token = AuthService.getAuthToken();
     if (!token) return;
 
+    // 确认弹窗
+    const dialogRes = await promptAction.showDialog({
+      title: '缘分已尽',
+      message: '请确认解除师徒关系',
+      buttons: [
+        { text: '取消', color: '#999999' },
+        { text: '确认', color: '#fa5151' }
+      ]
+    });
+
+    if (dialogRes.index !== 1) {
+      return;
+    }
+
     try {
       await removeDisciple(item.openid, token);
       promptAction.showToast({ message: '已取消' });
-      this.loadData();
+
+      // 本地更新 UI（不重建列表）
+      const currentOpenId = AuthService.getCurrentOpenId();
+      item.isMine = false;
+      item.masterCount = Math.max(0, (item.masterCount || 0) - 1);
+      if (currentOpenId) {
+        item.masters = item.masters.filter((m: DiscipleMaster) => m.openid !== currentOpenId);
+      }
+
+      // 后台静默刷新数据
+      this.loadData(false, true);
     } catch (err) {
       promptAction.showToast({ message: '操作失败' });
     }
@@ -630,7 +747,7 @@ struct Standby {
               .onChange((value: string) => { this.onSearchChange(value); })
 
             // 加载状态
-            if (this.loading) {
+            if (this.loading && this.filteredList.length === 0) {
               LoadingProgress()
                 .width(40)
                 .height(40)
