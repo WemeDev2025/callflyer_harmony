@@ -517,7 +517,7 @@ struct Standby {
         .justifyContent(FlexAlign.Center)
 
         // 右侧：师傅信息 - 带背景
-        Column() {
+        Row() {
           if (item.masters && item.masters.length > 0) {
             Row() {
               Image(item.masters[0].avatar || DEFAULT_AVATAR)
@@ -561,7 +561,7 @@ struct Standby {
             .onClick(() => { this.onMatchTap(item); })
           }
         }
-        .alignItems(HorizontalAlign.Center)
+        .alignItems(VerticalAlign.Center)
         .width('42%')
         .height('100%')
         .backgroundColor('#F5F5F5')
