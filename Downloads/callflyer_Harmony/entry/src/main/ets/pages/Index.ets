@@ -2012,35 +2012,28 @@ struct Index {
                 this.currentIndex = index;
               })
 
-              // 自定义指示器（放在轮播图下方）
-              if (this.imageList.length > 1) {
-                Row() {
-                  ForEach(this.imageList, (item: BannerItem, index: number) => {
-                    if (index === this.currentIndex) {
-                      // 选中 - 圆角长条
-                      Rect()
-                        .width(16)
-                        .height(6)
-                        .fill($r('app.color.indicator_selected'))
-                        .radius(3)
-                        .margin({ left: index === 0 ? 0 : 4, right: 4 })
-                    } else {
-                      // 未选中 - 小圆点
-                      Circle()
-                        .width(6)
-                        .height(6)
-                        .fill($r('app.color.indicator_unselected'))
-                        .margin({ left: index === 0 ? 0 : 4, right: 4 })
-                    }
-                  })
-                }
-                .margin({ top: 10 })
-              }
+
             }
             .width('100%')
             .height(230)
             .padding({ left: 18, right: 18, top: 0, bottom: 0 })
             .opacity(this.bannerLoaded ? 1 : 0)
+
+            // 自定义指示器（带动画）
+            Row() {
+              ForEach(this.imageList, (_: BannerItem, index: number) => {
+                Blank()
+                  .width(index === this.currentIndex ? 14 : 5)
+                  .height(5)
+                  .borderRadius(3)
+                  .backgroundColor(index === this.currentIndex ? $r('app.color.indicator_selected') : $r('app.color.indicator_unselected'))
+                  .animation({ duration: 200, curve: Curve.EaseOut })
+                  .margin({ left: index === 0 ? 0 : 4, right: 4 })
+              })
+            }
+            .width('100%')
+            .justifyContent(FlexAlign.Center)
+            .margin({ top: -20 })
 
             // 今日有空
             this.StandbyList()
