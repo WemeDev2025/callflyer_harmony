@@ -249,11 +249,20 @@ struct Standby {
 
   build() {
     Stack() {
-      // 背景模糊层
+      // 背景层
       Column()
         .width('100%')
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
+
+      // 顶部动态模糊层
+      Column()
+        .width('100%')
+        .height(180)
+        .backgroundColor($r('app.color.card_bg'))
+        .blur(50)
+        .position({ y: 0 })
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
 
       Scroll() {
         Column() {
@@ -361,6 +370,7 @@ struct Standby {
       .padding({ bottom: 30 })
       .alignItems(HorizontalAlign.Center)
       .position({ y: '92%' })
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
 
       // 自我介绍弹窗
       if (this.showIntroPopup) {
