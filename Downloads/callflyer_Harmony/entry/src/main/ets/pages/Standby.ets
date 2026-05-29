@@ -496,18 +496,10 @@ struct Standby {
               .onClick(() => { this.onCancelMatch(item); })
           } else {
             Row() {
-              // 图标 - 圆形绿色背景
-              Column() {
-                Image($r('app.media.icon_gan'))
-                  .width(24)
-                  .height(24)
-              }
-              .width(32)
-              .height(32)
-              .backgroundColor('#07c160')
-              .borderRadius(16)
-              .alignItems(HorizontalAlign.Center)
-              .justifyContent(FlexAlign.Center)
+              // 图标 - 绿色原始图标
+              Image($r('app.media.icon_gan'))
+                .width(32)
+                .height(32)
 
               // 文字
               Text('我收了')
