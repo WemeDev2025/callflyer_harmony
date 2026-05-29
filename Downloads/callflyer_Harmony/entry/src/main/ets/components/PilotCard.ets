@@ -115,6 +115,13 @@ export struct PilotCard {
       return;
     }
 
+    // 检查是否给自己点赞
+    const currentUser = AuthService.getCurrentUser();
+    if (currentUser && currentUser.openId === this.user.openid) {
+      promptAction.showToast({ message: '不能给自己点赞' });
+      return;
+    }
+
     // 保存当前状态用于回滚
     const prevLiked = this.internalLikedByMe;
     const prevCount = this.internalLikeCount;
