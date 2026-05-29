@@ -337,6 +337,12 @@ struct CertifiedUsers {
     data.wechatId = user.wechatId;
     data.distanceText = '';
     data.isNew = user.isNew;
+    data.workMu = user.workMu ?? null;
+    data.workKg = user.workKg ?? null;
+    data.droneImages = user.droneImages || [];
+    data.channelsId = user.channelsId || '';
+    data.institutionId = '';
+    data.licenseUrl = '';
     return data;
   }
 
