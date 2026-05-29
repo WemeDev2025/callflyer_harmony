@@ -424,9 +424,9 @@ struct Standby {
             .fontSize(12)
             .fontWeight(FontWeight.Medium)
             .fontColor('#FFFFFF')
-            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+            .padding({ left: 8, right: 8, top: 3, bottom: 3 })
             .backgroundColor('#07c160')
-            .borderRadius(4)
+            .borderRadius(3)
         }
       }
       .width('100%')
@@ -457,7 +457,7 @@ struct Standby {
         .alignItems(VerticalAlign.Center)
         .width('42%')
         .height('100%')
-        .backgroundColor($r('app.color.page_bg'))
+        .backgroundColor('#F5F5F5')
         .borderRadius(8)
         .padding(10)
 
@@ -508,7 +508,7 @@ struct Standby {
         .alignItems(HorizontalAlign.Center)
         .width('42%')
         .height('100%')
-        .backgroundColor($r('app.color.page_bg'))
+        .backgroundColor('#F5F5F5')
         .borderRadius(8)
         .padding(10)
       }
@@ -517,11 +517,16 @@ struct Standby {
 
       // 自我介绍
       if (item.intro) {
-        Text(item.intro)
-          .fontSize(13)
-          .fontColor($r('app.color.text_body'))
-          .width('100%')
-          .margin({ top: 8 })
+        Column() {
+          Text(item.intro)
+            .fontSize(13)
+            .fontColor($r('app.color.text_body'))
+        }
+        .width('100%')
+        .padding(12)
+        .backgroundColor('#F5F5F5')
+        .borderRadius(8)
+        .margin({ top: 10 })
       }
 
       // 评星
