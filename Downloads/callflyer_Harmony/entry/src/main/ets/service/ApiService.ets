@@ -2068,7 +2068,7 @@ export async function claimRewardSlot(): Promise<RewardSlotClaimResult> {
   return new Promise<RewardSlotClaimResult>((resolve, reject) => {
     const httpRequest = http.createHttp();
     const url = `${BASE_URL}/api/carousel/reward/claim`;
-    const token = AppStorage.get<string>('authToken');
+    const token = AuthService.getAuthToken();
 
     console.info('【接口请求】claimRewardSlot url:', url);
 
@@ -2094,6 +2094,7 @@ export async function claimRewardSlot(): Promise<RewardSlotClaimResult> {
           return;
         }
         httpRequest.destroy();
+        console.info('【claimRewardSlot】responseCode=' + data.responseCode + ', result=' + JSON.stringify(data.result));
         if (data.result && typeof data.result === 'string' && data.result.length > 0) {
           try {
             const res = JSON.parse(data.result as string) as RewardSlotClaimResult;
@@ -2117,7 +2118,7 @@ export async function fetchRewardSlotStatus(): Promise<RewardSlotClaimResult | n
   return new Promise<RewardSlotClaimResult | null>((resolve, reject) => {
     const httpRequest = http.createHttp();
     const url = `${BASE_URL}/api/carousel/reward/status`;
-    const token = AppStorage.get<string>('authToken');
+    const token = AuthService.getAuthToken();
 
     console.info('【接口请求】fetchRewardSlotStatus url:', url);
 

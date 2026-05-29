@@ -1,5 +1,5 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus, CarouselItem } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus, CarouselItem, fetchProfile } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
@@ -312,6 +312,14 @@ struct Index {
       this.loadRewardSlotStatus();
     });
 
+    // 如果已登录但本地资料为空，尝试从服务端获取并更新本地缓存
+    const token = AppStorage.get<string>('authToken');
+    const user = AuthService.getCurrentUser();
+    if (token && user && user.openId && (!user.displayName || !user.avatar)) {
+      console.info('【资料刷新】已登录但本地资料不完整，尝试从服务端获取');
+      this.fetchAndUpdateUserProfile(user.openId, token);
+    }
+
     // 获取状态栏高度并设置状态栏颜色（跟随深浅色模式）
     try {
       window.getLastWindow(getContext(this)).then((win) => {
@@ -339,7 +347,10 @@ struct Index {
   // 加载奖励位状态（检查用户是否已认领）
   async loadRewardSlotStatus(): Promise<void> {
     try {
+      const token = AppStorage.get<string>('authToken');
+      hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】token: ' + (token ? '有值(' + token.substring(0, 20) + '...)' : '为空'));
       const status = await fetchRewardSlotStatus();
+      hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】返回: claimed=' + status?.claimed + ', profileCard=' + JSON.stringify(status?.profileCard));
       if (status && status.claimed && status.profileCard) {
         hilog.info(0x0000, 'RewardAd', '用户已认领奖励位，加载用户信息');
         const card = status.profileCard;
@@ -413,6 +424,8 @@ struct Index {
       );
       if (tokenResult.token) {
         console.info('【登录】业务token:', tokenResult.token);
+        // 获取用户资料并更新本地缓存
+        this.fetchAndUpdateUserProfile(result.userInfo.openId, tokenResult.token);
         // 上报Push Token到服务端
         this.reportPushTokenAfterLogin(tokenResult.token);
       }
@@ -430,6 +443,23 @@ struct Index {
     } catch (err) {
       const error = err as BusinessError;
       console.error('【Push Token】上报失败:', error.code, error.message);
+    }
+  }
+
+  private async fetchAndUpdateUserProfile(openid: string, token: string): Promise<void> {
+    try {
+      const profile = await fetchProfile(openid, token);
+      if (profile) {
+        console.info('【用户资料】获取成功:', JSON.stringify(profile));
+        const user = AuthService.getCurrentUser();
+        if (user) {
+          user.displayName = profile.nickname;
+          user.avatar = profile.avatarUrl;
+          console.info('【用户资料】已更新 displayName:', user.displayName, ' avatar:', user.avatar);
+        }
+      }
+    } catch (err) {
+      console.error('【用户资料】获取失败:', JSON.stringify(err));
     }
   }
 
@@ -729,19 +759,22 @@ struct Index {
   // 检查用户资料是否完整（可以领取奖励位）
   isProfileComplete(): boolean {
     const user = AuthService.getCurrentUser();
+    console.info('【isProfileComplete】user: ' + JSON.stringify(user));
     if (!user) {
+      console.info('【isProfileComplete】user is null, return false');
       return false;
     }
     // 检查必要字段
     const hasNickname = !!(user.displayName && user.displayName.trim().length > 0);
     const hasAvatar = !!(user.avatar && user.avatar.trim().length > 0);
     const hasPhone = !!(user.phone && user.phone.trim().length > 0);
+    console.info('【isProfileComplete】displayName: ' + user.displayName + ', hasNickname: ' + hasNickname + ', avatar: ' + user.avatar + ', hasAvatar: ' + hasAvatar + ', phone: ' + user.phone + ', hasPhone: ' + hasPhone);
     return hasNickname && hasAvatar && hasPhone;
   }
 
   // 点击奖励位
   onRewardSlotClick(): void {
-    console.info('【奖励位点击】rewardSlotClaimed: ' + this.rewardSlotClaimed + ', rewardSlotUser: ' + JSON.stringify(this.rewardSlotUser));
+    console.info('【奖励位点击】rewardSlotClaimed: ' + this.rewardSlotClaimed + ', rewardSlotUser: ' + JSON.stringify(this.rewardSlotUser) + ', isProfileComplete: ' + this.isProfileComplete());
     if (this.rewardSlotClaimed && this.rewardSlotUser) {
       const user: PilotCardData = {
         openid: this.rewardSlotUser.openid,
@@ -802,6 +835,11 @@ struct Index {
     if (!this.isProfileComplete()) {
       promptAction.showToast({ message: '请先完善个人资料' });
       return;
+    }
+
+    // 未认领奖励位时，直接调用领取接口（跳过激励视频）
+    if (!this.rewardSlotClaimed) {
+      this.onRewardClaimed();
     }
   }
 
