@@ -266,68 +266,72 @@ struct Standby {
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
 
       // 主内容区 - 可滚动
-      Scroll() {
-        Column() {
-          // 顶部区域 - 16:9圆角矩形图片+阴影
+      Column() {
+        Scroll() {
           Column() {
-            Image(BANNER_URL)
-              .width('100%')
-              .aspectRatio(16 / 9)
-              .borderRadius(12)
-              .objectFit(ImageFit.Cover)
-              .shadow({
-                radius: 8,
-                color: 'rgba(0, 0, 0, 0.15)',
-                offsetX: 0,
-                offsetY: 4
-              })
-          }
-          .width('90%')
-          .margin({ top: 16 })
-          .alignItems(HorizontalAlign.Center)
-
-          // 搜索框
-          Search({ placeholder: '搜索城市' })
+            // 顶部区域 - 16:9圆角矩形图片+阴影
+            Column() {
+              Image(BANNER_URL)
+                .width('100%')
+                .aspectRatio(16 / 9)
+                .borderRadius(12)
+                .objectFit(ImageFit.Cover)
+                .shadow({
+                  radius: 8,
+                  color: 'rgba(0, 0, 0, 0.15)',
+                  offsetX: 0,
+                  offsetY: 4
+                })
+            }
             .width('90%')
             .margin({ top: 16 })
-            .backgroundColor($r('app.color.card_bg'))
-            .borderRadius(20)
-            .onChange((value: string) => { this.onSearchChange(value); })
+            .alignItems(HorizontalAlign.Center)
 
-          // 加载状态
-          if (this.loading) {
-            LoadingProgress()
-              .width(40)
-              .height(40)
-              .margin({ top: 40 })
-          } else if (this.filteredList.length === 0) {
-            // 空状态
-            Column() {
-              Text('暂无徒弟信息')
-                .fontSize(16)
-                .fontColor($r('app.color.text_secondary'))
+            // 搜索框
+            Search({ placeholder: '搜索城市' })
+              .width('90%')
+              .margin({ top: 16 })
+              .backgroundColor($r('app.color.card_bg'))
+              .borderRadius(20)
+              .onChange((value: string) => { this.onSearchChange(value); })
+
+            // 加载状态
+            if (this.loading) {
+              LoadingProgress()
+                .width(40)
+                .height(40)
                 .margin({ top: 40 })
+            } else if (this.filteredList.length === 0) {
+              // 空状态
+              Column() {
+                Text('暂无徒弟信息')
+                  .fontSize(16)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 40 })
+              }
+            } else {
+              // 徒弟列表
+              List() {
+                ForEach(this.filteredList, (item: DiscipleItem, index: number) => {
+                  ListItem() {
+                    this.DiscipleCard(item, index)
+                  }
+                  .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+                })
+              }
+              .width('100%')
+              .padding({ bottom: 100 })
             }
-          } else {
-            // 徒弟列表
-            List() {
-              ForEach(this.filteredList, (item: DiscipleItem, index: number) => {
-                ListItem() {
-                  this.DiscipleCard(item, index)
-                }
-                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-              })
-            }
-            .width('100%')
-            .padding({ bottom: 100 })
           }
+          .width('100%')
         }
         .width('100%')
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring)
       }
       .width('100%')
-      .height('100%')
-      .scrollBar(BarState.Off)
-      .edgeEffect(EdgeEffect.Spring)
+      .layoutWeight(1)
       .height('100%')
 
       // 底部悬浮按钮
