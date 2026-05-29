@@ -481,19 +481,28 @@ struct Standby {
         // 右侧：师傅信息 - 带背景
         Column() {
           if (item.masters && item.masters.length > 0) {
-            Image(item.masters[0].avatar || DEFAULT_AVATAR)
-              .width(50)
-              .height(50)
-              .borderRadius(25)
-            Text(item.masters[0].nickname || '师傅')
-              .fontSize(14)
-              .fontWeight(FontWeight.Medium)
-              .fontColor($r('app.color.text_primary'))
-              .margin({ top: 4 })
-            Text('已收徒 ' + item.masterCount + ' 人')
-              .fontSize(12)
-              .fontColor($r('app.color.text_secondary'))
+            Row() {
+              Image(item.masters[0].avatar || DEFAULT_AVATAR)
+                .width(50)
+                .height(50)
+                .borderRadius(25)
+
+              Column() {
+                Text(item.masters[0].nickname || '师傅')
+                  .fontSize(14)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor($r('app.color.text_primary'))
+                Text('已收徒 ' + item.masterCount + ' 人')
+                  .fontSize(11)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 4 })
+              }
+              .alignItems(HorizontalAlign.Start)
+              .margin({ left: 12 })
+              .width('60%')
               .onClick(() => { this.onCancelMatch(item); })
+            }
+            .alignItems(VerticalAlign.Center)
           } else {
             Row() {
               // 图标 - 绿色原始图标
