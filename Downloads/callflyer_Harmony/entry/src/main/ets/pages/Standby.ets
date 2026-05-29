@@ -5,6 +5,8 @@ import call from '@ohos.telephony.call';
 import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, DiscipleItem, DiscipleMaster, MyDisciplesResult } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
+import { LengthMetrics } from '@kit.ArkUI';
 
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 const BANNER_URL = 'https://wetofly.com/data/image/pic_thank.webp';
@@ -69,6 +71,8 @@ struct RatingDialog {
 @Component
 struct Standby {
   @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+
+  scroller: Scroller = new Scroller();
 
   @State pilotList: DiscipleItem[] = [];
   @State filteredList: DiscipleItem[] = [];
@@ -258,8 +262,8 @@ struct Standby {
         .expandSafeArea([SafeAreaType.SYSTEM])
 
       // 主内容区 - 可滚动
-      Column() {
-        Scroll() {
+      HdsNavigation() {
+        Scroll(this.scroller) {
           Column() {
             // 顶部区域 - 横幅图片
             Column() {
@@ -320,6 +324,38 @@ struct Standby {
       }
       .width('100%')
       .height('100%')
+      .hideBackButton(true)
+      .titleBar({
+        enableComponentSafeArea: true,
+        style: {
+          scrollEffectOpts: {
+            enableScrollEffect: true,
+            scrollEffectType: ScrollEffectType.GRADIENT_BLUR,
+            blurEffectiveStartOffset: LengthMetrics.vp(0),
+            blurEffectiveEndOffset: LengthMetrics.vp(20)
+          },
+          originalStyle: {
+            backgroundStyle: {
+              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#000000' : '#E7F8FC',
+            }
+          },
+          scrollEffectStyle: {
+            backgroundStyle: {
+              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#40000000' : '#40FFFFFF',
+            }
+          }
+        },
+        content: {
+          title: { mainTitle: '' },
+        }
+      })
+      .systemBarStyle(
+        { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' },
+        { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' }
+      )
+      .titleMode(HdsNavigationTitleMode.MINI)
+      .bindToScrollable([this.scroller])
+      .expandSafeArea([SafeAreaType.SYSTEM])
 
       // 底部悬浮按钮
       Column() {
