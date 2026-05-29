@@ -423,10 +423,10 @@ struct Standby {
         // 感谢金金额badge - 右边，圆角矩形
         if (item.price > 0) {
           Text('¥' + item.price)
-            .fontSize(12)
+            .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor('#FFFFFF')
-            .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
             .backgroundColor('#07c160')
             .borderRadius(3)
         }
@@ -518,6 +518,8 @@ struct Standby {
                 .margin({ left: 8 })
             }
             .alignItems(VerticalAlign.Center)
+            .justifyContent(FlexAlign.Center)
+            .width('100%')
             .onClick(() => { this.onMatchTap(item); })
           }
         }
