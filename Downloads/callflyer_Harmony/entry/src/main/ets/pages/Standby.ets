@@ -255,70 +255,75 @@ struct Standby {
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
 
-      Column() {
-        // 顶部区域 - 动态模糊背景
+      Scroll() {
         Column() {
-          // 标题
-          Text('师徒匹配')
-            .fontSize(24)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
-            .fontFamily('DouyinSansBold')
-            .margin({ top: 40, bottom: 16 })
-
-          // 副标题
-          Text('找师傅带入门，找徒弟传承技术')
-            .fontSize(14)
-            .fontColor('rgba(255,255,255,0.8)')
-            .margin({ bottom: 20 })
-        }
-        .width('100%')
-        .alignItems(HorizontalAlign.Start)
-        .padding({ left: 18, right: 18 })
-        .backgroundImage(BANNER_URL)
-        .backgroundImagePosition(Alignment.Center)
-        .backgroundImageSize(ImageSize.Cover)
-        .width('100%')
-        .height(160)
-
-        // 搜索框
-        Search({ placeholder: '搜索城市' })
-          .width('90%')
-          .margin({ top: -20 })
-          .backgroundColor($r('app.color.card_bg'))
-          .borderRadius(20)
-          .onChange((value: string) => { this.onSearchChange(value); })
-
-        // 加载状态
-        if (this.loading) {
-          LoadingProgress()
-            .width(40)
-            .height(40)
-            .margin({ top: 40 })
-        } else if (this.filteredList.length === 0) {
-          // 空状态
+          // 顶部区域 - 动态模糊背景
           Column() {
-            Text('暂无徒弟信息')
-              .fontSize(16)
-              .fontColor($r('app.color.text_secondary'))
+            // 标题
+            Text('师徒匹配')
+              .fontSize(24)
+              .fontWeight(FontWeight.Bold)
+              .fontColor('#FFFFFF')
+              .fontFamily('DouyinSansBold')
+              .margin({ top: 40, bottom: 16 })
+
+            // 副标题
+            Text('找师傅带入门，找徒弟传承技术')
+              .fontSize(14)
+              .fontColor('rgba(255,255,255,0.8)')
+              .margin({ bottom: 20 })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+          .padding({ left: 18, right: 18 })
+          .backgroundImage(BANNER_URL)
+          .backgroundImagePosition(Alignment.Center)
+          .backgroundImageSize(ImageSize.Cover)
+          .width('100%')
+          .height(160)
+
+          // 搜索框
+          Search({ placeholder: '搜索城市' })
+            .width('90%')
+            .margin({ top: -20 })
+            .backgroundColor($r('app.color.card_bg'))
+            .borderRadius(20)
+            .onChange((value: string) => { this.onSearchChange(value); })
+
+          // 加载状态
+          if (this.loading) {
+            LoadingProgress()
+              .width(40)
+              .height(40)
               .margin({ top: 40 })
+          } else if (this.filteredList.length === 0) {
+            // 空状态
+            Column() {
+              Text('暂无徒弟信息')
+                .fontSize(16)
+                .fontColor($r('app.color.text_secondary'))
+                .margin({ top: 40 })
+            }
+          } else {
+            // 徒弟列表
+            List() {
+              ForEach(this.filteredList, (item: DiscipleItem, index: number) => {
+                ListItem() {
+                  this.DiscipleCard(item, index)
+                }
+                .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+              })
+            }
+            .width('100%')
+            .padding({ bottom: 100 })
           }
-        } else {
-          // 徒弟列表
-          List() {
-            ForEach(this.filteredList, (item: DiscipleItem, index: number) => {
-              ListItem() {
-                this.DiscipleCard(item, index)
-              }
-              .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-            })
-          }
-          .layoutWeight(1)
-          .scrollBar(BarState.Off)
         }
+        .width('100%')
       }
       .width('100%')
       .height('100%')
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring)
 
       // 底部悬浮按钮
       Column() {
@@ -410,18 +415,18 @@ struct Standby {
   @Builder
   DiscipleCard(item: DiscipleItem, index: number) {
     Column() {
-      // 顶部区域：入行感谢金标签+金额badge
-      Row() {
-        // 入行感谢金标签 - 左边，黑色粗体
-        Text('入行感谢金')
-          .fontSize(15)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
+      // 顶部区域：入行感谢金标签+金额badge（仅价格>0时显示）
+      if (item.price > 0) {
+        Row() {
+          // 入行感谢金标签 - 左边，黑色粗体
+          Text('入行感谢金')
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.text_primary'))
 
-        Blank()
+          Blank()
 
-        // 感谢金金额badge - 右边，圆角矩形
-        if (item.price > 0) {
+          // 感谢金金额badge - 右边，圆角矩形
           Text('¥' + item.price)
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
@@ -430,9 +435,9 @@ struct Standby {
             .backgroundColor('#07c160')
             .borderRadius(3)
         }
+        .width('100%')
+        .margin({ bottom: 12 })
       }
-      .width('100%')
-      .margin({ bottom: 12 })
 
       // 主信息区
       Row() {
