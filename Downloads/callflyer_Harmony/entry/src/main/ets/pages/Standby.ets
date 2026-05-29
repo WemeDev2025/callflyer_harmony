@@ -265,24 +265,8 @@ struct Standby {
         .position({ y: 0 })
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
 
-      // 页面标题
-      Text('师徒匹配')
-        .fontSize(20)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-        .fontFamily('DouyinSansBold')
-        .position({ y: 50, x: 18 })
-
       // 主内容区
       Column() {
-        // 搜索框
-        Search({ placeholder: '搜索城市' })
-          .width('90%')
-          .margin({ top: 80 })
-          .backgroundColor($r('app.color.card_bg'))
-          .borderRadius(20)
-          .onChange((value: string) => { this.onSearchChange(value); })
-
         // 顶部区域 - 16:9圆角矩形图片+阴影
         Column() {
           Image(BANNER_URL)
@@ -300,6 +284,14 @@ struct Standby {
         .width('90%')
         .margin({ top: 16 })
         .alignItems(HorizontalAlign.Center)
+
+        // 搜索框
+        Search({ placeholder: '搜索城市' })
+          .width('90%')
+          .margin({ top: 16 })
+          .backgroundColor($r('app.color.card_bg'))
+          .borderRadius(20)
+          .onChange((value: string) => { this.onSearchChange(value); })
 
         // 加载状态
         if (this.loading) {
