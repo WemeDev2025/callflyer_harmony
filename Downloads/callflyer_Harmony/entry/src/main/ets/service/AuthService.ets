@@ -153,6 +153,14 @@ class AuthService {
    * 获取认证Token
    */
   getAuthToken(): string {
+    if (this.authToken) {
+      return this.authToken;
+    }
+    // 尝试从 AppStorage 获取
+    const storedToken = AppStorage.get<string>('authToken');
+    if (storedToken) {
+      this.authToken = storedToken;
+    }
     return this.authToken;
   }
 
@@ -171,6 +179,7 @@ class AuthService {
     this.currentUser = null;
     this.isLoggedIn = false;
     this.authToken = '';
+    AppStorage.setOrCreate('authToken', '');
   }
 
   /**
@@ -188,6 +197,7 @@ class AuthService {
       if (resp.code === 200 && resp.data && resp.data.token) {
         result.token = resp.data.token;
         this.authToken = resp.data.token;
+        AppStorage.setOrCreate('authToken', resp.data.token);
         hilog.info(DOMAIN, TAG, 'Token exchange success, stored authToken: %{public}s', this.authToken);
       } else {
         result.error = 'Token兑换失败';
