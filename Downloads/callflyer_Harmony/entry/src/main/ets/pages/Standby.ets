@@ -426,7 +426,7 @@ struct Standby {
             .fontColor('#FFFFFF')
             .padding({ left: 10, right: 10, top: 4, bottom: 4 })
             .backgroundColor('#07c160')
-            .borderRadius(12)
+            .borderRadius(4)
         }
       }
       .width('100%')
@@ -434,62 +434,58 @@ struct Standby {
 
       // 主信息区
       Row() {
-        // 左侧：徒弟信息 - 头像左，昵称城市右，水平居中
-        Row() {
+        // 左侧：徒弟信息 - 带背景
+        Column() {
           Image(item.avatar || DEFAULT_AVATAR)
             .width(50)
             .height(50)
             .borderRadius(25)
 
-          Column() {
-            Text(item.name || '匿名飞手')
+          Text(item.name || '匿名飞手')
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .fontColor($r('app.color.text_primary'))
+            .margin({ top: 4 })
+          Text(item.city || '')
+            .fontSize(12)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ top: 2 })
+        }
+        .alignItems(HorizontalAlign.Center)
+        .width('42%')
+        .height('100%')
+        .backgroundColor($r('app.color.page_bg'))
+        .borderRadius(8)
+        .padding(10)
+
+        // 中间连接线 - 短横线
+        Column() {
+          Column()
+            .width(30)
+            .height(2)
+            .backgroundColor($r('app.color.divider'))
+        }
+        .width('16%')
+        .height('100%')
+        .justifyContent(FlexAlign.Center)
+
+        // 右侧：师傅信息 - 带背景
+        Column() {
+          if (item.masters && item.masters.length > 0) {
+            Image(item.masters[0].avatar || DEFAULT_AVATAR)
+              .width(50)
+              .height(50)
+              .borderRadius(25)
+            Text(item.masters[0].nickname || '师傅')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor($r('app.color.text_primary'))
-            Text(item.city || '')
+              .margin({ top: 4 })
+            Text('已收徒 ' + item.masterCount + ' 人')
               .fontSize(12)
               .fontColor($r('app.color.text_secondary'))
-              .margin({ top: 2 })
-          }
-          .alignItems(HorizontalAlign.Start)
-          .margin({ left: 10 })
-        }
-        .alignItems(VerticalAlign.Center)
-        .width('35%')
-        .height('100%')
-
-        // 中间连接线
-        Column() {
-          Column()
-            .width(1)
-            .height('100%')
-            .backgroundColor($r('app.color.divider'))
-        }
-        .width('30%')
-        .alignItems(HorizontalAlign.Center)
-
-        // 右侧：师傅信息 - 水平居中
-        Column() {
-          if (item.masters && item.masters.length > 0) {
-            // 已有师傅
-            Column() {
-              Image(item.masters[0].avatar || DEFAULT_AVATAR)
-                .width(50)
-                .height(50)
-                .borderRadius(25)
-              Text(item.masters[0].nickname || '师傅')
-                .fontSize(14)
-                .fontWeight(FontWeight.Medium)
-                .fontColor($r('app.color.text_primary'))
-                .margin({ top: 4 })
-              Text('已收徒 ' + item.masterCount + ' 人')
-                .fontSize(12)
-                .fontColor($r('app.color.text_secondary'))
-            }
-            .alignItems(HorizontalAlign.Center)
-            .onClick(() => { this.onCancelMatch(item); })
+              .onClick(() => { this.onCancelMatch(item); })
           } else {
-            // 未收徒
             Button('我收了')
               .width(80)
               .height(32)
@@ -500,12 +496,15 @@ struct Standby {
               .onClick(() => { this.onMatchTap(item); })
           }
         }
-        .width('35%')
         .alignItems(HorizontalAlign.Center)
+        .width('42%')
         .height('100%')
+        .backgroundColor($r('app.color.page_bg'))
+        .borderRadius(8)
+        .padding(10)
       }
       .width('100%')
-      .height(80)
+      .height(90)
 
       // 自我介绍
       if (item.intro) {
