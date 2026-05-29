@@ -261,14 +261,6 @@ struct Standby {
       Column() {
         Scroll() {
           Column() {
-            // 搜索框
-            Search({ placeholder: '搜索城市' })
-              .width('90%')
-              .margin({ top: 80 })
-              .backgroundColor($r('app.color.card_bg'))
-              .borderRadius(20)
-              .onChange((value: string) => { this.onSearchChange(value); })
-
             // 顶部区域 - 16:9圆角矩形图片+阴影
             Column() {
               Image(BANNER_URL)
@@ -284,8 +276,16 @@ struct Standby {
                 })
             }
             .width('90%')
-            .margin({ top: 16 })
+            .margin({ top: 80 })
             .alignItems(HorizontalAlign.Center)
+
+            // 搜索框
+            Search({ placeholder: '搜索城市' })
+              .width('90%')
+              .margin({ top: 16 })
+              .backgroundColor($r('app.color.card_bg'))
+              .borderRadius(20)
+              .onChange((value: string) => { this.onSearchChange(value); })
 
             // 加载状态
             if (this.loading) {
@@ -316,7 +316,7 @@ struct Standby {
             }
           }
           .width('100%')
-          .alignItems(HorizontalAlign.Start)
+          .alignItems(HorizontalAlign.Center)
         }
         .width('100%')
         .height('100%')
