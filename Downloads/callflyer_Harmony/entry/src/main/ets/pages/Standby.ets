@@ -341,7 +341,6 @@ struct Standby {
         }
         .width('100%')
         .padding({ top: 16, bottom: 30 })
-        .backgroundColor($r('app.color.card_bg'))
       }
       .width('100%')
       .height('100%')
@@ -409,46 +408,55 @@ struct Standby {
   @Builder
   DiscipleCard(item: DiscipleItem, index: number) {
     Column() {
-      // 顶部区域：标题+感谢金badge
+      // 顶部区域：入行感谢金标签+金额badge
       Row() {
-        Column() {
-          // 占位，让感谢金靠右
-        }
-        .layoutWeight(1)
+        // 入行感谢金标签 - 左边，黑色粗体
+        Text('入行感谢金')
+          .fontSize(13)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
 
-        // 感谢金badge - 微信风格绿底白字
+        Blank()
+
+        // 感谢金金额badge - 右边，圆角矩形
         if (item.price > 0) {
-          Row() {
-            Text('感谢金: ¥' + item.price)
-              .fontSize(11)
-              .fontColor('#FFFFFF')
-          }
-          .padding({ left: 8, right: 8, top: 3, bottom: 3 })
-          .backgroundColor('#07c160')
-          .borderRadius(10)
+          Text('¥' + item.price)
+            .fontSize(12)
+            .fontWeight(FontWeight.Medium)
+            .fontColor('#FFFFFF')
+            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+            .backgroundColor('#07c160')
+            .borderRadius(12)
         }
       }
       .width('100%')
-      .margin({ bottom: 8 })
+      .margin({ bottom: 12 })
 
       // 主信息区
       Row() {
-        // 左侧：徒弟信息
-        Column() {
+        // 左侧：徒弟信息 - 头像左，昵称城市右，水平居中
+        Row() {
           Image(item.avatar || DEFAULT_AVATAR)
             .width(50)
             .height(50)
             .borderRadius(25)
-          Text(item.name || '匿名飞手')
-            .fontSize(14)
-            .fontWeight(FontWeight.Medium)
-            .margin({ top: 4 })
-          Text(item.city || '')
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
+
+          Column() {
+            Text(item.name || '匿名飞手')
+              .fontSize(14)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.text_primary'))
+            Text(item.city || '')
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 2 })
+          }
+          .alignItems(HorizontalAlign.Start)
+          .margin({ left: 10 })
         }
-        .alignItems(HorizontalAlign.Center)
+        .alignItems(VerticalAlign.Center)
         .width('35%')
+        .height('100%')
 
         // 中间连接线
         Column() {
@@ -460,7 +468,7 @@ struct Standby {
         .width('30%')
         .alignItems(HorizontalAlign.Center)
 
-        // 右侧：师傅信息
+        // 右侧：师傅信息 - 水平居中
         Column() {
           if (item.masters && item.masters.length > 0) {
             // 已有师傅
@@ -472,6 +480,7 @@ struct Standby {
               Text(item.masters[0].nickname || '师傅')
                 .fontSize(14)
                 .fontWeight(FontWeight.Medium)
+                .fontColor($r('app.color.text_primary'))
                 .margin({ top: 4 })
               Text('已收徒 ' + item.masterCount + ' 人')
                 .fontSize(12)
@@ -493,6 +502,7 @@ struct Standby {
         }
         .width('35%')
         .alignItems(HorizontalAlign.Center)
+        .height('100%')
       }
       .width('100%')
       .height(80)
