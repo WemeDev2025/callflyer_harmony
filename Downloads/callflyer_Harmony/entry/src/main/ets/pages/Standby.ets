@@ -136,49 +136,7 @@ struct Standby {
     try {
       await matchDisciple(item.openid, token);
       promptAction.showToast({ message: '收徒成功' });
-
-      // 静默更新UI - 需要创建新对象触发UI更新
-      const currentUser = AuthService.getCurrentUser();
-      const currentOpenId = AuthService.getCurrentOpenId();
-      const index = this.filteredList.findIndex((p: DiscipleItem) => p.openid === item.openid);
-      if (index !== -1) {
-        const oldDisciple = this.filteredList[index];
-        const oldMasters = oldDisciple.masters || [];
-        const newMasters: DiscipleMaster[] = oldMasters.slice();
-        if (currentOpenId && currentUser) {
-          newMasters.push({
-            openid: currentOpenId,
-            nickname: currentUser.displayName || currentUser.openId || '师傅',
-            avatar: currentUser.avatar || ''
-          });
-        }
-        const newDisciple: DiscipleItem = {
-          openid: oldDisciple.openid,
-          order_id: oldDisciple.order_id,
-          out_trade_no: oldDisciple.out_trade_no,
-          name: oldDisciple.name,
-          city: oldDisciple.city,
-          avatar: oldDisciple.avatar,
-          intro: oldDisciple.intro,
-          price: oldDisciple.price,
-          paid_at: oldDisciple.paid_at,
-          finished_at: oldDisciple.finished_at,
-          masters: newMasters,
-          masterCount: (oldDisciple.masterCount || 0) + 1,
-          hasMatchedMe: oldDisciple.hasMatchedMe,
-          isMine: true,
-          transfer_status: oldDisciple.transfer_status,
-          rating: oldDisciple.rating,
-          masterRating: oldDisciple.masterRating
-        };
-        this.filteredList[index] = newDisciple;
-
-        // 同步更新 pilotList
-        const pilotIndex = this.pilotList.findIndex((p: DiscipleItem) => p.openid === item.openid);
-        if (pilotIndex !== -1) {
-          this.pilotList[pilotIndex] = newDisciple;
-        }
-      }
+      this.loadData();
     } catch (err) {
       console.error('【收徒】onMatchTap error:', JSON.stringify(err));
       promptAction.showToast({ message: '操作失败' });
@@ -192,43 +150,7 @@ struct Standby {
     try {
       await removeDisciple(item.openid, token);
       promptAction.showToast({ message: '已取消' });
-
-      // 静默更新UI - 需要创建新对象触发UI更新
-      const currentOpenId = AuthService.getCurrentOpenId();
-      const index = this.filteredList.findIndex((p: DiscipleItem) => p.openid === item.openid);
-      if (index !== -1) {
-        const oldDisciple = this.filteredList[index];
-        const oldMasters = oldDisciple.masters || [];
-        const newMasters: DiscipleMaster[] = currentOpenId
-          ? oldMasters.filter((m: DiscipleMaster) => m.openid !== currentOpenId)
-          : oldMasters;
-        const newDisciple: DiscipleItem = {
-          openid: oldDisciple.openid,
-          order_id: oldDisciple.order_id,
-          out_trade_no: oldDisciple.out_trade_no,
-          name: oldDisciple.name,
-          city: oldDisciple.city,
-          avatar: oldDisciple.avatar,
-          intro: oldDisciple.intro,
-          price: oldDisciple.price,
-          paid_at: oldDisciple.paid_at,
-          finished_at: oldDisciple.finished_at,
-          masters: newMasters,
-          masterCount: Math.max(0, (oldDisciple.masterCount || 0) - 1),
-          hasMatchedMe: oldDisciple.hasMatchedMe,
-          isMine: false,
-          transfer_status: oldDisciple.transfer_status,
-          rating: oldDisciple.rating,
-          masterRating: oldDisciple.masterRating
-        };
-        this.filteredList[index] = newDisciple;
-
-        // 同步更新 pilotList
-        const pilotIndex = this.pilotList.findIndex((p: DiscipleItem) => p.openid === item.openid);
-        if (pilotIndex !== -1) {
-          this.pilotList[pilotIndex] = newDisciple;
-        }
-      }
+      this.loadData();
     } catch (err) {
       promptAction.showToast({ message: '操作失败' });
     }
