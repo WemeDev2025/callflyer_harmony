@@ -560,15 +560,17 @@ struct Standby {
           .backgroundColor('#E8F7ED')
           .borderRadius(14)
           .onClick(() => { this.onContactDisciple(item); })
-        Button('联系师傅')
-          .fontSize(12)
-          .height(28)
-          .fontColor('#07c160')
-          .backgroundColor('#E8F7ED')
-          .borderRadius(14)
-          .margin({ left: 10 })
-          .onClick(() => { this.onContactMaster(item); })
-        if (item.masters && item.masters.length > 0) {
+        if (item.masterCount > 0) {
+          Button('联系师傅')
+            .fontSize(12)
+            .height(28)
+            .fontColor('#07c160')
+            .backgroundColor('#E8F7ED')
+            .borderRadius(14)
+            .margin({ left: 10 })
+            .onClick(() => { this.onContactMaster(item); })
+        }
+        if (item.isMine || (item.masterCount > 0 && item.masters && item.masters.length > 0 && item.masters[0].openid === AuthService.getCurrentOpenId())) {
           Button('去评价')
             .fontSize(12)
             .height(28)
