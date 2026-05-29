@@ -1,5 +1,5 @@
 import router from '@ohos.router';
-import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus, CarouselItem, fetchProfile } from '../service/ApiService';
+import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus, CarouselItem, fetchProfile, ConfigResult } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
 import LocationService from '../service/LocationService';
@@ -286,6 +286,12 @@ struct Index {
   @State screenHeight: number = 780;
   @State navBarHeight: number = 0;
 
+  // 缓存数据（用于离线优先）
+  private bannerCache: BannerItem[] = [];
+  private configCache: ConfigResult | null = null;
+  private pilotsCache: PilotItem[] = [];
+  private ordersCache: OrderItem[] = [];
+
   // 登录状态
   @State isLoggedIn: boolean = false;
   @State userInfo: HuaweiUserInfo | null = null;
@@ -470,10 +476,26 @@ struct Index {
     console.info('【登录】已退出');
   }
 
-  async loadBanner() {
+  async loadBanner(silent: boolean = false) {
+    // 首次或缓存为空时，先显示加载状态
+    if (!silent || this.imageList.length === 0) {
+      this.bannerLoaded = false;
+    }
+
+    // 优先使用缓存（首次加载时缓存已有数据）
+    if (this.imageList.length > 0) {
+      this.bannerLoaded = true;
+    }
+
     try {
-      // 先获取配置获取奖励位标题等
+      // 后台静默拉取新数据
       const config = await fetchConfig();
+      const banners = await fetchBanners();
+
+      // 更新缓存
+      this.configCache = config;
+
+      // 解析配置更新UI
       this.rewardTitle = config.rewardTitle || '呼叫飞手';
       this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
       this.rewardButtonText = config.rewardButtonText || '观看解锁';
@@ -487,13 +509,11 @@ struct Index {
       if (config.carousel && config.carousel.length > 0) {
         const rewardSlot = config.carousel.find((item: CarouselItem) => item.slot === 'homepage_carousel_top');
         if (rewardSlot) {
-          // 使用接口返回的reward_meta
           if (rewardSlot.reward_meta) {
             this.rewardTitle = rewardSlot.reward_meta.title || this.rewardTitle;
             this.rewardSubtitle = rewardSlot.reward_meta.subtitle || this.rewardSubtitle;
             this.rewardButtonText = rewardSlot.reward_meta.cta_text || this.rewardButtonText;
           }
-          // 如果有profile_card，说明奖励位已被认领，显示用户名片
           if (rewardSlot.profile_card) {
             const card = rewardSlot.profile_card;
             this.rewardSlotUser = {
@@ -532,13 +552,17 @@ struct Index {
         }
       }
 
-      const banners = await fetchBanners();
+      // 更新banner列表
       const baseBanners = banners.length > 0 ? banners : this.getDefaultBanners();
       const rewardBanner = this.getRewardBanner();
-      this.imageList = [rewardBanner, ...baseBanners];
+      this.bannerCache = [rewardBanner, ...baseBanners];
+      this.imageList = this.bannerCache;
     } catch {
-      const rewardBanner = this.getRewardBanner();
-      this.imageList = [rewardBanner, ...this.getDefaultBanners()];
+      // 拉取失败且无缓存，使用默认
+      if (this.imageList.length === 0) {
+        const rewardBanner = this.getRewardBanner();
+        this.imageList = [rewardBanner, ...this.getDefaultBanners()];
+      }
     }
     this.bannerLoaded = true;
     // 启动光晕动画
@@ -843,30 +867,55 @@ struct Index {
     }
   }
 
-  async loadPilots() {
-    this.pilotsLoading = true;
-    this.startSkeletonShimmer();
+  async loadPilots(silent: boolean = false) {
+    // 首次或缓存为空时，显示骨架屏
+    if (!silent || this.pilots.length === 0) {
+      this.pilotsLoading = true;
+      this.startSkeletonShimmer();
+    }
+
+    // 优先使用缓存（首次加载时缓存已有数据）
+    if (this.pilots.length > 0) {
+      this.pilotsLoading = false;
+    }
+
     try {
       const context = getContext(this) as Context;
       const location = await LocationService.getCurrentLocation(context);
       this.pilotsLat = location?.latitude ?? 39.9;
       this.pilotsLng = location?.longitude ?? 116.4;
       const result = await fetchNearbyPilots(this.pilotsLat, this.pilotsLng, 1, 50);
+      this.pilotsCache = result.pilots;
       this.pilots = result.pilots;
     } catch {
-      this.pilots = [];
+      if (this.pilots.length === 0) {
+        this.pilots = [];
+      }
     }
     this.pilotsLoading = false;
     this.stopSkeletonShimmer();
   }
 
-  async loadOrders() {
-    this.ordersLoading = true;
-    this.startOrdersSkeletonShimmer();
+  async loadOrders(silent: boolean = false) {
+    // 首次或缓存为空时，显示骨架屏
+    if (!silent || this.orders.length === 0) {
+      this.ordersLoading = true;
+      this.startOrdersSkeletonShimmer();
+    }
+
+    // 优先使用缓存
+    if (this.orders.length > 0) {
+      this.ordersLoading = false;
+    }
+
     try {
-      this.orders = await fetchPublicOrders();
+      const newOrders = await fetchPublicOrders();
+      this.ordersCache = newOrders;
+      this.orders = newOrders;
     } catch {
-      this.orders = [];
+      if (this.orders.length === 0) {
+        this.orders = [];
+      }
     }
     this.ordersLoading = false;
     this.stopOrdersSkeletonShimmer();
@@ -1529,11 +1578,10 @@ struct Index {
         .clip(false)
         .onVisibleAreaChange([0, 1], (isVisible: boolean) => {
           if (isVisible) {
-            // 页面显示时静默刷新数据
-            this.loadBanner();
-            this.loadConfig();
-            this.loadPilots();
-            this.loadOrders();
+            // 页面显示时静默刷新数据（优先使用缓存，后台拉新）
+            this.loadBanner(true);
+            this.loadPilots(true);
+            this.loadOrders(true);
             this.loadStandby();
           }
         })
