@@ -128,8 +128,6 @@ struct Standby {
 
   async onMatchTap(item: DiscipleItem) {
     const token = AuthService.getAuthToken();
-    console.info('【收徒】onMatchTap token:', token);
-    console.info('【收徒】onMatchTap item.openid:', item.openid);
     if (!token) {
       promptAction.showToast({ message: '登录后才能收徒' });
       return;
@@ -138,7 +136,31 @@ struct Standby {
     try {
       await matchDisciple(item.openid, token);
       promptAction.showToast({ message: '收徒成功' });
-      this.loadData();
+
+      // 静默更新UI
+      const currentUser = AuthService.getCurrentUser();
+      const currentOpenId = AuthService.getCurrentOpenId();
+      const index = this.filteredList.findIndex((p: DiscipleItem) => p.openid === item.openid);
+      if (index !== -1) {
+        const disciple = this.filteredList[index];
+        disciple.isMine = true;
+        disciple.masterCount = (disciple.masterCount || 0) + 1;
+        if (currentOpenId && currentUser) {
+          const newMaster: DiscipleMaster = {
+            openid: currentOpenId,
+            nickname: currentUser.displayName || currentUser.openId || '师傅',
+            avatar: currentUser.avatar || ''
+          };
+          const mastersList = disciple.masters || [];
+          mastersList.push(newMaster);
+          disciple.masters = mastersList;
+        }
+        // 同步更新 pilotList
+        const pilotIndex = this.pilotList.findIndex((p: DiscipleItem) => p.openid === item.openid);
+        if (pilotIndex !== -1) {
+          this.pilotList[pilotIndex] = disciple;
+        }
+      }
     } catch (err) {
       console.error('【收徒】onMatchTap error:', JSON.stringify(err));
       promptAction.showToast({ message: '操作失败' });
@@ -152,7 +174,23 @@ struct Standby {
     try {
       await removeDisciple(item.openid, token);
       promptAction.showToast({ message: '已取消' });
-      this.loadData();
+
+      // 静默更新UI
+      const currentOpenId = AuthService.getCurrentOpenId();
+      const index = this.filteredList.findIndex((p: DiscipleItem) => p.openid === item.openid);
+      if (index !== -1) {
+        const disciple = this.filteredList[index];
+        disciple.isMine = false;
+        disciple.masterCount = Math.max(0, (disciple.masterCount || 0) - 1);
+        if (currentOpenId) {
+          disciple.masters = (disciple.masters || []).filter((m: DiscipleMaster) => m.openid !== currentOpenId);
+        }
+        // 同步更新 pilotList
+        const pilotIndex = this.pilotList.findIndex((p: DiscipleItem) => p.openid === item.openid);
+        if (pilotIndex !== -1) {
+          this.pilotList[pilotIndex] = disciple;
+        }
+      }
     } catch (err) {
       promptAction.showToast({ message: '操作失败' });
     }
