@@ -275,7 +275,7 @@ struct Standby {
             // 搜索框
             Search({ placeholder: '搜索城市' })
               .width('90%')
-              .margin({ top: 80 })
+              .margin({ top: 16 })
               .backgroundColor($r('app.color.card_bg'))
               .borderRadius(20)
               .onChange((value: string) => { this.onSearchChange(value); })
