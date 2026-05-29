@@ -323,7 +323,7 @@ struct Standby {
       }
       .width('100%')
       .layoutWeight(1)
-      .height('100%')
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
 
       // 底部悬浮按钮
       Column() {
