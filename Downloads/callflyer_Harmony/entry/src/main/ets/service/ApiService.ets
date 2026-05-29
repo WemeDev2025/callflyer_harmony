@@ -1899,10 +1899,10 @@ export async function matchDisciple(discipleOpenid: string, token: string): Prom
       url,
       {
         method: http.RequestMethod.POST,
-        header: [
-          { 'Content-Type': 'application/json' },
-          { 'Authorization': 'Bearer ' + token }
-        ],
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
         extraData: JSON.stringify({ disciple_openid: discipleOpenid }),
         connectTimeout: 10000,
         readTimeout: 10000
