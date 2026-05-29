@@ -178,7 +178,7 @@ struct DiscipleCard {
         .height('100%')
         .backgroundColor('#F5F5F5')
         .borderRadius(8)
-        .padding({ top: 2, bottom: 2, left: 8, right: 8 })
+        .padding({ top: 6, bottom: 6, left: 8, right: 8 })
 
         // 中间连接线 - 短横线
         Column() {
@@ -218,10 +218,18 @@ struct DiscipleCard {
             .alignItems(VerticalAlign.Center)
           } else {
             Row() {
-              // 图标 - 绿色原始图标
-              Image($r('app.media.icon_gan'))
-                .width(44)
-                .height(44)
+              // 绿色圆形背景包裹图标
+              Column() {
+                Image($r('app.media.icon_gan'))
+                  .width(20)
+                  .height(20)
+              }
+              .width(35)
+              .height(35)
+              .backgroundColor('#07c160')
+              .borderRadius(17.5)
+              .justifyContent(FlexAlign.Center)
+              .alignItems(HorizontalAlign.Center)
 
               // 文字
               Text('我收了')
@@ -231,8 +239,6 @@ struct DiscipleCard {
                 .margin({ left: 8 })
             }
             .alignItems(VerticalAlign.Center)
-            .justifyContent(FlexAlign.Center)
-            .width('100%')
             .onClick(() => { this.onMatch(this.item); })
           }
         }
