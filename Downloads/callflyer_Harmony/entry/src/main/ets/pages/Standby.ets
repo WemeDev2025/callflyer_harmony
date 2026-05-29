@@ -454,9 +454,9 @@ struct Standby {
         // 左侧：徒弟信息 - 带背景，水平排列
         Row() {
           Image(item.avatar || DEFAULT_AVATAR)
-            .width(50)
-            .height(50)
-            .borderRadius(25)
+            .width(35)
+            .height(35)
+            .borderRadius(17.5)
 
           Column() {
             Text(item.name || '匿名飞手')
@@ -498,9 +498,9 @@ struct Standby {
           if (item.masters && item.masters.length > 0) {
             Row() {
               Image(item.masters[0].avatar || DEFAULT_AVATAR)
-                .width(50)
-                .height(50)
-                .borderRadius(25)
+                .width(35)
+                .height(35)
+                .borderRadius(17.5)
 
               Column() {
                 Text(item.masters[0].nickname || '师傅')
