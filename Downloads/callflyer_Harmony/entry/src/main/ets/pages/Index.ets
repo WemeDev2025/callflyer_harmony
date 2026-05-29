@@ -2162,6 +2162,8 @@ struct Index {
                           router.pushUrl({ url: 'pages/WebView', params: { url: mapUrl, title: '地图' } });
                         } else if (item.clickPage === 'pages/new/index' || item.clickPage === '/pages/new/index') {
                           router.pushUrl({ url: 'pages/CertifiedUsers' });
+                        } else if (item.clickPage === 'pages/standby/index' || item.clickPage === '/pages/standby/index') {
+                          router.pushUrl({ url: 'pages/Standby' });
                         } else if ((item.clickType === 'h5' || item.clickType === 'url') && item.clickUrl) {
                           router.pushUrl({ url: 'pages/WebView', params: { url: item.clickUrl, title: item.clickPage || '网页' } });
                         } else if (!this.hasValidClick(item)) {
