@@ -2,7 +2,7 @@ import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
-import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, DiscipleItem, DiscipleMaster, MyDisciplesResult } from '../service/ApiService';
+import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, fetchPilotContact, DiscipleItem, DiscipleMaster, MyDisciplesResult, PilotContact } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
@@ -156,13 +156,103 @@ struct Standby {
   }
 
   async onContactDisciple(item: DiscipleItem) {
-    // TODO: 获取联系方式
-    promptAction.showToast({ message: '暂无联系方式' });
+    const token = AuthService.getAuthToken();
+    if (!token) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+
+    try {
+      const contact: PilotContact = await fetchPilotContact(item.openid, token);
+      const phone = contact.phone;
+      const wechatId = contact.wechatId;
+      if (!phone && !wechatId) {
+        promptAction.showToast({ message: '暂无联系方式' });
+        return;
+      }
+
+      const hasPhone = !!phone;
+      const hasWechat = !!wechatId;
+
+      if (hasPhone && hasWechat) {
+        promptAction.showActionMenu({
+          title: '联系方式',
+          buttons: [{ text: '拨打电话', color: '#07c160' }, { text: '复制微信', color: '#07c160' }]
+        }).then((response) => {
+          const index = response.index;
+          if (index === 0) {
+            call.makeCall(phone);
+          } else if (index === 1) {
+            const pasteData = pasteboard.createData('text/plain', wechatId);
+            const systemPasteboard = pasteboard.getSystemPasteboard();
+            systemPasteboard.setData(pasteData);
+            promptAction.showToast({ message: '微信已复制' });
+          }
+        }).catch(() => {});
+      } else if (hasPhone) {
+        call.makeCall(phone);
+      } else if (hasWechat) {
+        const pasteData = pasteboard.createData('text/plain', wechatId);
+        const systemPasteboard = pasteboard.getSystemPasteboard();
+        systemPasteboard.setData(pasteData);
+        promptAction.showToast({ message: '微信已复制' });
+      }
+    } catch (err) {
+      promptAction.showToast({ message: '获取联系方式失败' });
+    }
   }
 
   async onContactMaster(item: DiscipleItem) {
-    // TODO: 获取联系方式
-    promptAction.showToast({ message: '暂无联系方式' });
+    const token = AuthService.getAuthToken();
+    if (!token) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+
+    if (!item.masters || item.masters.length === 0) {
+      promptAction.showToast({ message: '暂无师傅信息' });
+      return;
+    }
+
+    try {
+      const master = item.masters[0];
+      const contact: PilotContact = await fetchPilotContact(master.openid, token);
+      const phone = contact.phone;
+      const wechatId = contact.wechatId;
+      if (!phone && !wechatId) {
+        promptAction.showToast({ message: '暂无联系方式' });
+        return;
+      }
+
+      const hasPhone = !!phone;
+      const hasWechat = !!wechatId;
+
+      if (hasPhone && hasWechat) {
+        promptAction.showActionMenu({
+          title: '联系方式',
+          buttons: [{ text: '拨打电话', color: '#07c160' }, { text: '复制微信', color: '#07c160' }]
+        }).then((response) => {
+          const index = response.index;
+          if (index === 0) {
+            call.makeCall(phone);
+          } else if (index === 1) {
+            const pasteData = pasteboard.createData('text/plain', wechatId);
+            const systemPasteboard = pasteboard.getSystemPasteboard();
+            systemPasteboard.setData(pasteData);
+            promptAction.showToast({ message: '微信已复制' });
+          }
+        }).catch(() => {});
+      } else if (hasPhone) {
+        call.makeCall(phone);
+      } else if (hasWechat) {
+        const pasteData = pasteboard.createData('text/plain', wechatId);
+        const systemPasteboard = pasteboard.getSystemPasteboard();
+        systemPasteboard.setData(pasteData);
+        promptAction.showToast({ message: '微信已复制' });
+      }
+    } catch (err) {
+      promptAction.showToast({ message: '获取联系方式失败' });
+    }
   }
 
   showRatingDialog(role: string, index: number) {
@@ -503,7 +593,7 @@ struct Standby {
         .height('100%')
         .backgroundColor('#F5F5F5')
         .borderRadius(8)
-        .padding({ top: 6, bottom: 6, left: 8, right: 8 })
+        .padding({ top: 2, bottom: 2, left: 8, right: 8 })
 
         // 中间连接线 - 短横线
         Column() {
@@ -545,8 +635,8 @@ struct Standby {
             Row() {
               // 图标 - 绿色原始图标
               Image($r('app.media.icon_gan'))
-                .width(35)
-                .height(35)
+                .width(44)
+                .height(44)
 
               // 文字
               Text('我收了')
