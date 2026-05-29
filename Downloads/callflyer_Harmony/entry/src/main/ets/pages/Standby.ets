@@ -67,6 +67,253 @@ struct RatingDialog {
   }
 }
 
+// 可观察的徒弟项，用于精准更新UI
+@Observed
+class ObservedDiscipleItem {
+  openid: string = '';
+  order_id: string = '';
+  out_trade_no: string = '';
+  name: string = '';
+  city: string = '';
+  avatar: string = '';
+  intro: string = '';
+  price: number = 0;
+  paid_at: string = '';
+  finished_at: string = '';
+  masters: DiscipleMaster[] = [];
+  masterCount: number = 0;
+  hasMatchedMe: boolean = false;
+  isMine: boolean = false;
+  transfer_status: string = '';
+  rating: number | null = null;
+  masterRating: number | null = null;
+
+  constructor(item?: DiscipleItem) {
+    if (item) {
+      this.openid = item.openid;
+      this.order_id = item.order_id;
+      this.out_trade_no = item.out_trade_no;
+      this.name = item.name;
+      this.city = item.city;
+      this.avatar = item.avatar;
+      this.intro = item.intro;
+      this.price = item.price;
+      this.paid_at = item.paid_at;
+      this.finished_at = item.finished_at;
+      this.masters = item.masters ? [...item.masters] : [];
+      this.masterCount = item.masterCount;
+      this.hasMatchedMe = item.hasMatchedMe;
+      this.isMine = item.isMine;
+      this.transfer_status = item.transfer_status;
+      this.rating = item.rating;
+      this.masterRating = item.masterRating;
+    }
+  }
+}
+
+// 徒弟卡片组件 - 使用@ObjectLink实现精准UI更新
+@Component
+struct DiscipleCard {
+  @ObjectLink item: ObservedDiscipleItem;
+  onMatch: (item: ObservedDiscipleItem) => void = () => {};
+  onCancelMatch: (item: ObservedDiscipleItem) => void = () => {};
+  onContactDisciple: (item: ObservedDiscipleItem) => void = () => {};
+  onContactMaster: (item: ObservedDiscipleItem) => void = () => {};
+  onRating: (item: ObservedDiscipleItem, role: string) => void = () => {};
+
+  build() {
+    Column() {
+      // 顶部区域：入行感谢金标签+金额badge（仅价格>0时显示）
+      if (this.item.price > 0) {
+        Row() {
+          // 入行感谢金标签 - 左边，黑色粗体
+          Text('入行感谢金')
+            .fontSize(17)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.text_primary'))
+
+          Blank()
+
+          // 感谢金金额badge - 右边，圆角矩形
+          Text('¥' + this.item.price)
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .fontColor('#FFFFFF')
+            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+            .backgroundColor('#07c160')
+            .borderRadius(3)
+        }
+        .width('100%')
+        .margin({ bottom: 12 })
+      }
+
+      // 主信息区
+      Row() {
+        // 左侧：徒弟信息 - 带背景，水平排列
+        Row() {
+          Image(this.item.avatar || DEFAULT_AVATAR)
+            .width(35)
+            .height(35)
+            .borderRadius(17.5)
+
+          Column() {
+            Text(this.item.name || '匿名飞手')
+              .fontSize(14)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.text_primary'))
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .width('100%')
+            Text(this.item.city || '')
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 4 })
+          }
+          .alignItems(HorizontalAlign.Start)
+          .margin({ left: 8 })
+          .width('60%')
+        }
+        .alignItems(VerticalAlign.Center)
+        .width('42%')
+        .height('100%')
+        .backgroundColor('#F5F5F5')
+        .borderRadius(8)
+        .padding({ top: 2, bottom: 2, left: 8, right: 8 })
+
+        // 中间连接线 - 短横线
+        Column() {
+          Column()
+            .width(30)
+            .height(2)
+            .backgroundColor($r('app.color.divider'))
+        }
+        .width('16%')
+        .height('100%')
+        .justifyContent(FlexAlign.Center)
+
+        // 右侧：师傅信息 - 带背景
+        Row() {
+          if (this.item.masters && this.item.masters.length > 0) {
+            Row() {
+              Image(this.item.masters[0].avatar || DEFAULT_AVATAR)
+                .width(35)
+                .height(35)
+                .borderRadius(17.5)
+
+              Column() {
+                Text(this.item.masters[0].nickname || '师傅')
+                  .fontSize(14)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor($r('app.color.text_primary'))
+                Text('已收徒 ' + this.item.masterCount + ' 人')
+                  .fontSize(11)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 4 })
+              }
+              .alignItems(HorizontalAlign.Start)
+              .margin({ left: 8 })
+              .width('60%')
+              .onClick(() => { this.onCancelMatch(this.item); })
+            }
+            .alignItems(VerticalAlign.Center)
+          } else {
+            Row() {
+              // 图标 - 绿色原始图标
+              Image($r('app.media.icon_gan'))
+                .width(44)
+                .height(44)
+
+              // 文字
+              Text('我收了')
+                .fontSize(13)
+                .fontColor('#6f7c90')
+                .fontWeight(FontWeight.Medium)
+                .margin({ left: 8 })
+            }
+            .alignItems(VerticalAlign.Center)
+            .justifyContent(FlexAlign.Center)
+            .width('100%')
+            .onClick(() => { this.onMatch(this.item); })
+          }
+        }
+        .alignItems(VerticalAlign.Center)
+        .width('42%')
+        .height('100%')
+        .backgroundColor('#F5F5F5')
+        .borderRadius(8)
+        .padding({ top: 6, bottom: 6, left: 8, right: 8 })
+      }
+      .width('100%')
+      .height(70)
+
+      // 自我介绍
+      if (this.item.intro) {
+        Column() {
+          Text(this.item.intro)
+            .fontSize(13)
+            .fontColor($r('app.color.text_body'))
+        }
+        .width('100%')
+        .padding(12)
+        .backgroundColor('#F5F5F5')
+        .borderRadius(8)
+        .margin({ top: 10 })
+      }
+
+      // 评星
+      Row() {
+        if (this.item.rating) {
+          Text('师傅对徒弟: ' + '★'.repeat(this.item.rating))
+            .fontSize(11)
+            .fontColor('#FFD700')
+        }
+        if (this.item.masterRating) {
+          Text('  徒弟对师傅: ' + '★'.repeat(this.item.masterRating))
+            .fontSize(11)
+            .fontColor('#FFD700')
+        }
+      }
+      .margin({ top: 6 })
+
+      // 操作按钮 - 微信风格
+      Row() {
+        Button('联系徒弟')
+          .fontSize(12)
+          .height(28)
+          .fontColor('#07c160')
+          .backgroundColor('#E8F7ED')
+          .borderRadius(14)
+          .onClick(() => { this.onContactDisciple(this.item); })
+        if (this.item.masterCount > 0) {
+          Button('联系师傅')
+            .fontSize(12)
+            .height(28)
+            .fontColor('#07c160')
+            .backgroundColor('#E8F7ED')
+            .borderRadius(14)
+            .margin({ left: 10 })
+            .onClick(() => { this.onContactMaster(this.item); })
+        }
+        if (this.item.isMine || (this.item.masterCount > 0 && this.item.masters && this.item.masters.length > 0 && this.item.masters[0].openid === AuthService.getCurrentOpenId())) {
+          Button('去评价')
+            .fontSize(12)
+            .height(28)
+            .fontColor('#FF9500')
+            .backgroundColor('#FFF5E6')
+            .borderRadius(14)
+            .margin({ left: 10 })
+            .onClick(() => { this.onRating(this.item, this.item.isMine ? 'disciple' : 'master'); })
+        }
+      }
+      .margin({ top: 12 })
+    }
+    .width('100%')
+    .padding(16)
+    .backgroundColor($r('app.color.card_bg'))
+    .borderRadius(12)
+  }
+}
+
 @Entry
 @Component
 struct Standby {
@@ -74,8 +321,8 @@ struct Standby {
 
   scroller: Scroller = new Scroller();
 
-  @State pilotList: DiscipleItem[] = [];
-  @State filteredList: DiscipleItem[] = [];
+  @State pilotList: ObservedDiscipleItem[] = [];
+  @State filteredList: ObservedDiscipleItem[] = [];
   @State loading: boolean = true;
   @State isJoined: boolean = false;
   @State searchKey: string = '';
@@ -102,7 +349,7 @@ struct Standby {
       const items = discipleRes.items || [];
       const myDisciples = myDiscipleRes.items || [];
 
-      this.pilotList = items;
+      this.pilotList = items.map((item: DiscipleItem) => new ObservedDiscipleItem(item));
       this.applyFilter();
       this.isJoined = items.some((p: DiscipleItem) => p.isMine);
     } catch (err) {
@@ -117,7 +364,7 @@ struct Standby {
       this.filteredList = this.pilotList;
     } else {
       const key = this.searchKey.toLowerCase();
-      this.filteredList = this.pilotList.filter((p: DiscipleItem) => (p.city || '').toLowerCase().includes(key));
+      this.filteredList = this.pilotList.filter((p: ObservedDiscipleItem) => (p.city || '').toLowerCase().includes(key));
     }
   }
 
@@ -126,37 +373,70 @@ struct Standby {
     this.applyFilter();
   }
 
-  async onMatchTap(item: DiscipleItem) {
+  async onMatchTap(item: ObservedDiscipleItem) {
     const token = AuthService.getAuthToken();
     if (!token) {
       promptAction.showToast({ message: '登录后才能收徒' });
       return;
     }
 
+    const currentOpenId = AuthService.getCurrentOpenId();
+    console.info('【收徒】openid=%{public}s, masters.length=%{public}d', item.openid, item.masters.length);
+
     try {
       await matchDisciple(item.openid, token);
       promptAction.showToast({ message: '收徒成功' });
-      this.loadData();
+
+      // 静默更新UI - 替换整个masters数组触发@Observed更新
+      const currentUser = AuthService.getCurrentUser();
+      item.isMine = true;
+      item.masterCount = (item.masterCount || 0) + 1;
+      if (currentOpenId && currentUser) {
+        const newMaster: DiscipleMaster = {
+          openid: currentOpenId,
+          nickname: currentUser.displayName || currentUser.openId || '师傅',
+          avatar: currentUser.avatar || ''
+        };
+        console.info('【收徒】添加前masters=%{public}s', JSON.stringify(item.masters));
+        item.masters = [...item.masters, newMaster];
+        console.info('【收徒】添加后masters=%{public}s', JSON.stringify(item.masters));
+      }
+      // 强制刷新列表中的该项
+      this.filteredList = [...this.filteredList];
     } catch (err) {
-      console.error('【收徒】onMatchTap error:', JSON.stringify(err));
+      console.error('【收徒】失败:%{public}s', JSON.stringify(err));
       promptAction.showToast({ message: '操作失败' });
     }
   }
 
-  async onCancelMatch(item: DiscipleItem) {
+  async onCancelMatch(item: ObservedDiscipleItem) {
     const token = AuthService.getAuthToken();
     if (!token) return;
+
+    const currentOpenId = AuthService.getCurrentOpenId();
+    console.info('【取消匹配】openid=%{public}s, currentOpenId=%{public}s, masters.length=%{public}d', item.openid, currentOpenId, item.masters.length);
 
     try {
       await removeDisciple(item.openid, token);
       promptAction.showToast({ message: '已取消' });
-      this.loadData();
+
+      // 静默更新UI - 替换整个masters数组触发@Observed更新
+      item.isMine = false;
+      item.masterCount = Math.max(0, (item.masterCount || 0) - 1);
+      if (currentOpenId) {
+        console.info('【取消匹配】过滤前masters=%{public}s', JSON.stringify(item.masters));
+        item.masters = item.masters.filter((m: DiscipleMaster) => m.openid !== currentOpenId);
+        console.info('【取消匹配】过滤后masters=%{public}s', JSON.stringify(item.masters));
+      }
+      // 强制刷新列表中的该项
+      this.filteredList = [...this.filteredList];
     } catch (err) {
+      console.error('【取消匹配】失败:%{public}s', JSON.stringify(err));
       promptAction.showToast({ message: '操作失败' });
     }
   }
 
-  async onContactDisciple(item: DiscipleItem) {
+  async onContactDisciple(item: ObservedDiscipleItem) {
     const token = AuthService.getAuthToken();
     if (!token) {
       promptAction.showToast({ message: '请先登录' });
@@ -203,7 +483,7 @@ struct Standby {
     }
   }
 
-  async onContactMaster(item: DiscipleItem) {
+  async onContactMaster(item: ObservedDiscipleItem) {
     const token = AuthService.getAuthToken();
     if (!token) {
       promptAction.showToast({ message: '请先登录' });
@@ -392,9 +672,19 @@ struct Standby {
             } else {
               // 徒弟列表
               List() {
-                ForEach(this.filteredList, (item: DiscipleItem, index: number) => {
+                ForEach(this.filteredList, (item: ObservedDiscipleItem) => {
                   ListItem() {
-                    this.DiscipleCard(item, index)
+                    DiscipleCard({
+                      item: item,
+                      onMatch: (i: ObservedDiscipleItem) => { this.onMatchTap(i); },
+                      onCancelMatch: (i: ObservedDiscipleItem) => { this.onCancelMatch(i); },
+                      onContactDisciple: (i: ObservedDiscipleItem) => { this.onContactDisciple(i); },
+                      onContactMaster: (i: ObservedDiscipleItem) => { this.onContactMaster(i); },
+                      onRating: (i: ObservedDiscipleItem, role: string) => {
+                        const idx = this.filteredList.findIndex((p: ObservedDiscipleItem) => p.openid === i.openid);
+                        this.showRatingDialog(role, idx);
+                      }
+                    })
                   }
                   .padding({ left: 16, right: 16, top: 8, bottom: 8 })
                 })
@@ -534,198 +824,5 @@ struct Standby {
     }
     .width('100%')
     .height('100%')
-  }
-
-  @Builder
-  DiscipleCard(item: DiscipleItem, index: number) {
-    Column() {
-      // 顶部区域：入行感谢金标签+金额badge（仅价格>0时显示）
-      if (item.price > 0) {
-        Row() {
-          // 入行感谢金标签 - 左边，黑色粗体
-          Text('入行感谢金')
-            .fontSize(17)
-            .fontWeight(FontWeight.Bold)
-            .fontColor($r('app.color.text_primary'))
-
-          Blank()
-
-          // 感谢金金额badge - 右边，圆角矩形
-          Text('¥' + item.price)
-            .fontSize(14)
-            .fontWeight(FontWeight.Medium)
-            .fontColor('#FFFFFF')
-            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-            .backgroundColor('#07c160')
-            .borderRadius(3)
-        }
-        .width('100%')
-        .margin({ bottom: 12 })
-      }
-
-      // 主信息区
-      Row() {
-        // 左侧：徒弟信息 - 带背景，水平排列
-        Row() {
-          Image(item.avatar || DEFAULT_AVATAR)
-            .width(35)
-            .height(35)
-            .borderRadius(17.5)
-
-          Column() {
-            Text(item.name || '匿名飞手')
-              .fontSize(14)
-              .fontWeight(FontWeight.Medium)
-              .fontColor($r('app.color.text_primary'))
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-              .width('100%')
-            Text(item.city || '')
-              .fontSize(12)
-              .fontColor($r('app.color.text_secondary'))
-              .margin({ top: 4 })
-          }
-          .alignItems(HorizontalAlign.Start)
-          .margin({ left: 8 })
-          .width('60%')
-        }
-        .alignItems(VerticalAlign.Center)
-        .width('42%')
-        .height('100%')
-        .backgroundColor('#F5F5F5')
-        .borderRadius(8)
-        .padding({ top: 2, bottom: 2, left: 8, right: 8 })
-
-        // 中间连接线 - 短横线
-        Column() {
-          Column()
-            .width(30)
-            .height(2)
-            .backgroundColor($r('app.color.divider'))
-        }
-        .width('16%')
-        .height('100%')
-        .justifyContent(FlexAlign.Center)
-
-        // 右侧：师傅信息 - 带背景
-        Row() {
-          if (item.masters && item.masters.length > 0) {
-            Row() {
-              Image(item.masters[0].avatar || DEFAULT_AVATAR)
-                .width(35)
-                .height(35)
-                .borderRadius(17.5)
-
-              Column() {
-                Text(item.masters[0].nickname || '师傅')
-                  .fontSize(14)
-                  .fontWeight(FontWeight.Medium)
-                  .fontColor($r('app.color.text_primary'))
-                Text('已收徒 ' + item.masterCount + ' 人')
-                  .fontSize(11)
-                  .fontColor($r('app.color.text_secondary'))
-                  .margin({ top: 4 })
-              }
-              .alignItems(HorizontalAlign.Start)
-              .margin({ left: 8 })
-              .width('60%')
-              .onClick(() => { this.onCancelMatch(item); })
-            }
-            .alignItems(VerticalAlign.Center)
-          } else {
-            Row() {
-              // 图标 - 绿色原始图标
-              Image($r('app.media.icon_gan'))
-                .width(44)
-                .height(44)
-
-              // 文字
-              Text('我收了')
-                .fontSize(13)
-                .fontColor('#6f7c90')
-                .fontWeight(FontWeight.Medium)
-                .margin({ left: 8 })
-            }
-            .alignItems(VerticalAlign.Center)
-            .justifyContent(FlexAlign.Center)
-            .width('100%')
-            .onClick(() => { this.onMatchTap(item); })
-          }
-        }
-        .alignItems(VerticalAlign.Center)
-        .width('42%')
-        .height('100%')
-        .backgroundColor('#F5F5F5')
-        .borderRadius(8)
-        .padding({ top: 6, bottom: 6, left: 8, right: 8 })
-      }
-      .width('100%')
-      .height(70)
-
-      // 自我介绍
-      if (item.intro) {
-        Column() {
-          Text(item.intro)
-            .fontSize(13)
-            .fontColor($r('app.color.text_body'))
-        }
-        .width('100%')
-        .padding(12)
-        .backgroundColor('#F5F5F5')
-        .borderRadius(8)
-        .margin({ top: 10 })
-      }
-
-      // 评星
-      Row() {
-        if (item.rating) {
-          Text('师傅对徒弟: ' + '★'.repeat(item.rating))
-            .fontSize(11)
-            .fontColor('#FFD700')
-        }
-        if (item.masterRating) {
-          Text('  徒弟对师傅: ' + '★'.repeat(item.masterRating))
-            .fontSize(11)
-            .fontColor('#FFD700')
-        }
-      }
-      .margin({ top: 6 })
-
-      // 操作按钮 - 微信风格
-      Row() {
-        Button('联系徒弟')
-          .fontSize(12)
-          .height(28)
-          .fontColor('#07c160')
-          .backgroundColor('#E8F7ED')
-          .borderRadius(14)
-          .onClick(() => { this.onContactDisciple(item); })
-        if (item.masterCount > 0) {
-          Button('联系师傅')
-            .fontSize(12)
-            .height(28)
-            .fontColor('#07c160')
-            .backgroundColor('#E8F7ED')
-            .borderRadius(14)
-            .margin({ left: 10 })
-            .onClick(() => { this.onContactMaster(item); })
-        }
-        if (item.isMine || (item.masterCount > 0 && item.masters && item.masters.length > 0 && item.masters[0].openid === AuthService.getCurrentOpenId())) {
-          Button('去评价')
-            .fontSize(12)
-            .height(28)
-            .fontColor('#FF9500')
-            .backgroundColor('#FFF5E6')
-            .borderRadius(14)
-            .margin({ left: 10 })
-            .onClick(() => { this.showRatingDialog(item.isMine ? 'disciple' : 'master', index); })
-        }
-      }
-      .margin({ top: 12 })
-    }
-    .width('100%')
-    .padding(16)
-    .backgroundColor($r('app.color.card_bg'))
-    .borderRadius(12)
   }
 }
