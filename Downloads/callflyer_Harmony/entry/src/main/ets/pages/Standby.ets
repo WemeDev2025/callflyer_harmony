@@ -273,7 +273,7 @@ struct Standby {
                 .objectFit(ImageFit.Cover)
             }
             .width('90%')
-            .margin({ top: -30 })
+            .margin({ top: -50 })
             .alignItems(HorizontalAlign.Center)
 
             // 搜索框
