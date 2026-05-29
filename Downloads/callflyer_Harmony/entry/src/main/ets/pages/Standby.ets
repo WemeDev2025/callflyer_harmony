@@ -412,7 +412,7 @@ struct Standby {
       Row() {
         // 入行感谢金标签 - 左边，黑色粗体
         Text('入行感谢金')
-          .fontSize(13)
+          .fontSize(15)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
 
@@ -434,24 +434,27 @@ struct Standby {
 
       // 主信息区
       Row() {
-        // 左侧：徒弟信息 - 带背景
-        Column() {
+        // 左侧：徒弟信息 - 带背景，水平排列
+        Row() {
           Image(item.avatar || DEFAULT_AVATAR)
             .width(50)
             .height(50)
             .borderRadius(25)
 
-          Text(item.name || '匿名飞手')
-            .fontSize(14)
-            .fontWeight(FontWeight.Medium)
-            .fontColor($r('app.color.text_primary'))
-            .margin({ top: 4 })
-          Text(item.city || '')
-            .fontSize(12)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 2 })
+          Column() {
+            Text(item.name || '匿名飞手')
+              .fontSize(14)
+              .fontWeight(FontWeight.Medium)
+              .fontColor($r('app.color.text_primary'))
+            Text(item.city || '')
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 4 })
+          }
+          .alignItems(HorizontalAlign.Start)
+          .margin({ left: 12 })
         }
-        .alignItems(HorizontalAlign.Center)
+        .alignItems(VerticalAlign.Center)
         .width('42%')
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
