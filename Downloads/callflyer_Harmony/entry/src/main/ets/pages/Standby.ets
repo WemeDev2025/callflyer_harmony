@@ -257,31 +257,39 @@ struct Standby {
 
       Scroll() {
         Column() {
-          // 顶部区域 - 16:9圆角矩形图片
+          // 标题区域
+          Column() {
+            Text('师徒匹配')
+              .fontSize(24)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.text_primary'))
+              .fontFamily('DouyinSansBold')
+
+            Text('找师傅带入门，找徒弟传承技术')
+              .fontSize(14)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 8 })
+          }
+          .width('90%')
+          .margin({ top: 20, bottom: 16 })
+          .alignItems(HorizontalAlign.Start)
+
+          // 顶部区域 - 16:9圆角矩形图片+阴影
           Column() {
             Image(BANNER_URL)
               .width('100%')
               .aspectRatio(16 / 9)
               .borderRadius(12)
               .objectFit(ImageFit.Cover)
-
-            // 标题和副标题覆盖在图片上
-            Column() {
-              Text('师徒匹配')
-                .fontSize(24)
-                .fontWeight(FontWeight.Bold)
-                .fontColor('#FFFFFF')
-                .fontFamily('DouyinSansBold')
-
-              Text('找师傅带入门，找徒弟传承技术')
-                .fontSize(14)
-                .fontColor('rgba(255,255,255,0.8)')
-                .margin({ top: 8 })
-            }
-            .position({ x: 18, y: 20 })
+              .shadow({
+                radius: 8,
+                color: 'rgba(0, 0, 0, 0.15)',
+                offsetX: 0,
+                offsetY: 4
+              })
           }
           .width('90%')
-          .margin({ top: 10 })
+          .margin({ bottom: 16 })
           .alignItems(HorizontalAlign.Center)
 
           // 搜索框
