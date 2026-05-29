@@ -486,14 +486,20 @@ struct Standby {
               .fontColor($r('app.color.text_secondary'))
               .onClick(() => { this.onCancelMatch(item); })
           } else {
-            Button('我收了')
-              .width(80)
-              .height(32)
-              .fontSize(13)
-              .fontColor('#FFFFFF')
-              .backgroundColor('#07c160')
-              .borderRadius(16)
-              .onClick(() => { this.onMatchTap(item); })
+            Row() {
+              Image($r('app.media.icon_gan'))
+                .width(18)
+                .height(18)
+              Text('我收了')
+                .fontSize(13)
+                .fontColor('#FFFFFF')
+            }
+            .width(90)
+            .height(34)
+            .backgroundColor('#07c160')
+            .borderRadius(17)
+            .justifyContent(FlexAlign.Center)
+            .onClick(() => { this.onMatchTap(item); })
           }
         }
         .alignItems(HorizontalAlign.Center)
