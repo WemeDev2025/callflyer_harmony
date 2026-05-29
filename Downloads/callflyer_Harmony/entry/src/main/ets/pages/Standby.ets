@@ -2,7 +2,7 @@ import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
-import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, fetchPilotContact, DiscipleItem, DiscipleMaster, MyDisciplesResult, PilotContact } from '../service/ApiService';
+import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, fetchPilotContact, DiscipleItem, DiscipleMaster, MyDisciplesResult, PilotContact, RatingInfo } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
@@ -48,10 +48,19 @@ struct RatingDialog {
       Row() {
         Button('取消')
           .width('40%')
+          .height(40)
+          .fontColor('#07c160')
+          .backgroundColor('#FFFFFF')
+          .borderColor('#07c160')
+          .borderWidth(1)
+          .borderRadius(20)
           .onClick(() => { this.onCancel(); this.controller.close(); })
         Button('提交')
           .width('40%')
-          .type(ButtonType.Normal)
+          .height(40)
+          .fontColor('#FFFFFF')
+          .backgroundColor('#07c160')
+          .borderRadius(20)
           .onClick(() => {
             this.onSubmit(this.ratingScore, this.ratingComment);
             this.controller.close();
@@ -98,8 +107,8 @@ class ObservedDiscipleItem {
   hasMatchedMe: boolean = false;
   isMine: boolean = false;
   transfer_status: string = '';
-  rating: number | null = null;
-  masterRating: number | null = null;
+  rating: RatingInfo | null = null;
+  masterRating: RatingInfo | null = null;
 
   constructor(item?: DiscipleItem) {
     if (item) {
@@ -281,20 +290,76 @@ struct DiscipleCard {
         .margin({ top: 10 })
       }
 
-      // 评星
-      Row() {
-        if (this.item.rating) {
-          Text('师傅对徒弟: ' + '★'.repeat(this.item.rating))
-            .fontSize(11)
-            .fontColor('#FFD700')
+      // 评星区域
+      if (this.item.rating || this.item.masterRating) {
+        Column() {
+          Divider()
+            .color($r('app.color.divider'))
+            .margin({ top: 12, bottom: 12 })
+
+          // 师傅对徒弟的评价
+          if (this.item.rating) {
+            Column() {
+              Row() {
+                Text('评价徒弟')
+                  .fontSize(12)
+                  .fontColor($r('app.color.text_label'))
+                  .fontWeight(FontWeight.Medium)
+                Row() {
+                  ForEach([1, 2, 3, 4, 5], (star: number) => {
+                    Text(star <= (this.item.rating?.score ?? 0) ? '★' : '☆')
+                      .fontSize(14)
+                      .fontColor('#FFD700')
+                  })
+                }
+              }
+              .width('100%')
+              .justifyContent(FlexAlign.SpaceBetween)
+
+              if (this.item.rating?.comment) {
+                Text('"' + this.item.rating.comment + '"')
+                  .fontSize(12)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 4 })
+                  .maxLines(2)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+              }
+            }
+          }
+
+          // 徒弟对师傅的评价
+          if (this.item.masterRating) {
+            Column() {
+              Row() {
+                Text('评价师傅')
+                  .fontSize(12)
+                  .fontColor($r('app.color.text_label'))
+                  .fontWeight(FontWeight.Medium)
+                Row() {
+                  ForEach([1, 2, 3, 4, 5], (star: number) => {
+                    Text(star <= (this.item.masterRating?.score ?? 0) ? '★' : '☆')
+                      .fontSize(14)
+                      .fontColor('#FFD700')
+                  })
+                }
+              }
+              .width('100%')
+              .justifyContent(FlexAlign.SpaceBetween)
+              .margin({ top: this.item.rating ? 10 : 0 })
+
+              if (this.item.masterRating?.comment) {
+                Text('"' + this.item.masterRating.comment + '"')
+                  .fontSize(12)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 4 })
+                  .maxLines(2)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+              }
+            }
+          }
         }
-        if (this.item.masterRating) {
-          Text('  徒弟对师傅: ' + '★'.repeat(this.item.masterRating))
-            .fontSize(11)
-            .fontColor('#FFD700')
-        }
+        .width('100%')
       }
-      .margin({ top: 6 })
 
       // 操作按钮 - 微信风格
       Row() {
@@ -345,7 +410,7 @@ struct Standby {
   @State pilotList: ObservedDiscipleItem[] = [];
   @State filteredList: ObservedDiscipleItem[] = [];
   @State loading: boolean = true;
-  @State isJoined: boolean = false;
+  @StorageLink('standbyIsJoined') isJoined: boolean = false;
   @State searchKey: string = '';
   @State showIntroPopup: boolean = false;
   @State introText: string = '';
@@ -390,6 +455,7 @@ struct Standby {
   }
 
   async loadData(showLoading: boolean = false, silentRefresh: boolean = false) {
+    console.info('【loadData】 START showLoading:', showLoading, 'silentRefresh:', silentRefresh, 'isJoined:', this.isJoined);
     // 如果是静默刷新，只更新数据不修改 UI
     if (silentRefresh) {
       try {
@@ -399,7 +465,13 @@ struct Standby {
         const items = discipleRes.items || [];
         this.pilotList = items.map((item: DiscipleItem) => new ObservedDiscipleItem(item));
         this.applyFilter();
-        this.isJoined = items.some((p: DiscipleItem) => p.isMine);
+        // 计算 isJoined：当前用户是否在列表中（与小程序逻辑一致）
+        const myOpenid = AuthService.getCurrentOpenId();
+        const apiJoined = items.some((item: DiscipleItem) => item.openid === myOpenid);
+        // 不覆盖已加入状态
+        if (!this.isJoined) {
+          this.isJoined = apiJoined;
+        }
         this.writeCache(items, this.isJoined);
       } catch (err) {
         console.error('【师徒匹配静默刷新失败】', JSON.stringify(err));
@@ -412,7 +484,10 @@ struct Standby {
     if (cachedData) {
       this.pilotList = cachedData.items.map((item: DiscipleItem) => new ObservedDiscipleItem(item));
       this.applyFilter();
-      this.isJoined = cachedData.isJoined;
+      // 不覆盖已加入状态
+      if (!this.isJoined) {
+        this.isJoined = cachedData.isJoined;
+      }
       if (!showLoading) {
         this.loading = false;
       }
@@ -431,7 +506,15 @@ struct Standby {
 
       this.pilotList = items.map((item: DiscipleItem) => new ObservedDiscipleItem(item));
       this.applyFilter();
-      this.isJoined = items.some((p: DiscipleItem) => p.isMine);
+      // 计算 isJoined：当前用户是否在列表中（与小程序逻辑一致）
+      const myOpenid = AuthService.getCurrentOpenId();
+      const apiJoined = items.some((item: DiscipleItem) => item.openid === myOpenid);
+      console.info('【loadData】 myOpenid:', myOpenid, 'apiJoined:', apiJoined, 'items count:', items.length);
+      // 不覆盖已加入状态
+      if (!this.isJoined) {
+        this.isJoined = apiJoined;
+      }
+      console.info('【loadData】 final isJoined:', this.isJoined);
 
       // 更新缓存
       this.writeCache(items, this.isJoined);
@@ -647,21 +730,32 @@ struct Standby {
 
   async submitRating(score: number, comment: string) {
     const item = this.filteredList[this.ratingIndex];
-    if (!item) return;
+    if (!item) {
+      console.error('【submitRating】item not found, ratingIndex:', this.ratingIndex, 'filteredList length:', this.filteredList.length);
+      return;
+    }
 
     const token = AuthService.getAuthToken();
-    if (!token) return;
+    if (!token) {
+      console.error('【submitRating】no token');
+      return;
+    }
+
+    console.info('【submitRating】disciple_openid:', item.openid, 'role:', this.ratingRole, 'score:', score, 'comment:', comment);
+    console.info('【submitRating】token:', token.substring(0, 20) + '...');
 
     try {
-      await createStandbyRating({
+      const res = await createStandbyRating({
         disciple_openid: item.openid,
         role: this.ratingRole,
         score: score,
         comment: comment
       }, token);
+      console.info('【submitRating】success:', JSON.stringify(res));
       promptAction.showToast({ message: '评价已提交' });
       this.loadData();
     } catch (err) {
+      console.error('【submitRating】error:', JSON.stringify(err));
       promptAction.showToast({ message: '提交失败' });
     }
   }
@@ -691,11 +785,42 @@ struct Standby {
 
     try {
       const price = parseFloat(this.introPrice) || 0;
+      console.info('【onConfirmIntro】before joinDisciple, isJoined:', this.isJoined);
       await joinDisciple(text, price, token);
+      console.info('【onConfirmIntro】after joinDisciple, isJoined:', this.isJoined);
       promptAction.showToast({ message: '发布成功' });
       this.showIntroPopup = false;
-      this.loadData();
+      // 立即设置 isJoined = true（用户已在列表中）
+      this.isJoined = true;
+      console.info('【onConfirmIntro】after set isJoined=true, isJoined:', this.isJoined);
+      // 更新缓存（使用当前列表数据，保持 isJoined=true）
+      const cacheItems: DiscipleItem[] = this.pilotList.map((item: ObservedDiscipleItem): DiscipleItem => {
+        return {
+          openid: item.openid,
+          order_id: item.order_id,
+          out_trade_no: item.out_trade_no,
+          name: item.name,
+          city: item.city,
+          avatar: item.avatar,
+          intro: item.intro,
+          price: item.price,
+          paid_at: item.paid_at,
+          finished_at: item.finished_at,
+          masters: item.masters,
+          masterCount: item.masterCount,
+          hasMatchedMe: item.hasMatchedMe,
+          isMine: item.isMine,
+          transfer_status: item.transfer_status,
+          rating: item.rating,
+          masterRating: item.masterRating
+        };
+      });
+      this.writeCache(cacheItems, true);
+      // 静默刷新获取最新列表（确保 isJoined 状态与列表一致）
+      this.loadData(false, true);
+      console.info('【onConfirmIntro】after loadData, isJoined:', this.isJoined);
     } catch (err) {
+      console.error('【onConfirmIntro】error:', JSON.stringify(err));
       promptAction.showToast({ message: '发布失败' });
     }
   }
@@ -707,7 +832,15 @@ struct Standby {
     try {
       await leaveDisciple(token);
       promptAction.showToast({ message: '已退出' });
-      this.loadData();
+      // 乐观更新：立即显示"加入匹配"按钮
+      this.isJoined = false;
+      // 更新缓存中的 isJoined 状态
+      const cached = this.readCache();
+      if (cached) {
+        this.writeCache(cached.items, false);
+      }
+      // 静默刷新获取最新列表
+      this.loadData(false, true);
     } catch (err) {
       promptAction.showToast({ message: '退出失败' });
     }

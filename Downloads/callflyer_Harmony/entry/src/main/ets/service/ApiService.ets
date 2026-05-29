@@ -1701,6 +1701,13 @@ export interface DiscipleMaster {
   avatar: string;
 }
 
+// 评星信息
+export interface RatingInfo {
+  score: number;
+  comment: string;
+  rated_at: string;
+}
+
 // 徒弟项（卡片数据）
 export interface DiscipleItem {
   openid: string;
@@ -1718,8 +1725,8 @@ export interface DiscipleItem {
   hasMatchedMe: boolean;
   isMine: boolean;
   transfer_status: string;
-  rating: number | null;
-  masterRating: number | null;
+  rating: RatingInfo | null;
+  masterRating: RatingInfo | null;
 }
 
 // 评星请求参数
@@ -1742,6 +1749,7 @@ export interface StandbyRatingResult {
 // 获取徒弟列表结果
 export interface DisciplesResult {
   items: DiscipleItem[];
+  isJoined: boolean;
 }
 
 // 获取我的徒弟结果
@@ -1782,6 +1790,19 @@ export async function fetchDisciples(): Promise<DisciplesResult> {
                 avatar: (masterRaw['avatar'] as string) || ''
               };
               const masters: DiscipleMaster[] = master.openid ? [master] : [];
+              // 解析评星信息
+              const ratingRaw = item['rating'] as Record<string, Object> | null;
+              const rating: RatingInfo | null = ratingRaw ? {
+                score: (ratingRaw['score'] as number) || 0,
+                comment: (ratingRaw['comment'] as string) || '',
+                rated_at: (ratingRaw['rated_at'] as string) || ''
+              } : null;
+              const masterRatingRaw = item['master_rating'] as Record<string, Object> | null;
+              const masterRating: RatingInfo | null = masterRatingRaw ? {
+                score: (masterRatingRaw['score'] as number) || 0,
+                comment: (masterRatingRaw['comment'] as string) || '',
+                rated_at: (masterRatingRaw['rated_at'] as string) || ''
+              } : null;
               return {
                 openid: (item['openid'] as string) || '',
                 order_id: (item['order_id'] as string) || '',
@@ -1798,17 +1819,18 @@ export async function fetchDisciples(): Promise<DisciplesResult> {
                 hasMatchedMe: !!(item['matched_by_me'] || item['matchedByMe']),
                 isMine: !!(item['is_mine'] || item['isMine']),
                 transfer_status: (item['transfer_status'] as string) || 'none',
-                rating: (item['rating'] as number) || null,
-                masterRating: (item['master_rating'] as number) || null,
+                rating: rating,
+                masterRating: masterRating,
               } as DiscipleItem;
             });
-            resolve({ items: items });
+            const isJoined = !!(res['is_joined']);
+            resolve({ items: items, isJoined: isJoined });
           } catch (e) {
             console.error('【fetchDisciples解析失败】', JSON.stringify(e));
             reject(new Error('解析失败'));
           }
         } else {
-          resolve({ items: [] });
+          resolve({ items: [], isJoined: false });
         }
         httpRequest.destroy();
       }
@@ -1826,10 +1848,10 @@ export async function fetchMyDisciples(token: string): Promise<MyDisciplesResult
       url,
       {
         method: http.RequestMethod.GET,
-        header: [
-          { 'Content-Type': 'application/json' },
-          { 'Authorization': 'Bearer ' + token }
-        ],
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
         connectTimeout: 10000,
         readTimeout: 10000
       },
@@ -1852,6 +1874,19 @@ export async function fetchMyDisciples(token: string): Promise<MyDisciplesResult
                 avatar: (masterRaw['avatar'] as string) || ''
               };
               const masters: DiscipleMaster[] = master.openid ? [master] : [];
+              // 解析评星信息
+              const ratingRaw = item['rating'] as Record<string, Object> | null;
+              const rating: RatingInfo | null = ratingRaw ? {
+                score: (ratingRaw['score'] as number) || 0,
+                comment: (ratingRaw['comment'] as string) || '',
+                rated_at: (ratingRaw['rated_at'] as string) || ''
+              } : null;
+              const masterRatingRaw = item['master_rating'] as Record<string, Object> | null;
+              const masterRating: RatingInfo | null = masterRatingRaw ? {
+                score: (masterRatingRaw['score'] as number) || 0,
+                comment: (masterRatingRaw['comment'] as string) || '',
+                rated_at: (masterRatingRaw['rated_at'] as string) || ''
+              } : null;
               return {
                 openid: (item['openid'] as string) || '',
                 order_id: (item['order_id'] as string) || '',
@@ -1868,8 +1903,8 @@ export async function fetchMyDisciples(token: string): Promise<MyDisciplesResult
                 hasMatchedMe: !!(item['matched_by_me'] || item['matchedByMe']),
                 isMine: !!(item['is_mine'] || item['isMine']),
                 transfer_status: (item['transfer_status'] as string) || 'none',
-                rating: (item['rating'] as number) || null,
-                masterRating: (item['master_rating'] as number) || null,
+                rating: rating,
+                masterRating: masterRating,
               } as DiscipleItem;
             });
             resolve({ items: items });
@@ -1972,10 +2007,10 @@ export async function joinDisciple(intro: string, price: number, token: string):
       url,
       {
         method: http.RequestMethod.POST,
-        header: [
-          { 'Content-Type': 'application/json' },
-          { 'Authorization': 'Bearer ' + token }
-        ],
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
         extraData: JSON.stringify({ intro, price }),
         connectTimeout: 10000,
         readTimeout: 10000
@@ -2008,10 +2043,10 @@ export async function leaveDisciple(token: string): Promise<void> {
       url,
       {
         method: http.RequestMethod.DELETE,
-        header: [
-          { 'Content-Type': 'application/json' },
-          { 'Authorization': 'Bearer ' + token }
-        ],
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
         connectTimeout: 10000,
         readTimeout: 10000
       },
@@ -2039,14 +2074,15 @@ export async function createStandbyRating(payload: CreateRatingPayload, token: s
     const httpRequest = http.createHttp();
     const url = `${BASE_URL}/api/standby/ratings`;
     console.info('【接口请求】createStandbyRating url:', url);
+    console.info('【接口请求】createStandbyRating token:', token ? token.substring(0, 20) + '...' : 'empty');
     httpRequest.request(
       url,
       {
         method: http.RequestMethod.POST,
-        header: [
-          { 'Content-Type': 'application/json' },
-          { 'Authorization': 'Bearer ' + token }
-        ],
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
         extraData: JSON.stringify(payload),
         connectTimeout: 10000,
         readTimeout: 10000
