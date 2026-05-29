@@ -256,15 +256,6 @@ struct Standby {
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
 
-      // 顶部模糊层
-      Column()
-        .width('100%')
-        .height(120)
-        .backgroundColor($r('app.color.card_bg'))
-        .blur(30)
-        .position({ y: 0 })
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
-
       // 主内容区 - 可滚动
       Column() {
         Scroll() {
