@@ -228,6 +228,7 @@ struct Index {
   @State imageList: BannerItem[] = [];
   @State currentIndex: number = 0;
   @State bannerLoaded: boolean = false;
+  @State bannerOpacity: number = 1;
   @State autoplay: boolean = true;
 
   // 跑马灯
@@ -573,7 +574,12 @@ struct Index {
       const baseBanners = banners.length > 0 ? banners : this.getDefaultBanners();
       const rewardBanner = this.getRewardBanner();
       this.bannerCache = [rewardBanner, ...baseBanners];
-      this.imageList = this.bannerCache;
+      // 渐显动画
+      this.bannerOpacity = 0;
+      setTimeout(() => {
+        this.imageList = this.bannerCache;
+        this.bannerOpacity = 1;
+      }, 50);
     } catch {
       // 拉取失败且无缓存，使用默认
       if (this.imageList.length === 0) {
@@ -2221,7 +2227,8 @@ struct Index {
             .width('100%')
             .height(230)
             .padding({ left: 18, right: 18, top: 0, bottom: 0 })
-            .opacity(this.bannerLoaded ? 1 : 0)
+            .opacity(this.bannerLoaded ? this.bannerOpacity : 0)
+            .animation({ duration: 300, curve: Curve.EaseOut })
 
             // 自定义指示器（带动画）
             Row() {
