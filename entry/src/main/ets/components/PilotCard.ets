@@ -107,6 +107,31 @@ struct ImagePreviewDialog {
 
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
+      // 手势层（处理缩放和平移）
+      Column()
+        .width('100%')
+        .height('100%')
+        .gesture(GestureGroup(GestureMode.Exclusive,
+          TapGesture({ count: 2 })
+            .onAction(() => { this.toggleZoom(); }),
+          PinchGesture()
+            .onActionUpdate((event: GestureEvent) => {
+              let s = Math.max(0.5, Math.min(4, this.lastScale * event.scale));
+              this.zoomLevel = s;
+              if (s < 1) { this.offsetX = 0; this.offsetY = 0; }
+            })
+            .onActionEnd(() => {
+              this.lastScale = this.zoomLevel;
+              if (this.zoomLevel < 1) { this.resetZoom(); }
+            }),
+          PanGesture()
+            .onActionUpdate((event: GestureEvent) => {
+              if (this.zoomLevel > 1) {
+                this.offsetX += event.offsetX;
+                this.offsetY += event.offsetY;
+              }
+            })
+        ))
 
       // 图片 Swiper
       Swiper() {
@@ -117,27 +142,6 @@ struct ImagePreviewDialog {
             .objectFit(ImageFit.Contain)
             .scale({ x: this.zoomLevel, y: this.zoomLevel })
             .translate({ x: this.offsetX, y: this.offsetY })
-            .gesture(GestureGroup(GestureMode.Exclusive,
-              TapGesture({ count: 2 })
-                .onAction(() => { this.toggleZoom(); }),
-              PinchGesture()
-                .onActionUpdate((event: GestureEvent) => {
-                  let s = Math.max(0.5, Math.min(4, this.lastScale * event.scale));
-                  this.zoomLevel = s;
-                  if (s < 1) { this.offsetX = 0; this.offsetY = 0; }
-                })
-                .onActionEnd(() => {
-                  this.lastScale = this.zoomLevel;
-                  if (this.zoomLevel < 1) { this.resetZoom(); }
-                }),
-              PanGesture()
-                .onActionUpdate((event: GestureEvent) => {
-                  if (this.zoomLevel > 1) {
-                    this.offsetX += event.offsetX;
-                    this.offsetY += event.offsetY;
-                  }
-                })
-            ))
         })
       }
       .index(this.currentIndex)
