@@ -1,0 +1,50 @@
+{
+  "HVIGOR_OHOS_PLUGIN": {
+    "MODULES": [
+      {
+        "MODULE_NAME": "923fe53966c6cd9343e11af776cd4b05be315ea4b200b02e4d5dfb0f929b73bf",
+        "API_TYPE": "stageMode",
+        "INCLUDE_IN_BUILD": true,
+        "IS_COMMAND_LINE_ENTRY_MODULE": false,
+        "MODULE_TYPE": "entry",
+        "INCREMENTAL_TASKS": {
+          "COMPILE_ARKTS": true
+        },
+        "IS_INCREMENTAL_MODULE": true
+      }
+    ],
+    "NATIVE_COMPILER": "Default",
+    "IS_FULL_BUILD": false,
+    "BUILD_MODE": "release"
+  },
+  "HVIGOR": {
+    "IS_INCREMENTAL": true,
+    "IS_DAEMON": true,
+    "IS_PARALLEL": true,
+    "IS_HVIGORFILE_TYPE_CHECK": false,
+    "TASK_TIME": {},
+    "APIS": [],
+    "CONFIG_EXPERIMENT": {
+      "ENABLE_MODULE_SKIP": false,
+      "ENABLE_CPP_FUNCTION_LEVEL_INCREMENTAL": false
+    },
+    "CONFIG_PROPERTIES": {},
+    "TOTAL_TIME": 30631584,
+    "BUILD_ID": "202605302029366390",
+    "ERROR_MESSAGE": [
+      {
+        "CODE": "00303038",
+        "MESSAGE": "%s",
+        "SOLUTIONS": [
+          "Please check the following fields. \n {\n  instancePath: '',\n  keyword: 'enum',\n  params: {\n    allowedValues: [\n      'apiType',\n      'targets',\n      'showInServiceCenter',\n      'buildOption',\n      'buildOptionSet',\n      'buildModeBinder',\n      'entryModules'\n    ]\n  },\n  message: 'must be equal to one of the allowed values',\n  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'\n} \n{\n  instancePath: '',\n  keyword: 'propertyNames',\n  params: { propertyName: 'modules' },\n  message: 'property name must be valid',\n  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'\n} \n"
+        ],
+        "TIMESTAMP": "1780144176667"
+      },
+      {
+        "CODE": "00303038",
+        "STACK": "00303038 Configuration Error\n...",
+        "PROJECT_CONFIG": {}
+      }
+    ]
+  }
+}

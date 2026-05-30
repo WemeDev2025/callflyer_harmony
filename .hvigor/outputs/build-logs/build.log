@@ -1,0 +1,194 @@
+[2026-05-30T20:29:36.444] [DEBUG] debug-file - env: nodejsVersion=v24.7.0
+[2026-05-30T20:29:36.453] [DEBUG] debug-file - env: daemon=true
+[2026-05-30T20:29:36.445] [DEBUG] debug-file - env: hvigor-config.json5 content = {
+  modelVersion: '6.0.1',
+  dependencies: {},
+  execution: {},
+  logging: {},
+  debugging: {},
+  nodeOptions: {}
+}
+[2026-05-30T20:29:36.636] [DEBUG] debug-file - session manager: set active socket. socketId=NRwsZmkuLJzx3QQhAAAf
+[2026-05-30T20:29:36.638] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-30T20:29:36.639] [DEBUG] debug-file - Workers' log level updated to INFO
+[2026-05-30T20:29:36.641] [DEBUG] debug-file - Hvigor init with startParameters:{
+  hvigorfileTypeCheck: false,
+  parallelExecution: true,
+  incrementalExecution: true,
+  printStackTrace: false,
+  daemon: true,
+  analyze: 0,
+  logLevel: Level { level: 20000, levelStr: 'INFO', colour: 'green' },
+  optimizationStrategy: 'memory',
+  hotCompile: undefined,
+  hotReloadBuild: undefined,
+  customizedParam: undefined
+}
+[2026-05-30T20:29:36.641] [DEBUG] debug-file - Since current hvigor version 6.23.5 differs from last hvigor version 
+      undefined, delete file-cache.json and task-cache.json.
+[2026-05-30T20:29:36.641] [DEBUG] debug-file - Cache service initialization finished in 1 ms 
+[2026-05-30T20:29:36.642] [DEBUG] debug-file - hvigorfile, resolving /Users/zhaojing/Downloads/callflyer_Harmony/hvigorfile.ts
+[2026-05-30T20:29:36.646] [DEBUG] debug-file - hvigorfile, require result:  { default: { plugins: [] } }
+[2026-05-30T20:29:36.646] [DEBUG] debug-file - hvigorfile, binding system plugins null
+[2026-05-30T20:29:36.646] [DEBUG] debug-file - Starting plugin build process
+[2026-05-30T20:29:36.646] [DEBUG] debug-file - App plugin prepare start...
+[2026-05-30T20:29:36.646] [DEBUG] debug-file - App plugin prepare end...
+[2026-05-30T20:29:36.646] [DEBUG] debug-file - App plugin creating...
+[2026-05-30T20:29:36.649] [DEBUG] debug-file - App plugin register hook start...
+[2026-05-30T20:29:36.649] [DEBUG] debug-file - App plugin register hook end...
+[2026-05-30T20:29:36.649] [DEBUG] debug-file - Plugin build process completed
+[2026-05-30T20:29:36.650] [DEBUG] debug-file - Start initialize project's product build option map with build mode release.
+[2026-05-30T20:29:36.650] [DEBUG] debug-file - Picking option from product 'default' with build mode 'release'.
+[2026-05-30T20:29:36.650] [DEBUG] debug-file - Product 'default' build option initialized
+[2026-05-30T20:29:36.650] [DEBUG] debug-file - End initialize project's product build option map with build mode 'release'.
+[2026-05-30T20:29:36.650] [DEBUG] debug-file - Obtain build option for product 'default'in this build.
+[2026-05-30T20:29:36.651] [DEBUG] debug-file - /Users/zhaojing/Downloads/callflyer_Harmony/build/cache/default/remote_hsp/remoteHspCache.json not exists.
+[2026-05-30T20:29:36.651] [DEBUG] debug-file - Start recording SDK configuration permission data.
+[2026-05-30T20:29:36.663] [DEBUG] debug-file - Sdk init in 12 ms 
+[2026-05-30T20:29:36.664] [DEBUG] debug-file - Project task initialization takes 1 ms 
+[2026-05-30T20:29:36.664] [DEBUG] debug-file - hvigorfile, begin to bind custom plugins...
+[2026-05-30T20:29:36.664] [DEBUG] debug-file - hvigorfile, no custom plugins were found in /Users/zhaojing/Downloads/callflyer_Harmony/hvigorfile.ts
+[2026-05-30T20:29:36.664] [DEBUG] debug-file - hvigorfile, resolve finished /Users/zhaojing/Downloads/callflyer_Harmony/hvigorfile.ts
+[2026-05-30T20:29:36.664] [DEBUG] debug-file - hvigorfile, resolving /Users/zhaojing/Downloads/callflyer_Harmony/entry/hvigorfile.ts
+[2026-05-30T20:29:36.666] [DEBUG] debug-file - hvigorfile, require result:  { default: { plugins: [] } }
+[2026-05-30T20:29:36.666] [DEBUG] debug-file - hvigorfile, binding system plugins null
+[2026-05-30T20:29:36.666] [DEBUG] debug-file - Starting plugin build process
+[2026-05-30T20:29:36.666] [DEBUG] debug-file - Hap plugin creating...
+[2026-05-30T20:29:36.666] [DEBUG] debug-file - failed to load cangjie to dynamically generate schemas: Error: Cannot find module '@ohos/cangjie-build-support/index'
+Require stack:
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/hooks/cangjie-register.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/stage-init-strategy.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/abstract-plugin-builder.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/app-plugin-builder.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/factory/plugin-factory.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/index.js
+- /Users/zhaojing/Downloads/callflyer_Harmony/hvigorfile.ts
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/internal/lifecycle/configuration.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/boot/index.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/daemon/cluster/worker-process-lifecycle.js
+- /Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/daemon/process/daemon-process-boot-script.js
+[2026-05-30T20:29:36.669] [DEBUG] debug-file - hvigor build process will be closed with an error.
+[2026-05-30T20:29:36.670] [ERROR] debug-file - [31m00303038 Configuration Error
+Error Message: Schema validate failed, at file: /Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5
+
+* Try the following:
+  > Please check the following fields. 
+ {
+  instancePath: '',
+  keyword: 'enum',
+  params: {
+    allowedValues: [
+      'apiType',
+      'targets',
+      'showInServiceCenter',
+      'buildOption',
+      'buildOptionSet',
+      'buildModeBinder',
+      'entryModules'
+    ]
+  },
+  message: 'must be equal to one of the allowed values',
+  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'
+} 
+{
+  instancePath: '',
+  keyword: 'propertyNames',
+  params: { propertyName: 'modules' },
+  message: 'property name must be valid',
+  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'
+} 
+
+[39m
+
+[31m* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+
+[2026-05-30T20:29:36.670] [DEBUG] debug-file - ERROR: stacktrace = AdaptorError: [31m00303038 Configuration Error
+Error Message: Schema validate failed, at file: /Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5
+
+* Try the following:
+  > Please check the following fields. 
+ {
+  instancePath: '',
+  keyword: 'enum',
+  params: {
+    allowedValues: [
+      'apiType',
+      'targets',
+      'showInServiceCenter',
+      'buildOption',
+      'buildOptionSet',
+      'buildModeBinder',
+      'entryModules'
+    ]
+  },
+  message: 'must be equal to one of the allowed values',
+  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'
+} 
+{
+  instancePath: '',
+  keyword: 'propertyNames',
+  params: { propertyName: 'modules' },
+  message: 'property name must be valid',
+  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'
+} 
+
+[39m
+    at OhosLogger.printErrorExit (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/log/hvigor-log.js:1:5087)
+    at ValidateUtil.doSchemaCheck (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/utils/validate/validate-util.js:1:8177)
+    at ValidateUtil.submitSchemaCheckWork (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/utils/validate/validate-util.js:1:7013)
+    at ModuleModelImpl.moduleBuildProfileCheck (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/model/module/core-module-model-impl.js:1:8042)
+    at StageInitializationStrategy.createModuleModel (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/initialization-strategy.js:1:214)
+    at StageInitializationStrategy.initPluginParam (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/stage-init-strategy.js:1:2750)
+    at StageInitializationStrategy.createHapPlugin (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/stage-init-strategy.js:1:1150)
+    at HapPluginBuilder.createPlugin (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/hap-plugin-builder.js:1:622)
+    at HapPluginBuilder.build (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/abstract-plugin-builder.js:1:756)
+    at PluginFactory.getHapPlugin (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/factory/plugin-factory.js:1:574)
+[2026-05-30T20:29:36.670] [ERROR] debug-file - AdaptorError: [31m00303038 Configuration Error
+Error Message: Schema validate failed, at file: /Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5
+
+* Try the following:
+  > Please check the following fields. 
+ {
+  instancePath: '',
+  keyword: 'enum',
+  params: {
+    allowedValues: [
+      'apiType',
+      'targets',
+      'showInServiceCenter',
+      'buildOption',
+      'buildOptionSet',
+      'buildModeBinder',
+      'entryModules'
+    ]
+  },
+  message: 'must be equal to one of the allowed values',
+  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'
+} 
+{
+  instancePath: '',
+  keyword: 'propertyNames',
+  params: { propertyName: 'modules' },
+  message: 'property name must be valid',
+  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'
+} 
+
+[39m
+    at OhosLogger.printErrorExit (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor/src/base/log/hvigor-log.js:1:5087)
+    at ValidateUtil.doSchemaCheck (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/utils/validate/validate-util.js:1:8177)
+    at ValidateUtil.submitSchemaCheckWork (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/utils/validate/validate-util.js:1:7013)
+    at ModuleModelImpl.moduleBuildProfileCheck (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/model/module/core-module-model-impl.js:1:8042)
+    at StageInitializationStrategy.createModuleModel (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/initialization-strategy.js:1:214)
+    at StageInitializationStrategy.initPluginParam (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/stage-init-strategy.js:1:2750)
+    at StageInitializationStrategy.createHapPlugin (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/strategy/stage-init-strategy.js:1:1150)
+    at HapPluginBuilder.createPlugin (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/hap-plugin-builder.js:1:622)
+    at HapPluginBuilder.build (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/builder/abstract-plugin-builder.js:1:756)
+    at PluginFactory.getHapPlugin (/Applications/DevEco-Studio.app/Contents/tools/hvigor/hvigor-ohos-plugin/src/plugin/factory/plugin-factory.js:1:574)
+[2026-05-30T20:29:36.670] [ERROR] debug-file - BUILD FAILED in 31 ms 
+[2026-05-30T20:29:36.672] [DEBUG] debug-file - hvigor build process will be closed.
+[2026-05-30T20:29:36.672] [DEBUG] debug-file - session manager: send message to worker process.
+[2026-05-30T20:29:36.672] [DEBUG] debug-file - session manager: send message to worker process.
+[2026-05-30T20:29:36.672] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.
+[2026-05-30T20:29:36.672] [DEBUG] debug-file - watch worker: worker id should be larger than 0. Nothing will be sent to any worker thread.

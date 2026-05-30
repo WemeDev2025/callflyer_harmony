@@ -1,16 +1,15 @@
 {
-  "modules": [
+  "apiType": "stageMode",
+  "buildOption": {
+    "resOptions": {
+      "copyCodeResource": {
+        "enable": false
+      }
+    }
+  },
+  "targets": [
     {
-      "name": "entry",
-      "srcPath": "./src/main",
-      "targets": [
-        {
-          "name": "default",
-          "applyToProducts": [
-            "default"
-          ]
-        }
-      ]
+      "name": "default"
     }
   ]
 }
