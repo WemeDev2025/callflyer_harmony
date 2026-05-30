@@ -1148,19 +1148,56 @@ struct Index {
           }
         },
         onLikeChanged: (likeCount: number, likedByMe: boolean) => {
-          // 同步更新 standbyItems
+          // 同步更新 standbyItems（需要新数组引用触发 UI 更新）
           const idx = this.standbyItems.findIndex(item => item.openid === this.expandedStandbyItem?.openid);
           if (idx >= 0) {
-            this.standbyItems[idx].likeCount = likeCount;
+            const newItems = this.standbyItems.slice();
+            const oldItem = newItems[idx];
+            newItems[idx] = {
+              openid: oldItem.openid,
+              joined_at: oldItem.joined_at,
+              profile: oldItem.profile,
+              likeCount: likeCount,
+              viewCount: oldItem.viewCount
+            };
+            this.standbyItems = newItems;
           }
           // 同步更新 expandedStandbyItem
           if (this.expandedStandbyItem) {
             this.expandedStandbyItem.likeCount = likeCount;
           }
-          // 同步更新 expandedPilotCardData
+          // 同步更新 expandedPilotCardData（需要新对象引用触发 UI 更新）
           if (this.expandedPilotCardData) {
-            this.expandedPilotCardData.likeCount = likeCount;
-            this.expandedPilotCardData.likedByMe = likedByMe;
+            const old = this.expandedPilotCardData;
+            const updated: PilotCardData = new PilotCardData();
+            updated.openid = old.openid;
+            updated.nickname = old.nickname;
+            updated.avatar = old.avatar;
+            updated.city = old.city;
+            updated.userRole = old.userRole;
+            updated.roleLabel = old.roleLabel;
+            updated.licenseType = old.licenseType;
+            updated.licenseStatus = old.licenseStatus;
+            updated.pilotCode = old.pilotCode;
+            updated.company = old.company;
+            updated.position = old.position;
+            updated.droneModel = old.droneModel;
+            updated.businessScopeText = old.businessScopeText;
+            updated.recentActiveText = old.recentActiveText;
+            updated.likeCount = likeCount;
+            updated.likedByMe = likedByMe;
+            updated.phone = old.phone;
+            updated.wechatId = old.wechatId;
+            updated.douyinId = old.douyinId;
+            updated.distanceText = old.distanceText;
+            updated.isNew = old.isNew;
+            updated.workMu = old.workMu;
+            updated.workKg = old.workKg;
+            updated.droneImages = old.droneImages;
+            updated.channelsId = old.channelsId;
+            updated.institutionId = old.institutionId;
+            updated.licenseUrl = old.licenseUrl;
+            this.expandedPilotCardData = updated;
           }
         }
       });
