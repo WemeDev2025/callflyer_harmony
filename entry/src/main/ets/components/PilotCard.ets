@@ -2,7 +2,7 @@ import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
 import vibrator from '@ohos.vibrator';
-import { imagePreview } from './imagepreview/ImagePreview';
+import window from '@ohos.window';
 import { likeProfile, unlikeProfile } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
@@ -43,6 +43,159 @@ export class PilotCardData {
   licenseUrl: string = '';
 }
 
+// ─── 图片预览弹窗参数 ─────────────────────────────────────────────────────────
+// （已移除，改用 CustomDialogController 方案）
+
+// ─── 全屏图片预览内容 ─────────────────────────────────────────────────────────
+@CustomDialog
+struct ImagePreviewDialog {
+  imageUrls: string[] = [];
+  startIndex: number = 0;
+  controller: CustomDialogController = new CustomDialogController({ builder: () => {} });
+
+  @State currentIndex: number = 0;
+  @State zoomLevel: number = 1;
+  @State lastScale: number = 1;
+  @State offsetX: number = 0;
+  @State offsetY: number = 0;
+  @State showUI: boolean = true;
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+
+  aboutToAppear() {
+    this.currentIndex = this.startIndex;
+    // 设置状态栏字体为白色
+    try {
+      window.getLastWindow(getContext(this)).then((win) => {
+        win.setWindowSystemBarProperties({
+          statusBarContentColor: '#FFFFFF'
+        });
+      });
+    } catch (e) {}
+  }
+
+  aboutToDisappear() {
+    // 退出时恢复状态栏字体颜色
+    try {
+      window.getLastWindow(getContext(this)).then((win) => {
+        const isDark = this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
+        win.setWindowSystemBarProperties({
+          statusBarContentColor: isDark ? '#FFFFFF' : '#14233a'
+        });
+      });
+    } catch (e) {}
+  }
+
+  resetZoom() {
+    animateTo({ duration: 200 }, () => {
+      this.zoomLevel = 1;
+      this.lastScale = 1;
+      this.offsetX = 0;
+      this.offsetY = 0;
+    });
+  }
+
+  toggleZoom() {
+    if (this.zoomLevel > 1) {
+      this.resetZoom();
+    } else {
+      animateTo({ duration: 200 }, () => {
+        this.zoomLevel = 2;
+        this.lastScale = 2;
+      });
+    }
+  }
+
+  build() {
+    Stack({ alignContent: Alignment.TopStart }) {
+
+      // 图片 Swiper
+      Swiper() {
+        ForEach(this.imageUrls, (url: string) => {
+          Image(url)
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Contain)
+            .scale({ x: this.zoomLevel, y: this.zoomLevel })
+            .translate({ x: this.offsetX, y: this.offsetY })
+            .gesture(GestureGroup(GestureMode.Exclusive,
+              TapGesture({ count: 2 })
+                .onAction(() => { this.toggleZoom(); }),
+              PinchGesture()
+                .onActionUpdate((event: GestureEvent) => {
+                  let s = Math.max(0.5, Math.min(4, this.lastScale * event.scale));
+                  this.zoomLevel = s;
+                  if (s < 1) { this.offsetX = 0; this.offsetY = 0; }
+                })
+                .onActionEnd(() => {
+                  this.lastScale = this.zoomLevel;
+                  if (this.zoomLevel < 1) { this.resetZoom(); }
+                }),
+              PanGesture()
+                .onActionUpdate((event: GestureEvent) => {
+                  if (this.zoomLevel > 1) {
+                    this.offsetX += event.offsetX;
+                    this.offsetY += event.offsetY;
+                  }
+                })
+            ))
+        })
+      }
+      .index(this.currentIndex)
+      .indicator(false)
+      .loop(false)
+      .duration(300)
+      .disableSwipe(this.zoomLevel > 1)
+      .onClick(() => { this.showUI = !this.showUI; })
+      .onChange((index: number) => {
+        this.currentIndex = index;
+        this.zoomLevel = 1; this.lastScale = 1;
+        this.offsetX = 0; this.offsetY = 0;
+      })
+      .width('100%')
+      .height('100%')
+
+      // 顶部栏
+      if (this.showUI) {
+        Row() {
+          if (this.imageUrls.length > 1) {
+            Text(`${this.currentIndex + 1} / ${this.imageUrls.length}`)
+              .fontSize(16)
+              .fontColor('#FFFFFF')
+          }
+          Blank()
+          Text('✕')
+            .fontSize(26)
+            .fontColor('#FFFFFF')
+            .padding(8)
+            .onClick(() => { this.controller.close(); })
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16, top: 48, bottom: 12 })
+      }
+
+      // 底部指示点
+      if (this.showUI && this.imageUrls.length > 1) {
+        Row() {
+          ForEach(this.imageUrls, (_url: string, idx: number) => {
+            Circle({ width: 7, height: 7 })
+              .fill(idx === this.currentIndex ? '#FFFFFF' : 'rgba(255,255,255,0.4)')
+              .margin({ left: 4, right: 4 })
+          })
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.Center)
+        .padding({ bottom: 40 })
+        .alignSelf(ItemAlign.End)
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor('rgba(0, 0, 0, 0)')
+    .expandSafeArea([SafeAreaType.SYSTEM])
+  }
+}
+
+// ─── PilotCard ───────────────────────────────────────────────────────────────
 @Component
 export struct PilotCard {
   // 颜色模式监听（跟随系统深浅色）
@@ -87,6 +240,7 @@ export struct PilotCard {
   // 点赞状态（内部管理）
   @State internalLikeCount: number = 0;
   @State internalLikedByMe: boolean = false;
+
   // 微信点击回调
   onWechatClick?: (openid: string) => void;
   // 电话点击回调
@@ -96,6 +250,40 @@ export struct PilotCard {
   // 在「我赞过」标签下点击取消时直接移除的回调
   onUnlikeInLikedTab?: () => void;
 
+  // 图片预览 controller（在组件实例内声明，绑定到当前 UI 上下文）
+  private previewUrls: string[] = [];
+  private previewStartIndex: number = 0;
+  private previewController: CustomDialogController = new CustomDialogController({
+    builder: ImagePreviewDialog({
+      imageUrls: this.previewUrls,
+      startIndex: this.previewStartIndex,
+    }),
+    customStyle: true,
+    maskColor: '#000000',
+    backgroundColor: '#000000',
+    alignment: DialogAlignment.Center,
+    offset: { dx: 0, dy: 0 }
+  });
+
+  openPreview(urls: string[], index: number) {
+    // 关闭旧的再重建，确保数据更新
+    try { this.previewController.close(); } catch (_) {}
+    this.previewUrls = urls;
+    this.previewStartIndex = index;
+    this.previewController = new CustomDialogController({
+      builder: ImagePreviewDialog({
+        imageUrls: urls,
+        startIndex: index,
+      }),
+      customStyle: true,
+      maskColor: '#000000',
+      backgroundColor: '#000000',
+      alignment: DialogAlignment.Center,
+      offset: { dx: 0, dy: 0 }
+    });
+    this.previewController.open();
+  }
+
   aboutToAppear() {
     this.internalLikeCount = this.user.likeCount ?? 0;
     this.internalLikedByMe = this.user.likedByMe ?? false;
@@ -104,25 +292,18 @@ export struct PilotCard {
   aboutToReuse(params: Record<string, Object>) {
     const userParam = params['user'] as PilotCardData;
     if (userParam) {
-      console.info('【aboutToReuse】openid:', userParam.openid, 'new likedByMe:', userParam.likedByMe, 'new likeCount:', userParam.likeCount);
       this.internalLikeCount = userParam.likeCount ?? 0;
       this.internalLikedByMe = userParam.likedByMe ?? false;
     }
   }
 
   async handleLikeClick() {
-    console.info('【handleLikeClick】START openid:', this.user.openid, 'nickname:', this.user.nickname);
-    console.info('【handleLikeClick】prev state - internalLikedByMe:', this.internalLikedByMe, 'internalLikeCount:', this.internalLikeCount);
-    console.info('【handleLikeClick】user state - likedByMe:', this.user.likedByMe, 'likeCount:', this.user.likeCount);
-
-    // 同步 internal 状态与 user prop（处理组件复用时 prop 变化但 aboutToAppear 未重新执行的情况）
+    // 同步 internal 状态与 user prop
     if (this.internalLikedByMe !== this.user.likedByMe || this.internalLikeCount !== this.user.likeCount) {
-      console.info('【handleLikeClick】syncing internal state from user prop');
       this.internalLikedByMe = this.user.likedByMe ?? false;
       this.internalLikeCount = this.user.likeCount ?? 0;
     }
 
-    // 震动反馈
     try {
       vibrator.startVibration({ type: 'time', duration: 30 }, { usage: 'touch' });
     } catch (e) {}
@@ -133,29 +314,21 @@ export struct PilotCard {
       return;
     }
 
-    // 检查是否给自己点赞
     const currentUser = AuthService.getCurrentUser();
     if (currentUser && currentUser.openId === this.user.openid) {
       promptAction.showToast({ message: '不能给自己点赞' });
       return;
     }
 
-    // 保存当前状态用于回滚
     const prevLiked = this.internalLikedByMe;
     const prevCount = this.internalLikeCount;
     const nextLiked = !prevLiked;
     const optimisticCount = Math.max(0, (prevCount ?? 0) + (nextLiked ? 1 : -1));
 
-    console.info('【handleLikeClick】action - nextLiked:', nextLiked, 'prevCount:', prevCount, 'optimisticCount:', optimisticCount);
-
-    // 乐观更新
     this.internalLikedByMe = nextLiked;
     this.internalLikeCount = optimisticCount;
-    console.info('【handleLikeClick】after optimistic update - internalLikedByMe:', this.internalLikedByMe, 'internalLikeCount:', this.internalLikeCount);
 
-    // 如果是取消点赞且有 onUnlikeInLikedTab 回调，立即触发移除（不等 API 返回）
     if (!nextLiked && this.onUnlikeInLikedTab) {
-      console.info('【handleLikeClick】触发点击即移除');
       this.onUnlikeInLikedTab();
     }
 
@@ -164,26 +337,16 @@ export struct PilotCard {
         ? await likeProfile(this.user.openid, token)
         : await unlikeProfile(this.user.openid, token);
 
-      console.info('【handleLikeClick】API response - liked_by_me:', res.liked_by_me, 'like_count:', res.like_count);
-
-      // 更新最终状态
       this.internalLikedByMe = res.liked_by_me;
-      // unlike 成功但服务器返回的计数与之前相同时，可能是旧数据，使用乐观更新的值
       if (!nextLiked && res.liked_by_me === false && res.like_count === prevCount) {
         this.internalLikeCount = optimisticCount;
-        console.info('【handleLikeClick】using optimistic count:', optimisticCount);
       } else {
         this.internalLikeCount = res.like_count;
-        console.info('【handleLikeClick】using API count:', res.like_count);
       }
-      // 同步更新 user prop，避免下次点击时状态不一致
       this.user.likeCount = this.internalLikeCount;
-      // 强制触发UI更新
       this.user.likedByMe = res.liked_by_me;
       this.onLikeChanged?.(res.like_count, res.liked_by_me);
-      console.info('【handleLikeClick】FINAL - internalLikedByMe:', this.internalLikedByMe, 'internalLikeCount:', this.internalLikeCount);
     } catch (err) {
-      // 失败回滚
       this.internalLikedByMe = prevLiked;
       this.internalLikeCount = prevCount;
       console.error('【点赞失败】', JSON.stringify(err));
@@ -201,9 +364,7 @@ export struct PilotCard {
           .borderRadius(22.5)
           .backgroundColor($r('app.color.avatar_placeholder'))
           .onClick(() => {
-            imagePreview.show([this.user.avatar || DEFAULT_AVATAR], {
-              showIndex: false
-            });
+            this.openPreview([this.user.avatar || DEFAULT_AVATAR], 0);
           })
 
         Column() {
@@ -447,14 +608,14 @@ export struct PilotCard {
             .margin({ top: 9 })
           Scroll() {
             Row() {
-              ForEach(this.user.droneImages, (img: string) => {
+              ForEach(this.user.droneImages, (img: string, index: number) => {
                 Image(img)
                   .width(80)
                   .height(60)
                   .borderRadius(4)
                   .margin({ right: 8 })
                   .onClick(() => {
-                    imagePreview.show(this.user.droneImages, { showIndex: false });
+                    this.openPreview(this.user.droneImages, index);
                   })
               })
             }
