@@ -27,6 +27,14 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 // 默认头像
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 
+// 白色染色矩阵（用于深色模式下图标染色）
+const WHITE_FILL_MATRIX: number[] = [
+  0, 0, 0, 0, 1,
+  0, 0, 0, 0, 1,
+  0, 0, 0, 0, 1,
+  0, 0, 0, 1, 0
+];
+
 // 防抖标记：确保每次启动只上报一次访问
 let visitReported = false;
 
@@ -2339,7 +2347,7 @@ struct Index {
                 Image($r('app.media.icon_search'))
                   .width(25)
                   .height(25)
-                  .fillColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#000000')
+                  .colorFilter(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? WHITE_FILL_MATRIX : null)
                   .margin({ right: 18 })
                   .onClick(() => {
                     router.pushUrl({ url: 'pages/CertifiedUsers' });
