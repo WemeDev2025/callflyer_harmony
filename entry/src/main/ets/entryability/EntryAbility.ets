@@ -38,34 +38,64 @@ export default class EntryAbility extends UIAbility {
     hilog.info(DOMAIN, TAG, 'EntryAbility onDestroy');
   }
 
+  // 请求通知权限
+  private async requestNotificationPermission(): Promise<void> {
+    try {
+      // 检查当前通知权限状态
+      let isEnabled = notificationManager.isNotificationEnabledSync();
+      hilog.info(DOMAIN, TAG, '[ANS] 通知权限状态: %{public}s', isEnabled ? '已开启' : '未开启');
+
+      // 直接请求通知权限（系统会自动处理：已开启则不弹窗，未开启则弹窗）
+      hilog.info(DOMAIN, TAG, '[ANS] 调用 requestEnableNotification...');
+      await notificationManager.requestEnableNotification();
+      hilog.info(DOMAIN, TAG, '[ANS] requestEnableNotification success');
+    } catch (error) {
+      const err = error as BusinessError;
+      hilog.error(DOMAIN, TAG, '[ANS] requestEnableNotification failed, code=%{public}d, message=%{public}s', err.code, err.message);
+
+      // 根据错误码处理
+      if (err.code === 1600004) {
+        // 用户拒绝授权，拉起通知设置页面
+        hilog.info(DOMAIN, TAG, '[ANS] 用户拒绝，打开通知设置页面');
+        try {
+          notificationManager.openNotificationSettings(this.context);
+        } catch (e) {
+          hilog.error(DOMAIN, TAG, '[ANS] openNotificationSettings failed');
+        }
+      } else if (err.code === 1600013) {
+        // 1600013: 渲染异常，延迟重试
+        hilog.warn(DOMAIN, TAG, '[ANS] 1600013 渲染异常，1秒后重试');
+        setTimeout(() => {
+          this.requestNotificationPermission();
+        }, 1000);
+      }
+    }
+  }
+
   onWindowStageCreate(windowStage: window.WindowStage) {
     hilog.info(DOMAIN, TAG, 'EntryAbility onWindowStageCreate');
-
-    // 请求通知授权
-    notificationManager.requestEnableNotification(this.context).then(() => {
-      hilog.info(DOMAIN, TAG, '[ANS] requestEnableNotification success');
-    }).catch((err: BusinessError) => {
-      hilog.error(DOMAIN, TAG, '[ANS] requestEnableNotification failed, code is %{public}d, message is %{public}s', err.code, err.message);
-    });
-
-    windowStage.loadContent('pages/Index', (err: Error, data: void) => {
-      if (err) {
-        hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
-        return;
-      }
-      hilog.info(DOMAIN, TAG, 'Succeeded in loading the content. Data: %{public}s', JSON.stringify(data));
-    });
 
     // 设置窗口背景色跟随深浅色模式
     windowStage.getMainWindow().then((win: window.Window) => {
       const colorMode = AppStorage.get<ConfigurationConstant.ColorMode>('colorMode') ?? ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
       const bgColor = colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC';
       win.setWindowBackgroundColor(bgColor);
-      // 设置状态栏背景透明，文字颜色跟随深浅色
       win.setWindowSystemBarProperties({
         statusBarColor: '#00000000',
         statusBarContentColor: colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
       });
+    });
+
+    // 在 UI 加载完成后请求通知权限
+    windowStage.loadContent('pages/Index', (err: Error, data: void) => {
+      let errCode = (err as BusinessError).code;
+      if (err && errCode !== 0) {
+        hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        return;
+      }
+      hilog.info(DOMAIN, TAG, 'Succeeded in loading the content. Data: %{public}s', JSON.stringify(data));
+      // UI加载完成后请求通知权限
+      this.requestNotificationPermission();
     });
   }
 
