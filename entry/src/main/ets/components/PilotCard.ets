@@ -59,6 +59,9 @@ struct ImagePreviewDialog {
   @State offsetX: number = 0;
   @State offsetY: number = 0;
   @State showUI: boolean = true;
+  @State isScaling: boolean = false;
+  @State isDragging: boolean = false;
+  @State isDisableSwipe: boolean = false; // 控制 Swiper 是否禁用滑动
   @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
 
   aboutToAppear() {
@@ -107,31 +110,6 @@ struct ImagePreviewDialog {
 
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
-      // 手势层（处理缩放和平移）
-      Column()
-        .width('100%')
-        .height('100%')
-        .gesture(GestureGroup(GestureMode.Exclusive,
-          TapGesture({ count: 2 })
-            .onAction(() => { this.toggleZoom(); }),
-          PinchGesture()
-            .onActionUpdate((event: GestureEvent) => {
-              let s = Math.max(0.5, Math.min(4, this.lastScale * event.scale));
-              this.zoomLevel = s;
-              if (s < 1) { this.offsetX = 0; this.offsetY = 0; }
-            })
-            .onActionEnd(() => {
-              this.lastScale = this.zoomLevel;
-              if (this.zoomLevel < 1) { this.resetZoom(); }
-            }),
-          PanGesture()
-            .onActionUpdate((event: GestureEvent) => {
-              if (this.zoomLevel > 1) {
-                this.offsetX += event.offsetX;
-                this.offsetY += event.offsetY;
-              }
-            })
-        ))
 
       // 图片 Swiper
       Swiper() {
@@ -142,18 +120,53 @@ struct ImagePreviewDialog {
             .objectFit(ImageFit.Contain)
             .scale({ x: this.zoomLevel, y: this.zoomLevel })
             .translate({ x: this.offsetX, y: this.offsetY })
+            .gesture(GestureGroup(GestureMode.Exclusive,
+              TapGesture({ count: 2 })
+                .onAction(() => { this.toggleZoom(); }),
+              PinchGesture()
+                .onActionStart(() => {
+                  this.isScaling = true;
+                })
+                .onActionUpdate((event: GestureEvent) => {
+                  this.zoomLevel = Math.max(0.5, Math.min(4, this.lastScale * event.scale));
+                  this.isDisableSwipe = this.zoomLevel > 1;
+                })
+                .onActionEnd(() => {
+                  this.lastScale = this.zoomLevel;
+                  this.isScaling = false;
+                  this.isDisableSwipe = this.zoomLevel > 1;
+                  if (this.zoomLevel < 1) { this.resetZoom(); }
+                }),
+              PanGesture({ fingers: 1, distance: this.isDisableSwipe ? 3 : 50 })
+                .onActionStart(() => {
+                  this.isDragging = true;
+                })
+                .onActionUpdate((event: GestureEvent) => {
+                  if (this.zoomLevel > 1) {
+                    // 放大状态：拖动图片，按比例计算偏移
+                    let maxOffsetX = (this.zoomLevel - 1) * 200;
+                    let maxOffsetY = (this.zoomLevel - 1) * 200;
+                    this.offsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, this.offsetX + event.offsetX));
+                    this.offsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, this.offsetY + event.offsetY));
+                  }
+                })
+                .onActionEnd(() => {
+                  this.isDragging = false;
+                })
+            ))
         })
       }
       .index(this.currentIndex)
       .indicator(false)
       .loop(false)
       .duration(300)
-      .disableSwipe(this.zoomLevel > 1)
+      .disableSwipe(this.isDisableSwipe)
       .onClick(() => { this.showUI = !this.showUI; })
       .onChange((index: number) => {
         this.currentIndex = index;
         this.zoomLevel = 1; this.lastScale = 1;
         this.offsetX = 0; this.offsetY = 0;
+        this.isDisableSwipe = false;
       })
       .width('100%')
       .height('100%')
