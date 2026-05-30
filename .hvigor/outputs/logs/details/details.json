@@ -5,46 +5,61 @@
         "MODULE_NAME": "923fe53966c6cd9343e11af776cd4b05be315ea4b200b02e4d5dfb0f929b73bf",
         "API_TYPE": "stageMode",
         "INCLUDE_IN_BUILD": true,
-        "IS_COMMAND_LINE_ENTRY_MODULE": false,
+        "IS_COMMAND_LINE_ENTRY_MODULE": true,
         "MODULE_TYPE": "entry",
         "INCREMENTAL_TASKS": {
-          "COMPILE_ARKTS": true
+          "COMPILE_ARKTS": false
         },
-        "IS_INCREMENTAL_MODULE": true
+        "IS_INCREMENTAL_MODULE": false
       }
     ],
     "NATIVE_COMPILER": "Default",
-    "IS_FULL_BUILD": false,
-    "BUILD_MODE": "release"
+    "IS_FULL_BUILD": true,
+    "BUILD_MODE": "debug",
+    "USE_NORMALIZED_OHMURL": true
   },
   "HVIGOR": {
     "IS_INCREMENTAL": true,
     "IS_DAEMON": true,
     "IS_PARALLEL": true,
     "IS_HVIGORFILE_TYPE_CHECK": false,
-    "TASK_TIME": {},
-    "APIS": [],
+    "TASK_TIME": {
+      "923fe53966c6cd9343e11af776cd4b05be315ea4b200b02e4d5dfb0f929b73bf": {
+        "PreBuild": 62122542,
+        "CreateModuleInfo": 289083,
+        "ConfigureCmake": 167250,
+        "MergeProfile": 2077375,
+        "CreateBuildProfile": 644333,
+        "PreCheckSyscap": 116625,
+        "GeneratePkgSdkInfo": 484458,
+        "ProcessIntegratedHsp": 243833,
+        "BuildNativeWithCmake": 110167,
+        "SyscapTransform": 6356125,
+        "ProcessProfile": 44689959,
+        "ProcessStartupConfig": 733916,
+        "BuildNativeWithNinja": 162375,
+        "GenerateLoaderJson": 3157042,
+        "CompileResource": 176669250,
+        "BuildJS": 427584,
+        "CompileArkTS": 4489078083,
+        "GeneratePkgModuleJson": 915250,
+        "ProcessCompiledResources": 190958,
+        "PackageHap": 443610667,
+        "PackingCheck": 3853875,
+        "SignHap": 80940709,
+        "CollectDebugSymbol": 534542,
+        "assembleHap": 95042
+      }
+    },
+    "APIS": [
+      "getProperty"
+    ],
     "CONFIG_EXPERIMENT": {
       "ENABLE_MODULE_SKIP": false,
       "ENABLE_CPP_FUNCTION_LEVEL_INCREMENTAL": false
     },
     "CONFIG_PROPERTIES": {},
-    "TOTAL_TIME": 30631584,
-    "BUILD_ID": "202605302029366390",
-    "ERROR_MESSAGE": [
-      {
-        "CODE": "00303038",
-        "MESSAGE": "%s",
-        "SOLUTIONS": [
-          "Please check the following fields. \n {\n  instancePath: '',\n  keyword: 'enum',\n  params: {\n    allowedValues: [\n      'apiType',\n      'targets',\n      'showInServiceCenter',\n      'buildOption',\n      'buildOptionSet',\n      'buildModeBinder',\n      'entryModules'\n    ]\n  },\n  message: 'must be equal to one of the allowed values',\n  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'\n} \n{\n  instancePath: '',\n  keyword: 'propertyNames',\n  params: { propertyName: 'modules' },\n  message: 'property name must be valid',\n  location: '/Users/zhaojing/Downloads/callflyer_Harmony/entry/build-profile.json5:1:2'\n} \n"
-        ],
-        "TIMESTAMP": "1780144176667"
-      },
-      {
-        "CODE": "00303038",
-        "STACK": "00303038 Configuration Error\n...",
-        "PROJECT_CONFIG": {}
-      }
-    ]
+    "BUILD_ID": "202605302109082530",
+    "TOTAL_TIME": 5987774959
   }
 }

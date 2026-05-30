@@ -2,44 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3d039074-0630-4db2-9bde-dfccfe62564d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/AppScope/app.json5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/AppScope/resources/base/media/background.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/AppScope/resources/base/media/foreground.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/AppScope/resources/base/media/layered_image.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/CLAUDE.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/build-profile.json5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/build_and_install.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/build-profile.json5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/hvigorfile.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/obfuscation-rules.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/oh-package.json5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/components/PilotCard.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/entryability/EntryAbility.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/pages/CertifiedUsers.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/pages/CityCoverage.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/pages/ContactLog.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/pages/Index.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/pages/Profile.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/pages/ReferralLeaderboard.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/pages/Standby.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/pages/WebView.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/service/ApiService.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/ets/service/AuthService.ets" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/module.json5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/base/element/color.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/base/element/string.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/base/media/icon_gan.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/base/media/icon_phone.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/base/profile/main_pages.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/dark/element/color.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/phone-ldpi/media/icon_startwindow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/phone-mdpi/media/icon_startwindow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/phone-sdpi/media/icon_startwindow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/phone-xldpi/media/icon_startwindow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/phone-xxldpi/media/icon_startwindow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/entry/src/main/resources/phone-xxxldpi/media/icon_startwindow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/hvigorfile.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Downloads/callflyer_Harmony/oh-package.json5" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.hvigor/cache/file-cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/cache/file-cache.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.hvigor/cache/task-cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/cache/task-cache.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.hvigor/outputs/build-logs/build.log" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/outputs/build-logs/build.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.hvigor/outputs/logs/details/details.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/outputs/logs/details/details.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.hvigor/report/report-202605302029366390.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/entry/src/main/ets/entryability/EntryAbility.ets" beforeDir="false" afterPath="$PROJECT_DIR$/entry/src/main/ets/entryability/EntryAbility.ets" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/entry/src/main/module.json5" beforeDir="false" afterPath="$PROJECT_DIR$/entry/src/main/module.json5" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
