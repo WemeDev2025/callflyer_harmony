@@ -1,0 +1,16 @@
+{
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./src/main",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/Profile",
+    "pages/UserAgreement",
+    "pages/PrivacyPolicy",
+    "pages/WebView",
+    "pages/BlurTest",
+    "pages/CertifiedUsers",
+    "pages/CityCoverage",
+    "pages/ReferralLeaderboard",
+    "pages/ContactLog",
+    "pages/Standby"
+  ]
+}
