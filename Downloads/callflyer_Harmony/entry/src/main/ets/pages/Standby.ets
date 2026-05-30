@@ -12,6 +12,140 @@ const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 const BANNER_URL = 'https://wetofly.com/data/image/pic_thank.webp';
 
 @CustomDialog
+struct IntroDialog {
+  controller: CustomDialogController = new CustomDialogController({ builder: '' });
+  introText: string = '';
+  introPrice: string = '';
+  onConfirm: (intro: string, price: string) => void = () => {};
+  onCancel: () => void = () => {};
+  @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+  @State keyboardVisible: boolean = false;
+
+  build() {
+    Stack({ alignContent: Alignment.Bottom }) {
+      Column() {
+        // 头部
+        Row() {
+          Text('自我介绍')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#1d2b3a' : '#e6e9ef')
+          Blank()
+          Text('×')
+            .fontSize(24)
+            .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#8a96a8' : '#6b7a8c')
+            .onClick(() => { this.onCancel(); this.controller.close(); })
+        }
+        .width('100%')
+        .padding({ left: 20, right: 20, top: 18, bottom: 10 })
+
+        // 自我介绍输入框
+        Column() {
+          TextArea({ placeholder: '例如：我是新手，有CAAC证书，会驾驶手动挡皮卡......', text: this.introText })
+            .width('100%')
+            .height(120)
+            .fontSize(15)
+            .placeholderFont({ size: 13 })
+            .placeholderColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#b0b8c4' : '#9aa4b2')
+            .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#1d2b3a' : '#e6e9ef')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#f7f9fc' : '#1a202c')
+            .borderRadius(8)
+            .padding(12)
+            .maxLength(200)
+            .textAlign(TextAlign.Start)
+            .onChange((text: string) => { this.introText = text; })
+            .onFocus(() => { this.keyboardVisible = true; })
+            .onBlur(() => { this.keyboardVisible = false; })
+          Text(String(this.introText.length) + '/200')
+            .fontSize(12)
+            .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#b0b8c4' : '#9aa4b2')
+            .alignSelf(ItemAlign.End)
+            .margin({ top: 6 })
+        }
+        .width('100%')
+        .padding({ left: 20, right: 20, top: 8, bottom: 12 })
+
+        // 感谢金输入区域
+        Column() {
+          Text('表达诚意 成功入行后愿意给师傅的感谢金')
+            .fontSize(14)
+            .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#374151' : '#c9d1d9')
+            .fontWeight(FontWeight.Medium)
+            .alignSelf(ItemAlign.Start)
+            .margin({ bottom: 8 })
+
+          Row() {
+            Text('¥')
+              .fontSize(18)
+              .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#374151' : '#c9d1d9')
+              .fontWeight(FontWeight.Bold)
+            TextInput({ placeholder: '可留空' })
+              .width('100%')
+              .height(44)
+              .fontSize(18)
+              .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#374151' : '#c9d1d9')
+              .fontWeight(FontWeight.Bold)
+              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#f9fafb' : '#1a202c')
+              .borderRadius(8)
+              .padding({ left: 8, right: 12 })
+              .type(InputType.Number)
+              .onChange((text: string) => { this.introPrice = text; })
+              .onFocus(() => { this.keyboardVisible = true; })
+              .onBlur(() => { this.keyboardVisible = false; })
+          }
+          .width('100%')
+          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#f9fafb' : '#1a202c')
+          .borderRadius(8)
+          .padding({ left: 12, right: 12, top: 10, bottom: 10 })
+
+          Text('非平台支付交易 请根据实际情况而定')
+            .fontSize(11)
+            .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#9ca3af' : '#6b7a8c')
+            .alignSelf(ItemAlign.Start)
+            .margin({ top: 6 })
+        }
+        .width('100%')
+        .padding({ left: 20, right: 20, bottom: 16 })
+
+        // 底部按钮
+        Row() {
+          Button('取消')
+            .width('45%')
+            .height(48)
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#6f7c90' : '#a0aec0')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#f4f6f9' : '#1a202c')
+            .borderRadius(24)
+            .onClick(() => { this.onCancel(); this.controller.close(); })
+          Button('发布')
+            .width('45%')
+            .height(48)
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#FFFFFF')
+            .backgroundColor('#07c160')
+            .borderRadius(24)
+            .onClick(() => {
+              this.onConfirm(this.introText, this.introPrice);
+              this.controller.close();
+            })
+        }
+        .width('100%')
+        .padding({ left: 20, right: 20, bottom: 34 })
+        .justifyContent(FlexAlign.SpaceAround)
+        .visibility(this.keyboardVisible ? Visibility.None : Visibility.Visible)
+      }
+      .width('96%')
+      .backgroundColor($r('app.color.card_bg'))
+      .borderRadius(22)
+      .margin({ bottom: this.keyboardVisible ? 0 : 22 })
+    }
+    .width('96%')
+  }
+}
+
+@CustomDialog
 struct RatingDialog {
   controller: CustomDialogController = new CustomDialogController({ builder: '' });
   ratingScore: number = 5;
@@ -420,6 +554,7 @@ struct Standby {
   @State ratingIndex: number = -1;
 
   private ratingDialogController: CustomDialogController | null = null;
+  private introDialogController: CustomDialogController | null = null;
 
   // 缓存 key
   private cacheKey: string = 'standby_page_data';
@@ -763,16 +898,31 @@ struct Standby {
   showIntroDialog() {
     this.introText = '';
     this.introPrice = '';
-    this.showIntroPopup = true;
+    this.introDialogController = new CustomDialogController({
+      builder: IntroDialog({
+        introText: '',
+        introPrice: '',
+        onConfirm: (intro: string, price: string) => {
+          this.onConfirmIntroWithParams(intro, price);
+        },
+        onCancel: () => {
+          this.hideIntroDialog();
+        }
+      }),
+      customStyle: true,
+      maskColor: 'rgba(0, 0, 0, 0.7)',
+      alignment: DialogAlignment.Bottom,
+    });
+    this.introDialogController.open();
   }
 
   hideIntroDialog() {
-    this.showIntroPopup = false;
+    // dialog 由 controller 管理关闭
   }
 
-  async onConfirmIntro() {
-    const text = this.introText.trim();
-    if (!text) {
+  async onConfirmIntroWithParams(text: string, priceStr: string) {
+    const trimmedText = text.trim();
+    if (!trimmedText) {
       promptAction.showToast({ message: '请输入自我介绍' });
       return;
     }
@@ -784,9 +934,9 @@ struct Standby {
     }
 
     try {
-      const price = parseFloat(this.introPrice) || 0;
-      console.info('【onConfirmIntro】before joinDisciple, isJoined:', this.isJoined);
-      await joinDisciple(text, price, token);
+      const price = parseFloat(priceStr) || 0;
+      console.info('【onConfirmIntroWithParams】before joinDisciple, isJoined:', this.isJoined, 'text:', trimmedText, 'price:', price);
+      await joinDisciple(trimmedText, price, token);
       console.info('【onConfirmIntro】after joinDisciple, isJoined:', this.isJoined);
       promptAction.showToast({ message: '发布成功' });
       this.showIntroPopup = false;
@@ -988,62 +1138,6 @@ struct Standby {
       .alignItems(HorizontalAlign.Center)
       .position({ y: '95%' })
       .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
-
-      // 自我介绍弹窗
-      if (this.showIntroPopup) {
-        Stack() {
-          // 蒙层
-          Column()
-            .width('100%')
-            .height('100%')
-            .backgroundColor('rgba(0, 0, 0, 0.5)')
-            .onClick(() => { this.hideIntroDialog(); })
-
-          // 弹窗内容
-          Column() {
-            Text('发布加入匹配')
-              .fontSize(18)
-              .fontWeight(FontWeight.Bold)
-              .margin({ bottom: 20 })
-
-            TextInput({ placeholder: '自我介绍' })
-              .width('90%')
-              .height(100)
-              .margin({ bottom: 16 })
-              .onChange((text: string) => { this.introText = text; })
-
-            TextInput({ placeholder: '感谢金（选填）' })
-              .width('90%')
-              .margin({ bottom: 20 })
-              .onChange((text: string) => { this.introPrice = text; })
-
-            Row() {
-              Button('取消')
-                .width('40%')
-                .height(40)
-                .fontColor('#666666')
-                .backgroundColor('#EEEEEE')
-                .borderRadius(20)
-                .onClick(() => { this.hideIntroDialog(); })
-              Button('发布')
-                .width('40%')
-                .height(40)
-                .fontColor('#FFFFFF')
-                .backgroundColor('#07c160')
-                .borderRadius(20)
-                .onClick(() => { this.onConfirmIntro(); })
-            }
-            .width('90%')
-            .justifyContent(FlexAlign.SpaceAround)
-          }
-          .width('85%')
-          .padding(24)
-          .backgroundColor($r('app.color.card_bg'))
-          .borderRadius(16)
-        }
-        .width('100%')
-        .height('100%')
-      }
     }
     .width('100%')
     .height('100%')
