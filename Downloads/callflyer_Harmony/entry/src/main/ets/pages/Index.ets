@@ -313,11 +313,16 @@ struct Index {
   @State userInfo: HuaweiUserInfo | null = null;
 
   @State statusBarHeight: number = 0;
+  private bannerLoadedOnce: boolean = false;  // 轮播图是否已首次加载
 
   aboutToAppear() {
     // 初始化渐变颜色
     this.updateMarqueeGradient();
-    this.loadBanner();
+    // 只在首次加载时刷新轮播图，返回页面时不重复刷新
+    if (!this.bannerLoadedOnce) {
+      this.bannerLoadedOnce = true;
+      this.loadBanner();
+    }
     this.loadConfig();
     // 先等待登录完成再上报访问（每次启动只上报一次）
     this.handleLogin().then(() => {
@@ -498,20 +503,27 @@ struct Index {
   }
 
   async loadBanner(silent: boolean = false) {
-    // 首次或缓存为空时，先显示加载状态
-    if (!silent || this.imageList.length === 0) {
-      this.bannerLoaded = false;
-    }
-
-    // 优先使用缓存（首次加载时缓存已有数据）
-    if (this.imageList.length > 0) {
-      this.bannerLoaded = true;
-    }
-
     try {
-      // 后台静默拉取新数据
       const config = await fetchConfig();
       const banners = await fetchBanners();
+
+      // 静默刷新时：比对 config 是否变化
+      if (silent && this.configCache) {
+        const prevConfig = this.configCache;
+        // 比对关键字段
+        const prevBannerJson = JSON.stringify(prevConfig.carousel || []);
+        const newBannerJson = JSON.stringify(config.carousel || []);
+        const prevTitle = prevConfig.defaultTopTitle || '';
+        const newTitle = config.defaultTopTitle || '';
+
+        if (prevBannerJson === newBannerJson && prevTitle === newTitle) {
+          // config 无变化，跳过更新
+          console.info('【轮播图】config 无变化，跳过更新');
+          this.bannerLoaded = true;
+          return;
+        }
+        console.info('【轮播图】config 有变化，执行更新');
+      }
 
       // 更新缓存
       this.configCache = config;
@@ -589,14 +601,12 @@ struct Index {
         this.bannerOpacity = 1;
       }, 50);
     } catch {
-      // 拉取失败且无缓存，使用默认
       if (this.imageList.length === 0) {
         const rewardBanner = this.getRewardBanner();
         this.imageList = [rewardBanner, ...this.getDefaultBanners()];
       }
     }
     this.bannerLoaded = true;
-    // 启动光晕动画
     this.startLightAnimations();
   }
 
@@ -933,6 +943,21 @@ struct Index {
       this.pilotsLat = location?.latitude ?? 39.9;
       this.pilotsLng = location?.longitude ?? 116.4;
       const result = await fetchNearbyPilots(this.pilotsLat, this.pilotsLng, 1, 50);
+
+      // 静默刷新时：比对列表是否变化
+      if (silent && this.pilots.length > 0) {
+        const prevIds = this.pilots.map((item: PilotItem) => item.openid).sort().join(',');
+        const newIds = result.pilots.map((item: PilotItem) => item.openid).sort().join(',');
+        if (prevIds === newIds) {
+          // 列表无变化，跳过更新
+          console.info('【附近飞手】列表无变化，跳过更新');
+          this.pilotsLoading = false;
+          this.stopSkeletonShimmer();
+          return;
+        }
+        console.info('【附近飞手】列表有变化，执行更新');
+      }
+
       this.pilotsCache = result.pilots;
       this.pilots = result.pilots;
     } catch {
@@ -958,6 +983,21 @@ struct Index {
 
     try {
       const newOrders = await fetchPublicOrders();
+
+      // 静默刷新时：比对列表是否变化
+      if (silent && this.orders.length > 0) {
+        const prevIds = this.orders.map((item: OrderItem) => item.orderId).sort().join(',');
+        const newIds = newOrders.map((item: OrderItem) => item.orderId).sort().join(',');
+        if (prevIds === newIds) {
+          // 列表无变化，跳过更新
+          console.info('【最新任务】列表无变化，跳过更新');
+          this.ordersLoading = false;
+          this.stopOrdersSkeletonShimmer();
+          return;
+        }
+        console.info('【最新任务】列表有变化，执行更新');
+      }
+
       this.ordersCache = newOrders;
       this.orders = newOrders;
     } catch {
@@ -969,9 +1009,22 @@ struct Index {
     this.stopOrdersSkeletonShimmer();
   }
 
-  async loadStandby() {
+  async loadStandby(silent: boolean = false) {
     try {
       const result = await fetchStandby();
+
+      // 静默刷新时：比对列表是否变化
+      if (silent && this.standbyItems.length > 0) {
+        const prevIds = this.standbyItems.map((item: StandbyItem) => item.openid).sort().join(',');
+        const newIds = result.items.map((item: StandbyItem) => item.openid).sort().join(',');
+        if (prevIds === newIds) {
+          // 列表无变化，跳过更新
+          console.info('【今日有空】列表无变化，跳过更新');
+          return;
+        }
+        console.info('【今日有空】列表有变化，执行更新');
+      }
+
       this.standbyItems = result.items;
       // 检查当前用户是否在等待列表中
       const currentUser = AuthService.getCurrentUser();
@@ -980,8 +1033,10 @@ struct Index {
       console.info('【今日有空】加载成功，数量:', this.standbyItems.length, '已加入:', this.standbyIsJoined);
     } catch (err) {
       console.error('【今日有空】加载失败:', JSON.stringify(err));
-      this.standbyItems = [];
-      this.standbyIsJoined = false;
+      if (!silent) {
+        this.standbyItems = [];
+        this.standbyIsJoined = false;
+      }
     }
     // 获取屏幕尺寸（转换为vp）
     try {
@@ -1704,11 +1759,11 @@ struct Index {
         .clip(false)
         .onVisibleAreaChange([0, 1], (isVisible: boolean) => {
           if (isVisible) {
-            // 页面显示时静默刷新数据（优先使用缓存，后台拉新）
+            // 页面显示时静默刷新数据（比对数据，有变化才更新UI）
             this.loadBanner(true);
             this.loadPilots(true);
             this.loadOrders(true);
-            this.loadStandby();
+            this.loadStandby(true);
           }
         })
 
