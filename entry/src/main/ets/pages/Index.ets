@@ -2364,27 +2364,18 @@ struct Index {
             .padding({ left: 18, right: 18 })
             .margin({ top: 16 })
 
-            // 功能卡片行：搜索飞手 + 个人中心 + 覆盖城市
-            Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween }) {
-              this.FeatureCard({
-                title: '搜索飞手',
-                subtitle: '打造飞手库',
-                iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
-                onClick: () => {
-                  router.pushUrl({ url: 'pages/CertifiedUsers' });
-                }
-              })
-
-              this.FeatureCard({
-                title: '个人中心',
-                subtitle: '管理资料',
-                iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
-                onClick: () => {
-                  router.pushUrl({ url: 'pages/Profile' });
-                }
-              })
-
-              Column() {
+            // 功能卡片行：2x2 网格
+            Column() {
+              Row() {
+                this.FeatureCard({
+                  title: '搜索飞手',
+                  subtitle: '打造飞手库',
+                  iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
+                  onClick: () => {
+                    router.pushUrl({ url: 'pages/CertifiedUsers' });
+                  }
+                })
+                Blank()
                 this.FeatureCard({
                   title: '覆盖城市',
                   subtitle: '开通城市',
@@ -2394,9 +2385,9 @@ struct Index {
                   }
                 })
               }
-              .margin({ top: 12 })
+              .width('100%')
 
-              Column() {
+              Row() {
                 this.FeatureCard({
                   title: '共创榜单',
                   subtitle: '邀请排行',
@@ -2405,7 +2396,17 @@ struct Index {
                     router.pushUrl({ url: 'pages/ReferralLeaderboard' });
                   }
                 })
+                Blank()
+                this.FeatureCard({
+                  title: '个人中心',
+                  subtitle: '管理资料',
+                  iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
+                  onClick: () => {
+                    router.pushUrl({ url: 'pages/Profile' });
+                  }
+                })
               }
+              .width('100%')
               .margin({ top: 12 })
             }
             .width('100%')
