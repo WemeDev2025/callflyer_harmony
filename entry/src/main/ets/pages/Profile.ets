@@ -5,6 +5,7 @@ import router from '@ohos.router';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import fileIo from '@ohos.file.fs';
 import inputMethod from '@ohos.inputMethod';
+import window from '@ohos.window';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import curves from '@ohos.curves';
 
@@ -42,6 +43,27 @@ struct Profile {
 
   aboutToAppear() {
     this.loadProfile();
+    // 设置状态栏背景色
+    try {
+      window.getLastWindow(getContext(this)).then((win) => {
+        win.setWindowSystemBarProperties({
+          statusBarColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC',
+          statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202'
+        });
+      });
+    } catch (e) {}
+  }
+
+  aboutToDisappear() {
+    // 恢复状态栏透明
+    try {
+      window.getLastWindow(getContext(this)).then((win) => {
+        win.setWindowSystemBarProperties({
+          statusBarColor: '#00000000',
+          statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
+        });
+      });
+    } catch (e) {}
   }
 
   createEmptyForm(): ProfileForm {

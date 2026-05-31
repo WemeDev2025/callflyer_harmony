@@ -41,7 +41,7 @@ let visitReported = false;
 interface FeatureCardParam {
   title: string;
   subtitle: string;
-  iconUrl: string;
+  iconUrl: string | Resource;
   onClick: () => void;
 }
 
@@ -2388,7 +2388,7 @@ struct Index {
                 this.FeatureCard({
                   title: '覆盖城市',
                   subtitle: '开通城市',
-                  iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
+                  iconUrl: $r('app.media.icon_star'),
                   onClick: () => {
                     router.pushUrl({ url: 'pages/CityCoverage' });
                   }
