@@ -10,6 +10,18 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
 
+// 官方 runWithAnimation 实现（对齐 CommonModel.ets）
+const uiContext: UIContext | undefined = AppStorage.get('uiContext');
+function runWithAnimation(fn: Function, duration: number = 300, curve: Curve = Curve.Smooth): void {
+  if (uiContext) {
+    uiContext.animateTo({ duration: duration, curve: curve }, () => {
+      fn();
+    });
+  } else {
+    fn();
+  }
+}
+
 export class PilotCardData {
   openid: string = '';
   nickname: string = '';
@@ -50,6 +62,8 @@ export class PilotCardData {
 // ─── 图片预览器状态管理（@Observed）────────────────────────────────────────────
 @Observed
 class ImagePreviewModel {
+  // 变换矩阵（官方实现使用 matrix 控制缩放）
+  matrix: matrix4.Matrix4Transit = matrix4.identity().copy();
   // 当前缩放值
   curScale: number = 1;
   // 当前偏移 X
@@ -72,6 +86,8 @@ class ImagePreviewModel {
   centerX: number = 0.5;
   // 缩放中心百分比 Y
   centerY: number = 0.5;
+  // 缩放中心（官方实现）
+  center: number[] = [0.5, 0.5];
   // 屏幕宽度
   screenWidth: number = 360;
   // 屏幕高度
@@ -91,7 +107,13 @@ class ImagePreviewModel {
   maxOffsetY: number = 0;
   minOffsetY: number = 0;
 
+  // 增量计算基准（捏合手势中）
+  private prevPinchOffsetX: number = 0;
+  private prevPinchOffsetY: number = 0;
+
   // 手势结束，固化当前状态
+  // 注意：参考代码中 gestureEnd 不调用 pictureBoundaryRestriction
+  // 边界处理只在手势进行中实时应用，不在结束时修改 lastOffset
   gestureEnd(): void {
     this.lastScale = this.curScale;
     this.lastOffsetX = this.curOffsetX;
@@ -106,12 +128,24 @@ class ImagePreviewModel {
     this.lastOffsetY = 0;
   }
 
-  // 重置图片（切图时调用）
+  // 重置图片（切图时调用）- 官方版本带延迟
   imageReset(): void {
-    this.curScale = this.defaultScale;
-    this.lastScale = this.defaultScale;
-    this.offsetReset();
-    this.isDisableSwipe = false;
+    setTimeout(() => {
+      this.matrix = matrix4.identity().scale({
+        x: this.defaultScale,
+      }).copy();
+      this.lastScale = this.defaultScale;
+      this.offsetReset();
+    }, 200);
+    AppStorage.setOrCreate('isImgDefaultSize', true);
+  }
+
+  // 官方 pictureScaling 方法：更新变换矩阵
+  pictureScaling(scale: number): void {
+    this.matrix = matrix4.identity().scale({
+      x: scale,
+      y: scale
+    }).copy();
   }
 
   // 计算偏移范围（根据当前 scale + 图片尺寸 + 屏幕尺寸）
@@ -140,59 +174,76 @@ class ImagePreviewModel {
     }
   }
 
-  // 计算缩放中心相对于图片的百分比位置
-  // pinchCenterX/Y 是相对于屏幕左上角的绝对坐标
-  evaluateCenter(pinchCenterX: number, pinchCenterY: number): [number, number] {
-    let scaledW = this.imageWidth * this.lastScale;
-    let scaledH = this.imageHeight * this.lastScale;
-    // 图片左上角在屏幕中的位置（考虑居中 + 当前偏移）
-    let imgX = (this.screenWidth - scaledW) / 2 + this.lastOffsetX;
-    let imgY = (this.screenHeight - scaledH) / 2 + this.lastOffsetY;
-    // 触摸点相对于图片的百分比（0~1）
-    let cX = Math.max((pinchCenterX - imgX) / scaledW, 0);
-    let cY = Math.max((pinchCenterY - imgY) / scaledH, 0);
+  // 计算缩放中心相对于图片的百分比位置（官方版本）
+  evaluateCenter(centerX: number, centerY: number): [number, number] {
+    let imgDisplayWidth = this.imageWidth * this.lastScale;
+    let imgDisplayHeight = this.imageHeight * this.lastScale;
+    let imgX = (this.screenWidth - imgDisplayWidth) / 2 + this.lastOffsetX;
+    let imgY = (this.screenHeight - imgDisplayHeight) / 2 + this.lastOffsetY;
+    let cX = Math.max((centerX - imgX) / imgDisplayWidth, 0);
+    let cY = Math.max((centerY - imgY) / imgDisplayHeight, 0);
     return [cX, cY];
+  }
+
+  // 官方 onScale 方法：核心缩放计算（从 pinchGestureUpdate 提取）
+  onScale(scale: number, offX: number, offY: number): void {
+    // 边界限制
+    if (this.lastScale * scale > this.maxScale) {
+      this.curScale = this.maxScale;
+    } else if (this.lastScale * scale < this.minScale) {
+      this.curScale = this.minScale;
+    } else {
+      this.curScale = this.lastScale * scale;
+    }
+    // 防止刚好等于 maxScale 时出现边界问题（官方精度处理）
+    if (this.lastScale * scale === this.maxScale) {
+      this.curScale -= 0.001;
+    }
+    this.evaluateOffsetRange();
+
+    // 核心偏移公式（跟手原理）
+    if (this.curScale < this.maxScale) {
+      this.curOffsetY =
+        (this.lastOffsetY + offY) + (0.5 - this.centerY) * this.imageHeight * (1 - scale) * this.lastScale;
+      this.curOffsetX =
+        (this.lastOffsetX + offX) + (0.5 - this.centerX) * this.imageWidth * (1 - scale) * this.lastScale;
+    }
+
+    // 移动中未到达边界
+    this.isArriveBoundary = false;
+    // 未到达边界时禁止 Swiper 切换
+    if (!this.isArriveBoundary) {
+      this.isDisableSwipe = true;
+    }
   }
 
   // 捏合手势开始：记录缩放中心点
   pinchGestureStart(pinchCenterX: number, pinchCenterY: number): void {
-    let center = this.evaluateCenter(pinchCenterX, pinchCenterY);
-    // centerX/Y = 1 - center[0/1]，用于偏移补偿公式
-    this.centerX = 1 - center[0];
-    this.centerY = 1 - center[1];
+    this.center = this.evaluateCenter(pinchCenterX, pinchCenterY);
+    this.centerX = 1 - this.center[0];
+    this.centerY = 1 - this.center[1];
+    // 重置增量计算基准
+    this.prevPinchOffsetX = 0;
+    this.prevPinchOffsetY = 0;
+    AppStorage.setOrCreate('isImgDefaultSize', false);
   }
 
-  // 捏合手势移动中：更新 scale + offset
-  // scale: 相对于手势开始的相对缩放比（event.scale from PinchGesture）
+  // 捏合手势移动中：更新 scale + offset（官方版本）
   pinchGestureUpdate(scale: number, offX: number, offY: number): boolean {
-    // 限制 scale 范围
-    let newScale = this.lastScale * scale;
-    if (newScale > this.maxScale) {
-      this.curScale = this.maxScale;
-    } else if (newScale < this.minScale) {
-      this.curScale = this.minScale;
-    } else {
-      this.curScale = newScale;
-    }
+    // 计算每帧增量（累积值 - 上次累积值）
+    let deltaX = offX - this.prevPinchOffsetX;
+    let deltaY = offY - this.prevPinchOffsetY;
+    this.prevPinchOffsetX = offX;
+    this.prevPinchOffsetY = offY;
 
-    // 到达边界时略微回退，防止抖动
-    if (newScale >= this.maxScale) {
-      this.curScale -= 0.001;
-    }
+    // 调用官方 onScale 方法
+    this.onScale(scale, deltaX, deltaY);
 
-    this.evaluateOffsetRange();
+    // 更新 matrix（官方实现）
+    this.pictureScaling(this.curScale);
 
-    // 核心偏移公式（跟手原理）：
-    // curOffset = (上次偏移 + 手指带来的偏移) + (缩放中心偏移补偿)
-    // 补偿 = (0.5 - centerX) * imageSize * (1 - scale) * lastScale
-    if (this.curScale < this.maxScale) {
-      this.curOffsetY = (this.lastOffsetY + offY) + (0.5 - this.centerY) * this.imageHeight * (1 - scale) * this.lastScale;
-      this.curOffsetX = (this.lastOffsetX + offX) + (0.5 - this.centerX) * this.imageWidth * (1 - scale) * this.lastScale;
-    }
-
-    this.isArriveBoundary = false;
-    // 未到达边界时禁止 Swiper 切换
-    if (!this.isArriveBoundary && this.curScale > this.defaultScale) {
+    // 放大时禁止 Swiper 切换
+    if (this.curScale > this.defaultScale) {
       this.isDisableSwipe = true;
     }
 
@@ -201,29 +252,25 @@ class ImagePreviewModel {
     return this.isDisableSwipe;
   }
 
-  // 捏合手势结束
+  // 捏合手势结束（官方版本带动画回弹）
   pinchGestureEnd(): void {
-    // 小于默认尺寸则回弹到 1
-    if (this.curScale <= this.defaultScale) {
-      this.curScale = this.defaultScale;
-      this.imageReset();
-    } else if (this.curScale >= this.maxScale) {
-      this.curScale -= 0.1;
-    }
-    this.gestureEnd();
+    runWithAnimation(() => {
+      // 小于默认尺寸则回弹到 1
+      if (this.curScale <= this.defaultScale) {
+        this.pictureScaling(this.defaultScale);
+        this.imageReset();
+      } else if (this.curScale >= this.maxScale) {
+        this.curScale -= 0.1;
+        this.pictureScaling(this.curScale);
+      }
+      this.gestureEnd();
+    });
   }
 
-  // 单指滑动更新（用于平移拖动）
-  // offX/offY 是 PanGesture 的增量（单帧delta，非累积值）
+  // 单指滑动更新（官方版本调用 onScale）
   panGestureUpdate(offX: number, offY: number): boolean {
-    if (this.curScale > this.defaultScale) {
-      this.curOffsetX = this.lastOffsetX + offX;
-      this.curOffsetY = this.lastOffsetY + offY;
-      this.isDisableSwipe = true;
-    } else {
-      // 未放大时，允许 Swiper 切换
-      this.isDisableSwipe = false;
-    }
+    // 官方版本直接调用 onScale，但 scale=1 不改变缩放
+    this.onScale(1, offX, offY);
     this.pictureBoundaryRestriction();
     return this.isDisableSwipe;
   }
@@ -257,24 +304,34 @@ class ImagePreviewModel {
     }
   }
 
-  // 双击切换缩放（默认 ↔ 最大）
+  // 双击切换缩放（官方版本带动画）
   doubleTapGesture(tapX: number, tapY: number, tapScale: number): boolean {
+    let curRatio: number = 1;
+    let center = this.evaluateCenter(tapX, tapY);
+    this.centerX = 1 - center[0];
+    this.centerY = 1 - center[1];
+
     if (this.lastScale > this.defaultScale) {
       // 恢复默认尺寸
-      this.curScale = this.defaultScale;
-      this.offsetReset();
-      this.gestureEnd();
+      runWithAnimation(() => {
+        this.pictureScaling(this.defaultScale);
+        this.offsetReset();
+      });
+      curRatio = this.defaultScale;
       this.isDisableSwipe = false;
+      AppStorage.setOrCreate('isImgDefaultSize', true);
     } else {
-      // 放大到 maxScale，中心点在双击位置
-      let center = this.evaluateCenter(tapX, tapY);
-      this.centerX = 1 - center[0];
-      this.centerY = 1 - center[1];
-      this.curScale = this.maxScale;
-      this.offsetReset();
-      this.lastScale = this.maxScale;
+      // 放大到 maxScale
+      runWithAnimation(() => {
+        this.onScale(tapScale, 0, 0);
+        this.pictureScaling(this.maxScale);
+        this.offsetReset();
+      });
+      curRatio = this.maxScale;
       this.isDisableSwipe = true;
+      AppStorage.setOrCreate('isImgDefaultSize', false);
     }
+    this.lastScale = curRatio;
     return this.isDisableSwipe;
   }
 }
@@ -363,11 +420,7 @@ struct ImagePreviewDialog {
             .width('100%')
             .height('100%')
             .objectFit(ImageFit.Contain)
-            .transform(
-              matrix4.identity()
-                .scale({ x: this.previewModels[index]?.curScale ?? 1, y: this.previewModels[index]?.curScale ?? 1 })
-                .copy()
-            )
+            .transform(this.previewModels[index]?.matrix ?? matrix4.identity().copy())
             .translate({
               x: this.previewModels[index]?.curOffsetX ?? 0,
               y: this.previewModels[index]?.curOffsetY ?? 0
@@ -391,54 +444,57 @@ struct ImagePreviewDialog {
                 this.previewModels = [...this.previewModels];
               }
             })
-            .gesture(GestureGroup(GestureMode.Exclusive,
-              // 双击：切换默认 ↔ 最大缩放
-              TapGesture({ count: 2 })
-                .onAction((event: GestureEvent) => {
-                  if (this.previewModels[index]) {
-                    let isDisable = this.previewModels[index].doubleTapGesture(
-                      event.fingerList[0].displayX,
-                      event.fingerList[0].displayY,
-                      event.scale
-                    );
-                    // 触发响应式更新（创建新数组引用）
-                    this.previewModels = [...this.previewModels];
-                  }
-                }),
-              // 双指捏合缩放
-              PinchGesture({ fingers: 2, distance: 1 })
-                .onActionStart((event: GestureEvent) => {
-                  if (this.previewModels[index]) {
-                    this.previewModels[index].pinchGestureStart(event.pinchCenterX, event.pinchCenterY);
-                  }
-                })
-                .onActionUpdate((event: GestureEvent) => {
-                  if (this.previewModels[index]) {
-                    this.previewModels[index].pinchGestureUpdate(event.scale, event.offsetX, event.offsetY);
-                    this.previewModels = [...this.previewModels];
-                  }
-                })
-                .onActionEnd(() => {
-                  if (this.previewModels[index]) {
-                    this.previewModels[index].pinchGestureEnd();
-                    this.previewModels = [...this.previewModels];
-                  }
-                }),
-              // 单指拖动（放大状态平移）
-              PanGesture({ fingers: 1, distance: this.previewModels[index]?.isDisableSwipe ? 3 : 50 })
-                .onActionUpdate((event: GestureEvent) => {
-                  if (this.previewModels[index]) {
-                    let isDisable = this.previewModels[index].panGestureUpdate(event.offsetX, event.offsetY);
-                    this.previewModels = [...this.previewModels];
-                  }
-                })
-                .onActionEnd(() => {
-                  if (this.previewModels[index]) {
-                    this.previewModels[index].gestureEnd();
-                    this.previewModels = [...this.previewModels];
-                  }
-                })
-            ))
+            .parallelGesture(
+              GestureGroup(
+                GestureMode.Exclusive,
+                // 单指拖动（放大状态平移）
+                PanGesture({ fingers: 1, distance: this.previewModels[index]?.isDisableSwipe ? 3 : 50 })
+                  .onActionUpdate((event: GestureEvent) => {
+                    if (this.previewModels[index]) {
+                      let isDisable = this.previewModels[index].panGestureUpdate(event.offsetX, event.offsetY);
+                      this.previewModels = [...this.previewModels];
+                    }
+                  })
+                  .onActionEnd(() => {
+                    if (this.previewModels[index]) {
+                      this.previewModels[index].gestureEnd();
+                      this.previewModels = [...this.previewModels];
+                    }
+                  }),
+                // 双指捏合缩放
+                PinchGesture({ fingers: 2, distance: 1 })
+                  .onActionStart((event: GestureEvent) => {
+                    if (this.previewModels[index]) {
+                      this.previewModels[index].pinchGestureStart(event.pinchCenterX, event.pinchCenterY);
+                    }
+                  })
+                  .onActionUpdate((event: GestureEvent) => {
+                    if (this.previewModels[index]) {
+                      this.previewModels[index].pinchGestureUpdate(event.scale, event.offsetX, event.offsetY);
+                      this.previewModels = [...this.previewModels];
+                    }
+                  })
+                  .onActionEnd(() => {
+                    if (this.previewModels[index]) {
+                      this.previewModels[index].pinchGestureEnd();
+                      this.previewModels = [...this.previewModels];
+                    }
+                  }),
+                // 双击：切换默认 ↔ 最大缩放
+                TapGesture({ count: 2 })
+                  .onAction((event: GestureEvent) => {
+                    if (this.previewModels[index]) {
+                      let isDisable = this.previewModels[index].doubleTapGesture(
+                        event.fingerList[0].displayX,
+                        event.fingerList[0].displayY,
+                        event.scale
+                      );
+                      // 触发响应式更新（创建新数组引用）
+                      this.previewModels = [...this.previewModels];
+                    }
+                  })
+              ), GestureMask.Normal
+            )
         })
       }
       .index(this.currentIndex)
