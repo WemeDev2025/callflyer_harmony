@@ -1203,22 +1203,23 @@ struct Index {
     // 静默上报查看次数
     if (p.openid) {
       reportStandbyView(p.openid).then((viewCount) => {
-        if (viewCount > 0) {
-          // 更新列表中对应的 viewCount（创建新数组引用以触发 UI 刷新）
-          const idx = this.standbyItems.findIndex((s: StandbyItem) => s.profile.openid === p.openid);
-          if (idx >= 0) {
-            const item = this.standbyItems[idx];
-            const updated: StandbyItem = {
-              openid: item.openid,
-              joined_at: item.joined_at,
-              profile: item.profile,
-              likeCount: item.likeCount,
-              viewCount: viewCount
-            };
-            const newItems = this.standbyItems.slice();
-            newItems[idx] = updated;
-            this.standbyItems = newItems;
-          }
+        console.info('【今日有空浏览次数】openid:', p.openid, 'viewCount:', viewCount);
+        // 更新列表中对应的 viewCount（创建新数组引用以触发 UI 刷新）
+        const idx = this.standbyItems.findIndex((s: StandbyItem) => s.profile.openid === p.openid);
+        console.info('【今日有空浏览次数】findIndex result:', idx, 'standbyItems.length:', this.standbyItems.length);
+        if (idx >= 0) {
+          const item = this.standbyItems[idx];
+          const updated: StandbyItem = {
+            openid: item.openid,
+            joined_at: item.joined_at,
+            profile: item.profile,
+            likeCount: item.likeCount,
+            viewCount: viewCount
+          };
+          const newItems = this.standbyItems.slice();
+          newItems[idx] = updated;
+          this.standbyItems = newItems;
+          console.info('【今日有空浏览次数】已更新 idx:', idx, 'new viewCount:', viewCount);
         }
       }).catch(() => {});
     }
