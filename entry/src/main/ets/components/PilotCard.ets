@@ -744,32 +744,39 @@ export struct PilotCard {
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .width('100%')
 
-          if (this.user.userRole !== 'employer' && this.user.pilotCode || this.user.company || (this.user.position && !(this.user.userRole !== 'employer' && this.user.pilotCode))) {
-            Row() {
+          if (this.user.userRole !== 'employer' && this.user.pilotCode || this.user.company || this.user.position) {
+            Column() {
               if (this.user.userRole !== 'employer' && this.user.pilotCode) {
-                Image($r('app.media.icon_banner'))
-                  .width(22)
-                  .height(22)
-                  .objectFit(ImageFit.Contain)
-                  .margin({ right: 4 })
-                Text(this.user.pilotCode)
-                  .fontSize(12)
-                  .fontColor($r('app.color.text_body'))
-              } else if (this.user.company) {
-                Text(this.user.company)
-                  .fontSize(12)
-                  .fontColor($r('app.color.text_body'))
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-              } else if (this.user.position && !(this.user.userRole !== 'employer' && this.user.pilotCode)) {
+                Row() {
+                  Image($r('app.media.icon_banner'))
+                    .width(22)
+                    .height(22)
+                    .objectFit(ImageFit.Contain)
+                    .margin({ right: 4 })
+                  Text(this.user.pilotCode)
+                    .fontSize(12)
+                    .fontColor($r('app.color.text_body'))
+                }
+                .alignItems(VerticalAlign.Center)
+              } else {
+                if (this.user.company) {
+                  Text(this.user.company)
+                    .fontSize(12)
+                    .fontColor($r('app.color.text_body'))
+                    .maxLines(1)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                }
+              }
+              if (this.user.position) {
                 Text(this.user.position)
                   .fontSize(12)
                   .fontColor($r('app.color.text_body'))
                   .maxLines(1)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .margin({ left: 8 })
+                  .margin({ top: 2 })
               }
             }
+            .alignItems(HorizontalAlign.Start)
             .margin({ bottom: -4 })
             .width('100%')
           }
