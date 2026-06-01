@@ -1869,6 +1869,7 @@ struct Index {
               this.lastRewardSlotRefreshTime = now;
               hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】开始刷新');
               this.loadRewardSlotStatus();
+              this.loadConfig();
               this.loadBanner(true);
               this.loadPilots(true);
               this.loadOrders(true);
