@@ -778,7 +778,7 @@ export struct PilotCard {
                   .fontColor($r('app.color.text_body'))
                   .maxLines(1)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .margin({ top: 2 })
+                  .margin({ top: 5 })
               }
             }
             .alignItems(HorizontalAlign.Start)
