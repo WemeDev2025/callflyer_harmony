@@ -179,7 +179,11 @@ struct CertifiedUsers {
       if (this.currentRole && this.currentRole !== 'all') {
         if (this.currentRole === 'liked_by_me') {
           params.liked_by_me = true;
+        } else if (this.currentRole === 'pilot' || this.currentRole === 'employer') {
+          // 飞手/雇主是用户角色，用 role 参数过滤
+          params.role = this.currentRole;
         } else {
+          // 其他标签（business_xxx、caac、utc 等）用 tag 参数
           params.tag = this.currentRole;
         }
       }
@@ -237,7 +241,11 @@ struct CertifiedUsers {
       if (this.currentRole && this.currentRole !== 'all') {
         if (this.currentRole === 'liked_by_me') {
           params.liked_by_me = true;
+        } else if (this.currentRole === 'pilot' || this.currentRole === 'employer') {
+          // 飞手/雇主是用户角色，用 role 参数过滤
+          params.role = this.currentRole;
         } else {
+          // 其他标签（business_xxx、caac、utc 等）用 tag 参数
           params.tag = this.currentRole;
         }
       }
