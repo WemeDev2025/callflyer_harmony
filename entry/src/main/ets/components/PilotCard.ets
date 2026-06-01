@@ -225,9 +225,9 @@ class ImagePreviewModel {
     return this.isDisableSwipe;
   }
 
-  // 边界限制
+  // 边界限制（完全对齐参考代码 CommonModel.ets）
   pictureBoundaryRestriction(): void {
-    // X 轴边界
+    // 先处理边界超出（X轴）
     if (this.curOffsetX > this.maxOffsetX) {
       this.curOffsetX = this.maxOffsetX;
       this.isDisableSwipe = false;
@@ -237,13 +237,13 @@ class ImagePreviewModel {
       this.isDisableSwipe = false;
       this.isArriveBoundary = true;
     }
-    // Y 轴边界
+    // 先处理边界超出（Y轴）
     if (this.curOffsetY > this.maxOffsetY) {
       this.curOffsetY = this.maxOffsetY;
     } else if (this.curOffsetY < this.minOffsetY) {
       this.curOffsetY = this.minOffsetY;
     }
-    // 图片小于屏幕时，强制居中
+    // 图片小于屏幕时，强制居中（居中逻辑写在边界处理之后）
     let scaledW = this.imageWidth * this.curScale;
     let scaledH = this.imageHeight * this.curScale;
     if (scaledW <= this.screenWidth) {
@@ -313,7 +313,20 @@ struct ImagePreviewDialog {
 
   // 初始化每个图片的预览模型
   initModels(): void {
+    // 先创建模型，再异步获取屏幕尺寸后同步到每个实例
     this.previewModels = this.imageUrls.map(() => new ImagePreviewModel());
+    // 获取真实屏幕尺寸并同步到所有模型
+    try {
+      window.getLastWindow(getContext(this)).then((win) => {
+        const rect = win.getWindowProperties().windowRect;
+        const w = px2vp(rect.width);
+        const h = px2vp(rect.height);
+        this.previewModels.forEach(model => {
+          model.screenWidth = w;
+          model.screenHeight = h;
+        });
+      });
+    } catch (_) {}
   }
 
   // 切换图片时重置目标图片的状态
