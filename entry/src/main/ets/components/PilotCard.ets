@@ -770,7 +770,7 @@ export struct PilotCard {
                     .fontColor($r('app.color.text_body'))
                     .maxLines(1)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
-                    .margin({ top: 5 })
+                    .margin({ top: 3 })
                 }
               }
               if (this.user.position) {
@@ -779,7 +779,7 @@ export struct PilotCard {
                   .fontColor($r('app.color.text_body'))
                   .maxLines(1)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .margin({ top: 5 })
+                  .margin({ top: 3 })
               }
             }
             .alignItems(HorizontalAlign.Start)
