@@ -593,6 +593,10 @@ export struct PilotCard {
   // 点赞状态（内部管理）
   @State internalLikeCount: number = 0;
   @State internalLikedByMe: boolean = false;
+  // 主营业务长文本标记（超过15字符切换为标签样式）
+  @State businessScopeLong: boolean = false;
+  // 常用机型长文本标记（超过12字符切换为标签样式）
+  @State droneModelLong: boolean = false;
 
   // 微信点击回调
   onWechatClick?: (openid: string) => void;
@@ -647,6 +651,11 @@ export struct PilotCard {
     if (userParam) {
       this.internalLikeCount = userParam.likeCount ?? 0;
       this.internalLikedByMe = userParam.likedByMe ?? false;
+      // 计算长文本标记（主营业务>15字符，常用机型>12字符）
+      const businessText = userParam.businessScopeText || '';
+      const droneText = userParam.droneModel || '';
+      this.businessScopeLong = businessText.length > 15;
+      this.droneModelLong = droneText.length > 12;
     }
   }
 
@@ -850,38 +859,82 @@ export struct PilotCard {
         .margin({ top: 9 })
       }
 
-      // 主营业务
+      // 主营业务（长文本时切换为标签样式）
       if (this.user.businessScopeText) {
-        Row() {
-          Text('主营业务')
-            .fontSize(14)
-            .fontColor($r('app.color.text_label'))
-            .fontWeight(FontWeight.Medium)
-          Text(this.user.businessScopeText)
-            .fontSize(14)
-            .fontColor($r('app.color.text_primary'))
-            .fontWeight(FontWeight.Medium)
+        if (this.businessScopeLong) {
+          // 长文本模式：列布局 + 背景标签
+          Column() {
+            Text('主营业务')
+              .fontSize(14)
+              .fontColor($r('app.color.text_label'))
+              .fontWeight(FontWeight.Medium)
+            Text(this.user.businessScopeText)
+              .fontSize(24)
+              .fontColor($r('app.color.text_primary'))
+              .backgroundColor($r('app.color.card_bg'))
+              .borderRadius(12)
+              .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+              .width('100%')
+              .margin({ top: 10 })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+          .margin({ top: 9 })
+        } else {
+          // 短文本模式：普通行布局
+          Row() {
+            Text('主营业务')
+              .fontSize(14)
+              .fontColor($r('app.color.text_label'))
+              .fontWeight(FontWeight.Medium)
+            Text(this.user.businessScopeText)
+              .fontSize(14)
+              .fontColor($r('app.color.text_primary'))
+              .fontWeight(FontWeight.Medium)
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.SpaceBetween)
+          .margin({ top: 9 })
         }
-        .width('100%')
-        .justifyContent(FlexAlign.SpaceBetween)
-        .margin({ top: 9 })
       }
 
-      // 常用机型
+      // 常用机型（长文本时切换为标签样式）
       if (this.user.droneModel && this.user.droneModel !== '--' && this.user.userRole !== 'employer') {
-        Row() {
-          Text('常用机型')
-            .fontSize(14)
-            .fontColor($r('app.color.text_label'))
-            .fontWeight(FontWeight.Medium)
-          Text(this.user.droneModel)
-            .fontSize(14)
-            .fontColor($r('app.color.text_primary'))
-            .fontWeight(FontWeight.Medium)
+        if (this.droneModelLong) {
+          // 长文本模式：列布局 + 背景标签
+          Column() {
+            Text('常用机型')
+              .fontSize(14)
+              .fontColor($r('app.color.text_label'))
+              .fontWeight(FontWeight.Medium)
+            Text(this.user.droneModel)
+              .fontSize(24)
+              .fontColor($r('app.color.text_primary'))
+              .backgroundColor($r('app.color.card_bg'))
+              .borderRadius(12)
+              .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+              .width('100%')
+              .margin({ top: 10 })
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
+          .margin({ top: 9 })
+        } else {
+          // 短文本模式：普通行布局
+          Row() {
+            Text('常用机型')
+              .fontSize(14)
+              .fontColor($r('app.color.text_label'))
+              .fontWeight(FontWeight.Medium)
+            Text(this.user.droneModel)
+              .fontSize(14)
+              .fontColor($r('app.color.text_primary'))
+              .fontWeight(FontWeight.Medium)
+          }
+          .width('100%')
+          .justifyContent(FlexAlign.SpaceBetween)
+          .margin({ top: 9 })
         }
-        .width('100%')
-        .justifyContent(FlexAlign.SpaceBetween)
-        .margin({ top: 9 })
       }
 
       // 作业数据（亩/千克）
