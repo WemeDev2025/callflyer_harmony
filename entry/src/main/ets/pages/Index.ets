@@ -1848,6 +1848,8 @@ struct Index {
             // 如果页面离开时间不足3秒，不刷新（快速切换）
             if (hiddenDuration < 3000) {
               hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】快速切换，跳过刷新');
+              // 但今日有空仍然刷新（viewCount 等实时数据需要更新）
+              this.loadStandby(true);
               return;
             }
 
