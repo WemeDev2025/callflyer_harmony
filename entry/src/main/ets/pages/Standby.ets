@@ -544,6 +544,8 @@ struct Standby {
   @State pilotList: ObservedDiscipleItem[] = [];
   @State filteredList: ObservedDiscipleItem[] = [];
   @State loading: boolean = true;
+  @State skeletonShimmer: boolean = false;
+  private skeletonTimer: number = -1;
   @StorageLink('standbyIsJoined') isJoined: boolean = false;
   @State searchKey: string = '';
   @State showIntroPopup: boolean = false;
@@ -628,6 +630,7 @@ struct Standby {
       }
     } else if (showLoading) {
       this.loading = true;
+      this.startSkeletonShimmer();
     }
 
     // 后台静默刷新
@@ -660,6 +663,22 @@ struct Standby {
       }
     }
     this.loading = false;
+    this.stopSkeletonShimmer();
+  }
+
+  startSkeletonShimmer() {
+    this.skeletonShimmer = false;
+    this.skeletonTimer = setInterval(() => {
+      this.skeletonShimmer = !this.skeletonShimmer;
+    }, 500);
+  }
+
+  stopSkeletonShimmer() {
+    if (this.skeletonTimer >= 0) {
+      clearInterval(this.skeletonTimer);
+      this.skeletonTimer = -1;
+    }
+    this.skeletonShimmer = false;
   }
 
   applyFilter() {
@@ -1031,10 +1050,76 @@ struct Standby {
 
             // 加载状态
             if (this.loading && this.filteredList.length === 0) {
-              LoadingProgress()
-                .width(40)
-                .height(40)
-                .margin({ top: 40 })
+              List() {
+                ForEach([1, 2, 3], () => {
+                  ListItem() {
+                    Column() {
+                      // 头像 + 昵称
+                      Row() {
+                        Row()
+                          .width(56)
+                          .height(56)
+                          .borderRadius(28)
+                          .backgroundColor($r('app.color.skeleton_bg'))
+                          .opacity(this.skeletonShimmer ? 1 : 0.4)
+                          .animation({ duration: 300 })
+                        Column() {
+                          Row()
+                            .width(120)
+                            .height(18)
+                            .borderRadius(4)
+                            .backgroundColor($r('app.color.skeleton_bg'))
+                            .margin({ top: 4 })
+                            .opacity(this.skeletonShimmer ? 1 : 0.4)
+                            .animation({ duration: 300 })
+                          Row()
+                            .width(80)
+                            .height(12)
+                            .borderRadius(4)
+                            .backgroundColor($r('app.color.skeleton_bg'))
+                            .margin({ top: 8 })
+                            .opacity(this.skeletonShimmer ? 1 : 0.4)
+                            .animation({ duration: 300 })
+                        }
+                        .margin({ left: 14 })
+                      }
+                      .width('100%')
+                      .alignItems(VerticalAlign.Center)
+
+                      Divider()
+                        .color($r('app.color.divider'))
+                        .margin({ top: 12, bottom: 12 })
+
+                      // 信息行
+                      Row() {
+                        Row()
+                          .width(80)
+                          .height(15)
+                          .borderRadius(4)
+                          .backgroundColor($r('app.color.skeleton_bg'))
+                          .opacity(this.skeletonShimmer ? 1 : 0.4)
+                          .animation({ duration: 300 })
+                        Row()
+                          .width(60)
+                          .height(15)
+                          .borderRadius(4)
+                          .backgroundColor($r('app.color.skeleton_bg'))
+                          .margin({ left: 20 })
+                          .opacity(this.skeletonShimmer ? 1 : 0.4)
+                          .animation({ duration: 300 })
+                      }
+                      .width('100%')
+                      .justifyContent(FlexAlign.SpaceBetween)
+                    }
+                    .width('100%')
+                    .padding(24)
+                    .backgroundColor($r('app.color.card_bg'))
+                    .borderRadius(14)
+                  }
+                  .padding({ left: 18, right: 18, top: 8, bottom: 8 })
+                })
+              }
+              .width('100%')
             } else if (this.filteredList.length === 0) {
               // 空状态
               Column() {

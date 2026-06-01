@@ -740,33 +740,39 @@ export struct PilotCard {
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_title'))
             .fontFamily('DouyinSansBold')
-            .margin({ top: 4 })
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .width('100%')
 
-          if (this.user.company) {
-            Text(this.user.company + (this.user.position ? ' ' + this.user.position : ''))
-              .fontSize(12)
-              .fontColor($r('app.color.text_body'))
-              .margin({ top: 4 })
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-          } else if (this.user.roleLabel) {
-            Text(this.user.roleLabel)
-              .fontSize(12)
-              .fontColor($r('app.color.text_body'))
-              .margin({ top: 4 })
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
+          Row() {
+            if (this.user.company) {
+              Text(this.user.company)
+                .fontSize(12)
+                .fontColor($r('app.color.text_body'))
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+            }
+            if (this.user.position) {
+              Text(this.user.position)
+                .fontSize(12)
+                .fontColor($r('app.color.text_body'))
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .margin({ left: 8 })
+            } else if (this.user.roleLabel) {
+              Text(this.user.roleLabel)
+                .fontSize(12)
+                .fontColor($r('app.color.text_body'))
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .margin({ left: 8 })
+            }
           }
+          .width('100%')
         }
         .alignItems(HorizontalAlign.Start)
-        .justifyContent(FlexAlign.Center)
-        .height(56)
         .margin({ left: 14 })
-        .constraintSize({ maxWidth: 200 })
-
-        Blank().layoutWeight(1)
+        .layoutWeight(1)
 
         Column() {
           Image(this.user.isNew ? $r('app.media.icon_star2') : $r('app.media.icon_star1'))
@@ -780,9 +786,8 @@ export struct PilotCard {
             .visibility(this.internalLikeCount > 0 ? Visibility.Visible : Visibility.None)
         }
         .alignItems(HorizontalAlign.Center)
-        .height(44)
-        .padding({ left: 12, right: -14 })
-        .margin({ left: 14 })
+        .padding({ left: 12 })
+        .margin({ left: 14, right: -2 })
         .onClick(() => this.handleLikeClick())
       }
       .width('100%')
@@ -809,26 +814,37 @@ export struct PilotCard {
         .margin({ top: 9 })
       }
 
-      // 认证状态
+      // 认证状态（飞手角色显示执照编号，其他人显示认证状态）
       Row() {
-        Text('认证状态')
+        Text('执照编号')
           .fontSize(13)
           .fontColor($r('app.color.text_label'))
           .fontWeight(FontWeight.Medium)
         Row() {
-          if (this.user.licenseType) {
-            Text(this.user.licenseType.toUpperCase())
-              .fontSize(10)
-              .fontColor('#FFFFFF')
-              .backgroundColor(this.user.licenseType.toLowerCase() === 'utc' ? $r('app.color.primary_color') : $r('app.color.accent_green'))
-              .borderRadius(3)
-              .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-              .margin({ right: 12 })
+          if (this.user.pilotCode) {
+            Image($r('app.media.icon_banner'))
+              .width(16)
+              .height(16)
+              .margin({ right: 4 })
+            Text(this.user.pilotCode)
+              .fontSize(13)
+              .fontColor($r('app.color.text_primary'))
+              .fontWeight(FontWeight.Medium)
+          } else if (this.user.licenseStatus) {
+            if (this.user.licenseType) {
+              Text(this.user.licenseType.toUpperCase())
+                .fontSize(10)
+                .fontColor('#FFFFFF')
+                .backgroundColor(this.user.licenseType.toLowerCase() === 'utc' ? $r('app.color.primary_color') : $r('app.color.accent_green'))
+                .borderRadius(3)
+                .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                .margin({ right: 8 })
+            }
+            Text(this.user.licenseStatus)
+              .fontSize(13)
+              .fontColor($r('app.color.text_primary'))
+              .fontWeight(FontWeight.Medium)
           }
-          Text(this.user.licenseStatus)
-            .fontSize(13)
-            .fontColor($r('app.color.text_primary'))
-            .fontWeight(FontWeight.Medium)
         }
       }
       .width('100%')
