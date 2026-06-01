@@ -644,11 +644,6 @@ export struct PilotCard {
   aboutToAppear() {
     this.internalLikeCount = this.user.likeCount ?? 0;
     this.internalLikedByMe = this.user.likedByMe ?? false;
-    // 计算长文本标记（主营业务>15字符，常用机型>12字符）
-    const businessText = this.user.businessScopeText || '';
-    const droneText = this.user.droneModel || '';
-    this.businessScopeLong = businessText.length > 15;
-    this.droneModelLong = droneText.length > 12;
   }
 
   aboutToReuse(params: Record<string, Object>) {
