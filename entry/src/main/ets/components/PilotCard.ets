@@ -736,7 +736,7 @@ export struct PilotCard {
 
         Column() {
           Text(this.user.nickname.length > 12 ? this.user.nickname.substring(0, 12) + '...' : this.user.nickname)
-            .fontSize(15)
+            .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_title'))
             .fontFamily('DouyinSansBold')
@@ -744,34 +744,38 @@ export struct PilotCard {
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .width('100%')
 
-          Row() {
-            if (this.user.company) {
-              Text(this.user.company)
-                .fontSize(12)
-                .fontColor($r('app.color.text_body'))
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
+          if (this.user.userRole !== 'employer' && this.user.pilotCode || this.user.company || (this.user.position && !(this.user.userRole !== 'employer' && this.user.pilotCode))) {
+            Row() {
+              if (this.user.userRole !== 'employer' && this.user.pilotCode) {
+                Image($r('app.media.icon_banner'))
+                  .width(22)
+                  .height(22)
+                  .objectFit(ImageFit.Contain)
+                  .margin({ right: 4 })
+                Text(this.user.pilotCode)
+                  .fontSize(12)
+                  .fontColor($r('app.color.text_body'))
+              } else if (this.user.company) {
+                Text(this.user.company)
+                  .fontSize(12)
+                  .fontColor($r('app.color.text_body'))
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+              } else if (this.user.position && !(this.user.userRole !== 'employer' && this.user.pilotCode)) {
+                Text(this.user.position)
+                  .fontSize(12)
+                  .fontColor($r('app.color.text_body'))
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  .margin({ left: 8 })
+              }
             }
-            if (this.user.position) {
-              Text(this.user.position)
-                .fontSize(12)
-                .fontColor($r('app.color.text_body'))
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .margin({ left: 8 })
-            } else if (this.user.roleLabel) {
-              Text(this.user.roleLabel)
-                .fontSize(12)
-                .fontColor($r('app.color.text_body'))
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .margin({ left: 8 })
-            }
+            .margin({ bottom: -4 })
+            .width('100%')
           }
-          .width('100%')
         }
         .alignItems(HorizontalAlign.Start)
-        .margin({ left: 14 })
+        .margin({ left: 14, bottom:1})
         .layoutWeight(1)
 
         Column() {
@@ -814,23 +818,14 @@ export struct PilotCard {
         .margin({ top: 9 })
       }
 
-      // 认证状态（飞手角色显示执照编号，其他人显示认证状态）
-      Row() {
-        Text('执照编号')
-          .fontSize(13)
-          .fontColor($r('app.color.text_label'))
-          .fontWeight(FontWeight.Medium)
+      // 认证状态（飞手执照编号已显示在昵称下方，此处仅雇主/无执照编号的飞手显示）
+      if (this.user.userRole === 'employer' || !this.user.pilotCode) {
         Row() {
-          if (this.user.pilotCode) {
-            Image($r('app.media.icon_banner'))
-              .width(16)
-              .height(16)
-              .margin({ right: 4 })
-            Text(this.user.pilotCode)
-              .fontSize(13)
-              .fontColor($r('app.color.text_primary'))
-              .fontWeight(FontWeight.Medium)
-          } else if (this.user.licenseStatus) {
+          Text('认证状态')
+            .fontSize(13)
+            .fontColor($r('app.color.text_label'))
+            .fontWeight(FontWeight.Medium)
+          Row() {
             if (this.user.licenseType) {
               Text(this.user.licenseType.toUpperCase())
                 .fontSize(10)
@@ -840,16 +835,18 @@ export struct PilotCard {
                 .padding({ left: 6, right: 6, top: 2, bottom: 2 })
                 .margin({ right: 8 })
             }
-            Text(this.user.licenseStatus)
-              .fontSize(13)
-              .fontColor($r('app.color.text_primary'))
-              .fontWeight(FontWeight.Medium)
+            if (this.user.licenseStatus) {
+              Text(this.user.licenseStatus)
+                .fontSize(13)
+                .fontColor($r('app.color.text_primary'))
+                .fontWeight(FontWeight.Medium)
+            }
           }
         }
+        .width('100%')
+        .justifyContent(FlexAlign.SpaceBetween)
+        .margin({ top: 9 })
       }
-      .width('100%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .margin({ top: 9 })
 
       // 所在城市
       if (this.user.city) {
