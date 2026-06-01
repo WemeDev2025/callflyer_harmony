@@ -220,6 +220,9 @@ class ImagePreviewModel {
       this.curOffsetX = this.lastOffsetX + offX;
       this.curOffsetY = this.lastOffsetY + offY;
       this.isDisableSwipe = true;
+    } else {
+      // 未放大时，允许 Swiper 切换
+      this.isDisableSwipe = false;
     }
     this.pictureBoundaryRestriction();
     return this.isDisableSwipe;
@@ -422,7 +425,7 @@ struct ImagePreviewDialog {
                   }
                 }),
               // 单指拖动（放大状态平移）
-              PanGesture({ fingers: 1, distance: 5 })
+              PanGesture({ fingers: 1, distance: this.previewModels[index]?.isDisableSwipe ? 3 : 50 })
                 .onActionUpdate((event: GestureEvent) => {
                   if (this.previewModels[index]) {
                     let isDisable = this.previewModels[index].panGestureUpdate(event.offsetX, event.offsetY);
