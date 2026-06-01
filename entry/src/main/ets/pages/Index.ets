@@ -1183,7 +1183,7 @@ struct Index {
       company: p.company || '',
       position: p.position || '',
       droneModel: p.droneModel || '',
-      businessScopeText: p.businessScopeText || '',
+      businessScopeText: p.businessScopeText || (p.businessScope || []).join(' · ') || '',
       recentActiveText: p.recentActiveText || '',
       likeCount: item.likeCount ?? 0,
       likedByMe: false,
@@ -2304,7 +2304,7 @@ struct Index {
                               .fontColor('#2c2c2c')
                               .padding({ left: 24, right: 24, top: 8, bottom: 8 })
                               .margin({ top: 10 })
-                              .borderRadius(10)
+                              .borderRadius(4)
                               .border({ width: 1, color: 'rgba(103, 232, 249, 0.5)' })
                               .shadow({
                                 radius: 12,

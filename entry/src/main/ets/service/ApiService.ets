@@ -1514,6 +1514,7 @@ export interface StandbyProfile {
   company?: string;
   position?: string;
   droneModel?: string;
+  businessScope?: string[];
   businessScopeText?: string;
   recentActiveText?: string;
   licenseType?: string;
@@ -1577,6 +1578,8 @@ export async function fetchStandby(): Promise<StandbyResult> {
                   }
                 }
               }
+              const businessScopeArr: string[] = (profileRaw['businessScope'] as string[]) || (profileRaw['business_scope'] as string[]) || [];
+              const businessScopeText: string = (profileRaw['businessScopeText'] as string) || (profileRaw['business_scope_text'] as string) || businessScopeArr.join(' · ') || '';
               const p: StandbyProfile = {
                 openid: (profileRaw['openid'] as string) || '',
                 nickname: (profileRaw['nickname'] as string) || '',
@@ -1588,7 +1591,8 @@ export async function fetchStandby(): Promise<StandbyResult> {
                 company: (profileRaw['company'] as string) || '',
                 position: (profileRaw['position'] as string) || '',
                 droneModel: (profileRaw['droneModel'] as string) || (profileRaw['drone_model'] as string) || '',
-                businessScopeText: (profileRaw['businessScopeText'] as string) || (profileRaw['business_scope_text'] as string) || '',
+                businessScope: businessScopeArr,
+                businessScopeText: businessScopeText,
                 recentActiveText: recentActiveText || '--',
                 licenseType: (profileRaw['licenseType'] as string) || (profileRaw['license_type'] as string) || '',
                 licenseStatus: (profileRaw['licenseStatus'] as string) || (profileRaw['license_status'] as string) || '',
