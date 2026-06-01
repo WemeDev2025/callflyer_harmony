@@ -46,6 +46,235 @@ export class PilotCardData {
 // ─── 图片预览弹窗参数 ─────────────────────────────────────────────────────────
 // （已移除，改用 CustomDialogController 方案）
 
+// ─── 图片预览器状态管理（@Observed）────────────────────────────────────────────
+@Observed
+class ImagePreviewModel {
+  // 当前缩放值
+  curScale: number = 1;
+  // 当前偏移 X
+  curOffsetX: number = 0;
+  // 当前偏移 Y
+  curOffsetY: number = 0;
+  // 上次缩放值（手势结束时固化）
+  lastScale: number = 1;
+  // 上次偏移 X
+  lastOffsetX: number = 0;
+  // 上次偏移 Y
+  lastOffsetY: number = 0;
+  // 最小缩放
+  minScale: number = 0.5;
+  // 最大缩放
+  maxScale: number = 3;
+  // 默认缩放（fit to screen）
+  defaultScale: number = 1;
+  // 缩放中心百分比 X（相对于图片内容）
+  centerX: number = 0.5;
+  // 缩放中心百分比 Y
+  centerY: number = 0.5;
+  // 屏幕宽度
+  screenWidth: number = 360;
+  // 屏幕高度
+  screenHeight: number = 780;
+  // 当前图片显示宽度（fit 之后）
+  imageWidth: number = 300;
+  // 当前图片显示高度
+  imageHeight: number = 200;
+  // 是否禁用 Swiper 切换
+  isDisableSwipe: boolean = false;
+  // 是否到达边界
+  isArriveBoundary: boolean = false;
+
+  // 偏移范围
+  maxOffsetX: number = 0;
+  minOffsetX: number = 0;
+  maxOffsetY: number = 0;
+  minOffsetY: number = 0;
+
+  // 手势结束，固化当前状态
+  gestureEnd(): void {
+    this.lastScale = this.curScale;
+    this.lastOffsetX = this.curOffsetX;
+    this.lastOffsetY = this.curOffsetY;
+  }
+
+  // 重置偏移
+  offsetReset(): void {
+    this.curOffsetX = 0;
+    this.curOffsetY = 0;
+    this.lastOffsetX = 0;
+    this.lastOffsetY = 0;
+  }
+
+  // 重置图片（切图时调用）
+  imageReset(): void {
+    this.curScale = this.defaultScale;
+    this.lastScale = this.defaultScale;
+    this.offsetReset();
+    this.isDisableSwipe = false;
+  }
+
+  // 计算偏移范围（根据当前 scale + 图片尺寸 + 屏幕尺寸）
+  evaluateOffsetRange(): void {
+    let scaledImageWidth = this.imageWidth * this.curScale;
+    let scaledImageHeight = this.imageHeight * this.curScale;
+
+    // X 轴边界
+    if (scaledImageWidth > this.screenWidth) {
+      let maxX = (scaledImageWidth - this.screenWidth) / 2;
+      this.maxOffsetX = maxX;
+      this.minOffsetX = -maxX;
+    } else {
+      this.maxOffsetX = 0;
+      this.minOffsetX = 0;
+    }
+
+    // Y 轴边界
+    if (scaledImageHeight > this.screenHeight) {
+      let maxY = (scaledImageHeight - this.screenHeight) / 2;
+      this.maxOffsetY = maxY;
+      this.minOffsetY = -maxY;
+    } else {
+      this.maxOffsetY = 0;
+      this.minOffsetY = 0;
+    }
+  }
+
+  // 计算缩放中心相对于图片的百分比位置
+  // pinchCenterX/Y 是相对于屏幕左上角的绝对坐标
+  evaluateCenter(pinchCenterX: number, pinchCenterY: number): [number, number] {
+    let scaledW = this.imageWidth * this.lastScale;
+    let scaledH = this.imageHeight * this.lastScale;
+    // 图片左上角在屏幕中的位置（考虑居中 + 当前偏移）
+    let imgX = (this.screenWidth - scaledW) / 2 + this.lastOffsetX;
+    let imgY = (this.screenHeight - scaledH) / 2 + this.lastOffsetY;
+    // 触摸点相对于图片的百分比（0~1）
+    let cX = Math.max((pinchCenterX - imgX) / scaledW, 0);
+    let cY = Math.max((pinchCenterY - imgY) / scaledH, 0);
+    return [cX, cY];
+  }
+
+  // 捏合手势开始：记录缩放中心点
+  pinchGestureStart(pinchCenterX: number, pinchCenterY: number): void {
+    let center = this.evaluateCenter(pinchCenterX, pinchCenterY);
+    // centerX/Y = 1 - center[0/1]，用于偏移补偿公式
+    this.centerX = 1 - center[0];
+    this.centerY = 1 - center[1];
+  }
+
+  // 捏合手势移动中：更新 scale + offset
+  // scale: 相对于手势开始的相对缩放比（event.scale from PinchGesture）
+  pinchGestureUpdate(scale: number, offX: number, offY: number): boolean {
+    // 限制 scale 范围
+    let newScale = this.lastScale * scale;
+    if (newScale > this.maxScale) {
+      this.curScale = this.maxScale;
+    } else if (newScale < this.minScale) {
+      this.curScale = this.minScale;
+    } else {
+      this.curScale = newScale;
+    }
+
+    // 到达边界时略微回退，防止抖动
+    if (newScale >= this.maxScale) {
+      this.curScale -= 0.001;
+    }
+
+    this.evaluateOffsetRange();
+
+    // 核心偏移公式（跟手原理）：
+    // curOffset = (上次偏移 + 手指带来的偏移) + (缩放中心偏移补偿)
+    // 补偿 = (0.5 - centerX) * imageSize * (1 - scale) * lastScale
+    if (this.curScale < this.maxScale) {
+      this.curOffsetY = (this.lastOffsetY + offY) + (0.5 - this.centerY) * this.imageHeight * (1 - scale) * this.lastScale;
+      this.curOffsetX = (this.lastOffsetX + offX) + (0.5 - this.centerX) * this.imageWidth * (1 - scale) * this.lastScale;
+    }
+
+    this.isArriveBoundary = false;
+    // 未到达边界时禁止 Swiper 切换
+    if (!this.isArriveBoundary && this.curScale > this.defaultScale) {
+      this.isDisableSwipe = true;
+    }
+
+    // 边界限制
+    this.pictureBoundaryRestriction();
+    return this.isDisableSwipe;
+  }
+
+  // 捏合手势结束
+  pinchGestureEnd(): void {
+    // 小于默认尺寸则回弹到 1
+    if (this.curScale <= this.defaultScale) {
+      this.curScale = this.defaultScale;
+      this.imageReset();
+    } else if (this.curScale >= this.maxScale) {
+      this.curScale -= 0.1;
+    }
+    this.gestureEnd();
+  }
+
+  // 单指滑动更新（用于平移拖动）
+  // offX/offY 是 PanGesture 的增量（单帧delta，非累积值）
+  panGestureUpdate(offX: number, offY: number): boolean {
+    if (this.curScale > this.defaultScale) {
+      this.curOffsetX = this.lastOffsetX + offX;
+      this.curOffsetY = this.lastOffsetY + offY;
+      this.isDisableSwipe = true;
+    }
+    this.pictureBoundaryRestriction();
+    return this.isDisableSwipe;
+  }
+
+  // 边界限制
+  pictureBoundaryRestriction(): void {
+    // X 轴边界
+    if (this.curOffsetX > this.maxOffsetX) {
+      this.curOffsetX = this.maxOffsetX;
+      this.isDisableSwipe = false;
+      this.isArriveBoundary = true;
+    } else if (this.curOffsetX < this.minOffsetX) {
+      this.curOffsetX = this.minOffsetX;
+      this.isDisableSwipe = false;
+      this.isArriveBoundary = true;
+    }
+    // Y 轴边界
+    if (this.curOffsetY > this.maxOffsetY) {
+      this.curOffsetY = this.maxOffsetY;
+    } else if (this.curOffsetY < this.minOffsetY) {
+      this.curOffsetY = this.minOffsetY;
+    }
+    // 图片小于屏幕时，强制居中
+    let scaledW = this.imageWidth * this.curScale;
+    let scaledH = this.imageHeight * this.curScale;
+    if (scaledW <= this.screenWidth) {
+      this.curOffsetX = 0;
+    }
+    if (scaledH <= this.screenHeight) {
+      this.curOffsetY = 0;
+    }
+  }
+
+  // 双击切换缩放（默认 ↔ 最大）
+  doubleTapGesture(tapX: number, tapY: number, tapScale: number): boolean {
+    if (this.lastScale > this.defaultScale) {
+      // 恢复默认尺寸
+      this.curScale = this.defaultScale;
+      this.offsetReset();
+      this.gestureEnd();
+      this.isDisableSwipe = false;
+    } else {
+      // 放大到 maxScale，中心点在双击位置
+      let center = this.evaluateCenter(tapX, tapY);
+      this.centerX = 1 - center[0];
+      this.centerY = 1 - center[1];
+      this.curScale = this.maxScale;
+      this.offsetReset();
+      this.lastScale = this.maxScale;
+      this.isDisableSwipe = true;
+    }
+    return this.isDisableSwipe;
+  }
+}
+
 // ─── 全屏图片预览内容 ─────────────────────────────────────────────────────────
 @CustomDialog
 struct ImagePreviewDialog {
@@ -54,30 +283,23 @@ struct ImagePreviewDialog {
   controller: CustomDialogController = new CustomDialogController({ builder: () => {} });
 
   @State currentIndex: number = 0;
-  @State zoomLevel: number = 1;
-  @State lastScale: number = 1;
-  @State offsetX: number = 0;
-  @State offsetY: number = 0;
   @State showUI: boolean = true;
-  @State isScaling: boolean = false;
-  @State isDragging: boolean = false;
-  @State isDisableSwipe: boolean = false; // 控制 Swiper 是否禁用滑动
+  // 每个图片独立的预览模型（用数组对应多图）
+  @State previewModels: ImagePreviewModel[] = [];
   @StorageLink('colorMode') colorMode: ConfigurationConstant.ColorMode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
 
   aboutToAppear() {
     this.currentIndex = this.startIndex;
+    this.initModels();
     // 设置状态栏字体为白色
     try {
       window.getLastWindow(getContext(this)).then((win) => {
-        win.setWindowSystemBarProperties({
-          statusBarContentColor: '#FFFFFF'
-        });
+        win.setWindowSystemBarProperties({ statusBarContentColor: '#FFFFFF' });
       });
     } catch (e) {}
   }
 
   aboutToDisappear() {
-    // 退出时恢复状态栏字体颜色
     try {
       window.getLastWindow(getContext(this)).then((win) => {
         const isDark = this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
@@ -88,24 +310,19 @@ struct ImagePreviewDialog {
     } catch (e) {}
   }
 
-  resetZoom() {
-    animateTo({ duration: 200 }, () => {
-      this.zoomLevel = 1;
-      this.lastScale = 1;
-      this.offsetX = 0;
-      this.offsetY = 0;
-    });
+  // 初始化每个图片的预览模型
+  initModels(): void {
+    this.previewModels = this.imageUrls.map(() => new ImagePreviewModel());
   }
 
-  toggleZoom() {
-    if (this.zoomLevel > 1) {
-      this.resetZoom();
-    } else {
-      animateTo({ duration: 200 }, () => {
-        this.zoomLevel = 2;
-        this.lastScale = 2;
-      });
+  // 切换图片时重置目标图片的状态
+  onSwiperChange(index: number): void {
+    this.currentIndex = index;
+    // 确保新索引有模型
+    while (this.previewModels.length <= index) {
+      this.previewModels.push(new ImagePreviewModel());
     }
+    this.previewModels[index].imageReset();
   }
 
   build() {
@@ -113,45 +330,66 @@ struct ImagePreviewDialog {
 
       // 图片 Swiper
       Swiper() {
-        ForEach(this.imageUrls, (url: string) => {
+        ForEach(this.imageUrls, (url: string, index: number) => {
           Image(url)
             .width('100%')
             .height('100%')
             .objectFit(ImageFit.Contain)
-            .scale({ x: this.zoomLevel, y: this.zoomLevel })
-            .translate({ x: this.offsetX, y: this.offsetY })
+            .transform(
+              matrix4.identity()
+                .scale({ x: this.previewModels[index]?.curScale ?? 1, y: this.previewModels[index]?.curScale ?? 1 })
+                .copy()
+            )
+            .translate({
+              x: this.previewModels[index]?.curOffsetX ?? 0,
+              y: this.previewModels[index]?.curOffsetY ?? 0
+            })
             .gesture(GestureGroup(GestureMode.Exclusive,
+              // 双击：切换默认 ↔ 最大缩放
               TapGesture({ count: 2 })
-                .onAction(() => { this.toggleZoom(); }),
-              PinchGesture()
-                .onActionStart(() => {
-                  this.isScaling = true;
-                })
-                .onActionUpdate((event: GestureEvent) => {
-                  this.zoomLevel = Math.max(0.5, Math.min(4, this.lastScale * event.scale));
-                  this.isDisableSwipe = this.zoomLevel > 1;
-                })
-                .onActionEnd(() => {
-                  this.lastScale = this.zoomLevel;
-                  this.isScaling = false;
-                  this.isDisableSwipe = this.zoomLevel > 1;
-                  if (this.zoomLevel < 1) { this.resetZoom(); }
+                .onAction((event: GestureEvent) => {
+                  if (this.previewModels[index]) {
+                    let isDisable = this.previewModels[index].doubleTapGesture(
+                      event.fingerList[0].displayX,
+                      event.fingerList[0].displayY,
+                      event.scale
+                    );
+                    // 触发响应式更新（创建新数组引用）
+                    this.previewModels = [...this.previewModels];
+                  }
                 }),
-              PanGesture({ fingers: 1, distance: this.isDisableSwipe ? 3 : 50 })
-                .onActionStart(() => {
-                  this.isDragging = true;
+              // 双指捏合缩放
+              PinchGesture({ fingers: 2, distance: 1 })
+                .onActionStart((event: GestureEvent) => {
+                  if (this.previewModels[index]) {
+                    this.previewModels[index].pinchGestureStart(event.pinchCenterX, event.pinchCenterY);
+                  }
                 })
                 .onActionUpdate((event: GestureEvent) => {
-                  if (this.zoomLevel > 1) {
-                    // 放大状态：拖动图片，按比例计算偏移
-                    let maxOffsetX = (this.zoomLevel - 1) * 200;
-                    let maxOffsetY = (this.zoomLevel - 1) * 200;
-                    this.offsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, this.offsetX + event.offsetX));
-                    this.offsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, this.offsetY + event.offsetY));
+                  if (this.previewModels[index]) {
+                    this.previewModels[index].pinchGestureUpdate(event.scale, event.offsetX, event.offsetY);
+                    this.previewModels = [...this.previewModels];
                   }
                 })
                 .onActionEnd(() => {
-                  this.isDragging = false;
+                  if (this.previewModels[index]) {
+                    this.previewModels[index].pinchGestureEnd();
+                    this.previewModels = [...this.previewModels];
+                  }
+                }),
+              // 单指拖动（放大状态平移）
+              PanGesture({ fingers: 1, distance: this.previewModels[index]?.isDisableSwipe ? 3 : 50 })
+                .onActionUpdate((event: GestureEvent) => {
+                  if (this.previewModels[index]) {
+                    let isDisable = this.previewModels[index].panGestureUpdate(event.offsetX, event.offsetY);
+                    this.previewModels = [...this.previewModels];
+                  }
+                })
+                .onActionEnd(() => {
+                  if (this.previewModels[index]) {
+                    this.previewModels[index].gestureEnd();
+                    this.previewModels = [...this.previewModels];
+                  }
                 })
             ))
         })
@@ -160,14 +398,9 @@ struct ImagePreviewDialog {
       .indicator(false)
       .loop(false)
       .duration(300)
-      .disableSwipe(this.isDisableSwipe)
+      .disableSwipe(this.previewModels[this.currentIndex]?.isDisableSwipe ?? false)
       .onClick(() => { this.showUI = !this.showUI; })
-      .onChange((index: number) => {
-        this.currentIndex = index;
-        this.zoomLevel = 1; this.lastScale = 1;
-        this.offsetX = 0; this.offsetY = 0;
-        this.isDisableSwipe = false;
-      })
+      .onChange((index: number) => this.onSwiperChange(index))
       .width('100%')
       .height('100%')
 
@@ -207,7 +440,7 @@ struct ImagePreviewDialog {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('rgba(0, 0, 0, 0)')
+    .backgroundColor('#000000')
     .expandSafeArea([SafeAreaType.SYSTEM])
   }
 }
