@@ -1719,7 +1719,7 @@ struct Index {
 
                   Column() {
                     Text(item.profile.nickname)
-                      .fontSize(14)
+                      .fontSize(13)
                       .fontWeight(700)
                       .fontColor($r('app.color.text_primary'))
                       .maxLines(1)
@@ -1828,11 +1828,11 @@ struct Index {
   InfoRow(label: string, value: string) {
     Row() {
       Text(label)
-        .fontSize(14)
+        .fontSize(13)
         .fontColor($r('app.color.text_label'))
         .fontWeight(FontWeight.Medium)
       Text(value)
-        .fontSize(14)
+        .fontSize(13)
         .fontColor($r('app.color.text_primary'))
         .fontWeight(FontWeight.Medium)
         .textAlign(TextAlign.End)
@@ -2199,7 +2199,7 @@ struct Index {
                             .alignItems(VerticalAlign.Center)
                             .justifyContent(FlexAlign.Start)
 
-                            // 信息行
+                            // 信息行（限制3行高度）
                             Column() {
                               // 手机
                               if (this.rewardSlotUser.phone) {
@@ -2209,12 +2209,13 @@ struct Index {
                                     .height(14)
                                     .margin({ right: 4 })
                                   Text(this.maskPhone(this.rewardSlotUser.phone))
-                                    .fontSize(14)
+                                    .fontSize(13)
                                     .fontColor('rgba(255,255,255,0.6)')
+                                    .maxLines(1)
+                                    .textOverflow({ overflow: TextOverflow.Ellipsis })
                                 }
                                 .width('100%')
                                 .justifyContent(FlexAlign.Start)
-                                .margin({ top: 6 })
                               }
 
                               // 主营业务
@@ -2225,13 +2226,13 @@ struct Index {
                                     .height(14)
                                     .margin({ right: 4 })
                                   Text(this.rewardSlotUser.businessScopeText)
-                                    .fontSize(14)
+                                    .fontSize(13)
                                     .fontColor('rgba(255,255,255,0.6)')
                                     .maxLines(1)
                                     .textOverflow({ overflow: TextOverflow.Ellipsis })
+                                    .layoutWeight(1)
                                 }
                                 .width('100%')
-                                .justifyContent(FlexAlign.Start)
                                 .margin({ top: 6 })
                               }
 
@@ -2243,43 +2244,28 @@ struct Index {
                                     .height(14)
                                     .margin({ right: 4 })
                                   Text(this.rewardSlotUser.droneModel)
-                                    .fontSize(14)
+                                    .fontSize(13)
                                     .fontColor('rgba(255,255,255,0.6)')
                                     .maxLines(1)
                                     .textOverflow({ overflow: TextOverflow.Ellipsis })
+                                    .layoutWeight(1)
                                 }
                                 .width('100%')
-                                .justifyContent(FlexAlign.Start)
-                                .margin({ top: 6 })
-                              }
-
-                              // 抖音
-                              if (this.rewardSlotUser.douyinId) {
-                                Row() {
-                                  Image($r('app.media.icon_douyin'))
-                                    .width(14)
-                                    .height(14)
-                                    .margin({ right: 4 })
-                                  Text(this.rewardSlotUser.douyinId)
-                                    .fontSize(14)
-                                    .fontColor('rgba(255,255,255,0.6)')
-                                }
-                                .width('100%')
-                                .justifyContent(FlexAlign.Start)
                                 .margin({ top: 6 })
                               }
                             }
                             .width('100%')
-                            .backgroundColor('rgba(255,255,255,0.1)')
-                            .borderRadius(4)
-                            .padding(8)
-                            .margin({ top: 22 })
+                            .height(90)
+                            .clip(true)
+                            .backgroundColor('rgba(0,0,0,0.35)')
+                            .borderRadius(12)
+                            .padding(14)
+                            .margin({ top: 12})
                           }
                           .width('95%')
                           .height('92%')
-                          .padding(16)
-                          .backgroundColor('rgba(255,255,255,0.08)')
-                          .borderRadius(13)
+                          .padding(12)
+                          .borderRadius(12)
                           .border({ width: 1, color: 'rgba(255,255,255,0.1)' })
                           .alignItems(HorizontalAlign.Start)
                           .onClick(() => { this.onRewardSlotClick(); })
@@ -2772,7 +2758,7 @@ struct Index {
       Column() {
         Text('暂无附近飞手')
           .fontColor($r('app.color.text_secondary'))
-          .fontSize(14)
+          .fontSize(13)
       }
       .width('100%')
       .padding(20)
@@ -2940,7 +2926,7 @@ struct Index {
       Column() {
         Text('暂无任务')
           .fontColor($r('app.color.text_secondary'))
-          .fontSize(14)
+          .fontSize(13)
       }
       .width('100%')
       .padding(20)
@@ -3152,7 +3138,7 @@ struct Index {
               Row() {
                 Blank()
                 Text(this.isOrderExpanded(order.orderId) ? '收起' : '展开')
-                  .fontSize(14)
+                  .fontSize(13)
                   .fontColor($r('app.color.text_body'))
                   .fontWeight(FontWeight.Medium)
                   .onClick(() => {

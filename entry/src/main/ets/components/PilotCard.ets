@@ -744,19 +744,7 @@ export struct PilotCard {
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-          if (this.user.pilotCode) {
-            Row() {
-              Image($r('app.media.icon_banner'))
-                .width(22)
-                .height(22)
-                .objectFit(ImageFit.Contain)
-              Text(this.user.pilotCode)
-                .fontSize(12)
-                .fontColor($r('app.color.text_body'))
-                .margin({ left: 4 })
-            }
-            .margin({ top: 4 })
-          } else if (this.user.company) {
+          if (this.user.company) {
             Text(this.user.company + (this.user.position ? ' ' + this.user.position : ''))
               .fontSize(12)
               .fontColor($r('app.color.text_body'))
