@@ -1099,18 +1099,7 @@ struct Index {
     try {
       const result = await fetchStandby();
 
-      // 静默刷新时：比对列表是否变化
-      if (silent && this.standbyItems.length > 0) {
-        const prevIds = this.standbyItems.map((item: StandbyItem) => item.openid).sort().join(',');
-        const newIds = result.items.map((item: StandbyItem) => item.openid).sort().join(',');
-        if (prevIds === newIds) {
-          // 列表无变化，跳过更新
-          console.info('【今日有空】列表无变化，跳过更新');
-          return;
-        }
-        console.info('【今日有空】列表有变化，执行更新');
-      }
-
+      // 始终更新列表，确保 viewCount 等实时数据刷新
       this.standbyItems = result.items;
       // 渐显动画
       this.standbyOpacity = 0;
@@ -1203,10 +1192,8 @@ struct Index {
     // 静默上报查看次数
     if (p.openid) {
       reportStandbyView(p.openid).then((viewCount) => {
-        console.info('【今日有空浏览次数】openid:', p.openid, 'viewCount:', viewCount);
         // 更新列表中对应的 viewCount（创建新数组引用以触发 UI 刷新）
         const idx = this.standbyItems.findIndex((s: StandbyItem) => s.profile.openid === p.openid);
-        console.info('【今日有空浏览次数】findIndex result:', idx, 'standbyItems.length:', this.standbyItems.length);
         if (idx >= 0) {
           const item = this.standbyItems[idx];
           const updated: StandbyItem = {
@@ -1219,7 +1206,6 @@ struct Index {
           const newItems = this.standbyItems.slice();
           newItems[idx] = updated;
           this.standbyItems = newItems;
-          console.info('【今日有空浏览次数】已更新 idx:', idx, 'new viewCount:', viewCount);
         }
       }).catch(() => {});
     }
