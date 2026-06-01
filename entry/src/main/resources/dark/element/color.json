@@ -53,6 +53,10 @@
       "value": "#2D2D2D"
     },
     {
+      "name": "tag_bg",
+      "value": "#2D2D2D"
+    },
+    {
       "name": "text_title",
       "value": "#E7F8FC"
     },

@@ -49,6 +49,8 @@ export class PilotCardData {
   workKg: number | null = null;
   // 机型图片
   droneImages: string[] = [];
+  // 视频号（鸿蒙无法跳转，保留字段但不在UI显示）
+  channelsId: string = '';
   // 机构认证
   institutionId: string = '';
   licenseUrl: string = '';
@@ -578,6 +580,7 @@ export struct PilotCard {
     workMu: null,
     workKg: null,
     droneImages: [],
+    channelsId: '',
     institutionId: '',
     licenseUrl: '',
   };
@@ -873,7 +876,7 @@ export struct PilotCard {
             Text(this.user.businessScopeText)
               .fontSize(13)
               .fontColor($r('app.color.text_primary'))
-              .backgroundColor($r('app.color.page_bg'))
+              .backgroundColor($r('app.color.tag_bg'))
               .borderRadius(8)
               .padding({ left: 11, right: 11, top: 9, bottom: 9 })
               .width('100%')
@@ -913,7 +916,7 @@ export struct PilotCard {
             Text(this.user.droneModel)
               .fontSize(13)
               .fontColor($r('app.color.text_primary'))
-              .backgroundColor($r('app.color.page_bg'))
+              .backgroundColor($r('app.color.tag_bg'))
               .borderRadius(8)
               .padding({ left: 10, right: 10, top: 9, bottom: 9 })
               .width('100%')

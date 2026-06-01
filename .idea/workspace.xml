@@ -6,9 +6,8 @@
       <change beforePath="$PROJECT_DIR$/.hvigor/cache/task-cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/cache/task-cache.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.hvigor/outputs/build-logs/build.log" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/outputs/build-logs/build.log" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.hvigor/outputs/logs/details/details.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/outputs/logs/details/details.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.hvigor/report/report-202605302029366390.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/entry/src/main/ets/entryability/EntryAbility.ets" beforeDir="false" afterPath="$PROJECT_DIR$/entry/src/main/ets/entryability/EntryAbility.ets" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entry/src/main/module.json5" beforeDir="false" afterPath="$PROJECT_DIR$/entry/src/main/module.json5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets" beforeDir="false" afterPath="$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +20,6 @@
   <component name="HiLogStateProjectLevelPreference">
     <panelStates>
       <hilogPanelState>
-        <option name="filterName" value="User logs of selected app" />
         <option name="logPanelType" value="ONLINE" />
         <option name="processName" value="com.callflyer.app" />
       </hilogPanelState>
@@ -57,44 +55,47 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;192.168.50.214:34161&quot;: &quot;5375584241779632050434&quot;,
-    &quot;192.168.50.214:34695&quot;: &quot;5374359851779594167522&quot;,
-    &quot;192.168.71.127:34161&quot;: &quot;5375584241779669065717&quot;,
-    &quot;192.168.71.127:34695&quot;: &quot;5369503141779608753852&quot;,
-    &quot;192.168.71.127:34943&quot;: &quot;5369548741779850748464&quot;,
-    &quot;192.168.71.127:37023&quot;: &quot;5370260681779754758834&quot;,
-    &quot;192.168.71.127:38201&quot;: &quot;5369503141779615166367&quot;,
-    &quot;192.168.71.127:38361&quot;: &quot;5369548741780102957074&quot;,
-    &quot;192.168.71.127:40809&quot;: &quot;5369548741779849240741&quot;,
-    &quot;192.168.71.127:43097&quot;: &quot;5369548741780114500089&quot;,
-    &quot;192.168.71.127:45769&quot;: &quot;5369548741780105432383&quot;,
-    &quot;192.168.71.127:46271&quot;: &quot;5370260681779753529938&quot;,
-    &quot;7FC0226226004081&quot;: &quot;5369548741780134264031&quot;,
-    &quot;Application.entry.executor&quot;: &quot;Run&quot;,
-    &quot;MODULE_HAP_TIME&quot;: &quot;{\&quot;192.168.71.127:40809entry\&quot;:\&quot;2026-05-27T02:33:59.494006512Z\&quot;,\&quot;192.168.71.127:43097entry\&quot;:\&quot;2026-05-30T04:14:57.296886492Z\&quot;,\&quot;192.168.50.214:34161entry\&quot;:\&quot;2026-05-24T14:14:08.161496118Z\&quot;,\&quot;192.168.71.127:34161entry\&quot;:\&quot;2026-05-25T00:31:05.456867762Z\&quot;,\&quot;7FC0226226004081entry\&quot;:\&quot;2026-05-30T09:44:22.997742769Z\&quot;,\&quot;192.168.50.214:34695entry\&quot;:\&quot;2026-05-24T03:42:45.893971550Z\&quot;,\&quot;192.168.71.127:34695entry\&quot;:\&quot;2026-05-24T07:45:52.898805794Z\&quot;,\&quot;192.168.71.127:38201entry\&quot;:\&quot;2026-05-24T09:32:45.422305417Z\&quot;,\&quot;192.168.71.127:45769entry\&quot;:\&quot;2026-05-30T01:43:51.055201363Z\&quot;,\&quot;192.168.71.127:38361entry\&quot;:\&quot;2026-05-30T01:02:35.868057257Z\&quot;,\&quot;192.168.71.127:46271entry\&quot;:\&quot;2026-05-25T23:58:43.556206129Z\&quot;,\&quot;192.168.71.127:37023entry\&quot;:\&quot;2026-05-26T00:19:17.324463007Z\&quot;,\&quot;192.168.71.127:34943entry\&quot;:\&quot;2026-05-27T02:59:06.978485292Z\&quot;}&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;ace.nodejs.version&quot;: &quot;18.20.1&quot;,
-    &quot;auto_debug_bundleName&quot;: &quot;000000217FDFF85706DB5007CBC372251F8FDBE60A202C45109ACB9A4D49873C674E35111A1290D52EFAA0E75CD487DFBD&quot;,
-    &quot;auto_debug_cert_list&quot;: &quot;00000023F38AC542EA1A25DF8E9573DE9894AB6E8017D4CDAA157D37CCECE63E5F4F4F682A9DF8915EA65E1192EAE8D8272B17&quot;,
-    &quot;auto_debug_device_list&quot;: &quot;000000372C111309CD4BA40B8AE5D039AD0F512B7AE7F258474F03ED84C91BE67F0F3B2DD763455011534646564DE4FD17D4B4040B326FB40BD5368D9D8F734593539DCE390C9C&quot;,
-    &quot;auto_debug_package_name&quot;: &quot;000000219EEA25946A45FFBC8F61D07C7DE9F7E6E3AEEB148EC98CC5F4A71DD3B8D62062C304213D8E255321E9BCCD3B71&quot;,
-    &quot;auto_debug_team_id&quot;: &quot;000000229DDA593F42D1AD1C584204B06D50D4AE6D685BB880797DF138A80ACB78A34EA2BA45B8AD93663CE1356CEAB41A1F&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_csr_path&quot;: &quot;/Users/zhaojing/Downloads/callflyerDebug.csr&quot;,
-    &quot;last_keystore_path&quot;: &quot;/Users/zhaojing/Downloads/callflyerDebug.p12&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/zhaojing/Downloads/callflyer_Harmony&quot;,
-    &quot;projectSizeLastTraceTimestamp-aca87fc6556eb6ad0a70881b49469c3730cd6471bf33d3c27abb3c426339&quot;: &quot;1779641620780&quot;,
-    &quot;resolution&quot;: &quot;1080*2340&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;codegenie.internal.code.generation&quot;,
-    &quot;shape&quot;: &quot;phone&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "192.168.50.214:34161": "5375584241779632050434",
+    "192.168.50.214:34695": "5374359851779594167522",
+    "192.168.50.214:35605": "5369803591780236030163",
+    "192.168.50.214:43351": "5378756181780281168079",
+    "192.168.71.127:34161": "5375584241779669065717",
+    "192.168.71.127:34695": "5369503141779608753852",
+    "192.168.71.127:34943": "5369548741779850748464",
+    "192.168.71.127:37023": "5370260681779754758834",
+    "192.168.71.127:38201": "5369503141779615166367",
+    "192.168.71.127:38361": "5369548741780102957074",
+    "192.168.71.127:40461": "5374316061780234512803",
+    "192.168.71.127:40809": "5369548741779849240741",
+    "192.168.71.127:43097": "5369548741780114500089",
+    "192.168.71.127:45769": "5369548741780105432383",
+    "192.168.71.127:46271": "5370260681779753529938",
+    "7FC0226226004081": "5376350221780187077119",
+    "Application.entry.executor": "Run",
+    "MODULE_HAP_TIME": "{\"192.168.71.127:40809entry\":\"2026-05-27T02:33:59.494006512Z\",\"192.168.71.127:43097entry\":\"2026-05-30T04:14:57.296886492Z\",\"192.168.50.214:34161entry\":\"2026-05-24T14:14:08.161496118Z\",\"192.168.71.127:34161entry\":\"2026-05-25T00:31:05.456867762Z\",\"7FC0226226004081entry\":\"2026-05-31T00:24:36.355240378Z\",\"192.168.50.214:34695entry\":\"2026-05-24T03:42:45.893971550Z\",\"192.168.71.127:34695entry\":\"2026-05-24T07:45:52.898805794Z\",\"192.168.71.127:38201entry\":\"2026-05-24T09:32:45.422305417Z\",\"192.168.50.214:35605entry\":\"2026-05-31T00:24:36.355240378Z\",\"192.168.71.127:45769entry\":\"2026-05-30T01:43:51.055201363Z\",\"192.168.71.127:40461entry\":\"2026-05-31T00:24:36.355240378Z\",\"192.168.71.127:38361entry\":\"2026-05-30T01:02:35.868057257Z\",\"192.168.50.214:43351entry\":\"2026-06-01T02:32:47.021470667Z\",\"192.168.71.127:46271entry\":\"2026-05-25T23:58:43.556206129Z\",\"192.168.71.127:37023entry\":\"2026-05-26T00:19:17.324463007Z\",\"192.168.71.127:34943entry\":\"2026-05-27T02:59:06.978485292Z\"}",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "ace.nodejs.version": "18.20.1",
+    "auto_debug_bundleName": "000000217FDFF85706DB5007CBC372251F8FDBE60A202C45109ACB9A4D49873C674E35111A1290D52EFAA0E75CD487DFBD",
+    "auto_debug_cert_list": "00000023F38AC542EA1A25DF8E9573DE9894AB6E8017D4CDAA157D37CCECE63E5F4F4F682A9DF8915EA65E1192EAE8D8272B17",
+    "auto_debug_device_list": "000000372C111309CD4BA40B8AE5D039AD0F512B7AE7F258474F03ED84C91BE67F0F3B2DD763455011534646564DE4FD17D4B4040B326FB40BD5368D9D8F734593539DCE390C9C",
+    "auto_debug_package_name": "000000219EEA25946A45FFBC8F61D07C7DE9F7E6E3AEEB148EC98CC5F4A71DD3B8D62062C304213D8E255321E9BCCD3B71",
+    "auto_debug_team_id": "000000229DDA593F42D1AD1C584204B06D50D4AE6D685BB880797DF138A80ACB78A34EA2BA45B8AD93663CE1356CEAB41A1F",
+    "git-widget-placeholder": "main",
+    "last_csr_path": "/Users/zhaojing/Downloads/callflyerDebug.csr",
+    "last_keystore_path": "/Users/zhaojing/Downloads/callflyerDebug.p12",
+    "last_opened_file_path": "/Users/zhaojing/Downloads/callflyer_Harmony",
+    "projectSizeLastTraceTimestamp-aca87fc6556eb6ad0a70881b49469c3730cd6471bf33d3c27abb3c426339": "1779641620780",
+    "resolution": "1080*2340",
+    "settings.editor.selected.configurable": "com.huawei.deveco.sdkmanager.ohos.idea.ui.OhSdkConfigProvider",
+    "shape": "phone"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;reqPermissions&quot;: []
+  "keyToStringList": {
+    "reqPermissions": []
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Application.entry">
     <configuration name="entry" type="HotReLoadTask" factoryName="Hot Reload">
       <MODULE_NAME />
@@ -244,7 +245,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets</url>
-          <line>420</line>
+          <line>595</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
@@ -254,12 +255,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Profile.ets</url>
-          <line>652</line>
+          <line>653</line>
           <option name="timeStamp" value="6" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Profile.ets</url>
-          <line>435</line>
+          <line>436</line>
           <option name="timeStamp" value="7" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
