@@ -313,20 +313,31 @@ struct ImagePreviewDialog {
 
   // 初始化每个图片的预览模型
   initModels(): void {
-    // 先创建模型，再异步获取屏幕尺寸后同步到每个实例
-    this.previewModels = this.imageUrls.map(() => new ImagePreviewModel());
-    // 获取真实屏幕尺寸并同步到所有模型
+    // 同步获取屏幕尺寸（getLastWindow 同步调用有时可用）
+    let screenW = 360;
+    let screenH = 780;
     try {
       window.getLastWindow(getContext(this)).then((win) => {
         const rect = win.getWindowProperties().windowRect;
-        const w = px2vp(rect.width);
-        const h = px2vp(rect.height);
+        screenW = px2vp(rect.width);
+        screenH = px2vp(rect.height);
+        // 立即同步到已有模型
         this.previewModels.forEach(model => {
-          model.screenWidth = w;
-          model.screenHeight = h;
+          model.screenWidth = screenW;
+          model.screenHeight = screenH;
         });
       });
     } catch (_) {}
+
+    // 创建模型：imageHeight 设为 screenH（按屏幕高度预估，足以触发 Y 轴边界计算）
+    this.previewModels = this.imageUrls.map(() => {
+      const model = new ImagePreviewModel();
+      model.imageWidth = screenW;   // 宽占满屏幕
+      model.imageHeight = screenH;  // 高按屏幕高度（过度估计，确保能计算 maxOffsetY）
+      model.screenWidth = screenW;
+      model.screenHeight = screenH;
+      return model;
+    });
   }
 
   // 切换图片时重置目标图片的状态
@@ -357,6 +368,25 @@ struct ImagePreviewDialog {
             .translate({
               x: this.previewModels[index]?.curOffsetX ?? 0,
               y: this.previewModels[index]?.curOffsetY ?? 0
+            })
+            .onComplete((event) => {
+              // 图片加载完成后，用真实尺寸更新 model
+              if (event && event.width > 0 && event.height > 0 && this.previewModels[index]) {
+                const model = this.previewModels[index];
+                const w = event.width;
+                const h = event.height;
+                // 计算 fit 到屏幕后的尺寸（与 initModels 逻辑一致）
+                const widthRatio = model.screenWidth / w;
+                const heightRatio = model.screenHeight / h;
+                const scaleRatio = Math.min(widthRatio, heightRatio);
+                model.imageWidth = w * scaleRatio;
+                model.imageHeight = h * scaleRatio;
+                // 动态计算 maxScale：能放大到屏幕的 2.5 倍（更大的拖动范围）
+                const widthRatio2 = (model.screenWidth * 2.5) / model.imageWidth;
+                const heightRatio2 = (model.screenHeight * 2.5) / model.imageHeight;
+                model.maxScale = Math.min(widthRatio2, heightRatio2, 5);
+                this.previewModels = [...this.previewModels];
+              }
             })
             .gesture(GestureGroup(GestureMode.Exclusive,
               // 双击：切换默认 ↔ 最大缩放
@@ -392,7 +422,7 @@ struct ImagePreviewDialog {
                   }
                 }),
               // 单指拖动（放大状态平移）
-              PanGesture({ fingers: 1, distance: this.previewModels[index]?.isDisableSwipe ? 3 : 50 })
+              PanGesture({ fingers: 1, distance: 5 })
                 .onActionUpdate((event: GestureEvent) => {
                   if (this.previewModels[index]) {
                     let isDisable = this.previewModels[index].panGestureUpdate(event.offsetX, event.offsetY);
