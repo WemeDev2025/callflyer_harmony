@@ -318,6 +318,8 @@ struct Index {
 
   @State statusBarHeight: number = 0;
   private bannerLoadedOnce: boolean = false;  // 轮播图是否已首次加载
+  private lastRewardSlotRefreshTime: number = 0;  // 上次奖励位刷新时间（防抖）
+  private pageHideTime: number = 0;  // 页面隐藏时间
 
   aboutToAppear() {
     // 初始化渐变颜色
@@ -377,34 +379,44 @@ struct Index {
 
   // 加载奖励位状态（检查用户是否已认领）
   async loadRewardSlotStatus(): Promise<void> {
+    // 详细日志：打印调用堆栈
+    const now = Date.now();
+    hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】被调用: 时间=' + now + ', 距上次=' + (now - this.lastRewardSlotRefreshTime) + 'ms');
     try {
       const token = AppStorage.get<string>('authToken');
-      hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】token: ' + (token ? '有值(' + token.substring(0, 20) + '...)' : '为空'));
+      hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】开始请求');
       const status = await fetchRewardSlotStatus();
       hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】返回: claimed=' + status?.claimed + ', profileCard=' + JSON.stringify(status?.profileCard));
-      if (status && status.claimed && status.profileCard) {
-        hilog.info(0x0000, 'RewardAd', '用户已认领奖励位，加载用户信息');
-        const card = status.profileCard;
+
+      // 记录刷新前的状态，用于对比
+      const prevClaimed = this.rewardSlotClaimed;
+      const prevUserNickname = this.rewardSlotUser?.nickname || '无';
+
+      if (status && status.profile) {
+        // 有profile数据表示奖励位被占用（无论是谁），显示该用户名片
+        const p = status.profile;
+        const isCurrentUserOwner = status.claimed;
+        hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】奖励位有profile: nickname=' + p.nickname + ', claimed=' + isCurrentUserOwner);
         this.rewardSlotUser = {
           openid: '',
-          nickname: card.nickname || '匿名用户',
-          avatar: card.avatarUrl || DEFAULT_AVATAR,
-          city: card.city || '',
-          roleLabel: card.userRole || '',
-          licenseType: card.licenseType || '',
-          licenseStatus: card.licenseType === '已审核' ? '审核通过' : card.licenseType || '',
+          nickname: p.nickname || '匿名用户',
+          avatar: p.avatarUrl || DEFAULT_AVATAR,
+          city: p.city || '',
+          roleLabel: p.userRole || '',
+          licenseType: p.licenseType || '',
+          licenseStatus: p.licenseType === '已审核' ? '审核通过' : p.licenseType || '',
           pilotCode: '',
-          company: card.company || '',
-          position: card.position || '',
-          droneModel: card.droneModel || '',
+          company: p.company || '',
+          position: p.position || '',
+          droneModel: p.droneModel || '',
           businessScope: '',
-          businessScopeText: (card.businessScope || []).join('、'),
+          businessScopeText: (p.businessScope || []).join('、'),
           recentActiveText: '刚刚活跃',
-          likeCount: card.likeCount || 0,
+          likeCount: p.likeCount || 0,
           likedByMe: false,
-          phone: card.phone || '',
-          wechatId: card.wechatId || '',
-          douyinId: card.douyinId || '',
+          phone: p.phone || '',
+          wechatId: p.wechatId || '',
+          douyinId: p.douyinId || '',
           distanceText: '',
           isVipSlot: false,
           vipRadiusKm: 0,
@@ -412,19 +424,35 @@ struct Index {
           latitude: 0,
           longitude: 0,
           score: '',
-          licenseUrl: card.licenseUrl || '',
-          channelsId: card.channelsId || '',
+          licenseUrl: p.licenseUrl || '',
+          channelsId: p.channelsId || '',
           isNew: false,
           licenseStatusClass: '',
-          institutionId: card.institutionId || '',
-          workMu: card.workMu ?? null,
-          workKg: card.workKg ?? null,
-          droneImages: card.droneImages || [],
+          institutionId: p.institutionId || '',
+          workMu: null,
+          workKg: null,
+          droneImages: [],
         };
-        this.rewardSlotClaimed = true;
+        this.rewardSlotClaimed = isCurrentUserOwner;
+        hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】已设置: nickname=' + this.rewardSlotUser.nickname + ', claimed=' + this.rewardSlotClaimed);
+      } else {
+        // 无profile数据，奖励位空闲，显示默认状态
+        hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】奖励位空闲，无profile');
+        this.rewardSlotClaimed = false;
+        this.rewardSlotUser = null;
+        // 恢复默认标题/副标题（从缓存的config中读取）
+        if (this.configCache) {
+          this.rewardTitle = this.configCache.rewardTitle || '呼叫飞手';
+          this.rewardSubtitle = this.configCache.rewardSubtitle || '打造职业飞手库';
+          this.rewardButtonText = this.configCache.rewardButtonText || '观看解锁';
+        }
       }
     } catch (e) {
       hilog.error(0x0000, 'RewardAd', '加载奖励位状态失败: ' + JSON.stringify(e));
+      // 加载失败时也要重置为默认状态
+      this.rewardSlotClaimed = false;
+      this.rewardSlotUser = null;
+      hilog.info(0x0000, 'RewardAd', '【loadRewardSlotStatus】加载失败，重置默认状态');
     }
   }
 
@@ -442,9 +470,17 @@ struct Index {
 
   // App前台切换回调（后台切回前台时刷新奖励位数据）
   private async onAppForegroundChange(): Promise<void> {
+    hilog.info(0x0000, 'RewardAd', '【onAppForegroundChange】appIsForeground=' + this.appIsForeground);
     if (this.appIsForeground) {
-      console.info('【前后台】App切回前台，刷新奖励位数据');
-      await this.loadRewardSlotStatus();
+      const now = Date.now();
+      hilog.info(0x0000, 'RewardAd', '【onAppForegroundChange】now=' + now + ', lastTime=' + this.lastRewardSlotRefreshTime + ', 距上次=' + (now - this.lastRewardSlotRefreshTime) + 'ms');
+      if (now - this.lastRewardSlotRefreshTime > 2000) {
+        this.lastRewardSlotRefreshTime = now;
+        hilog.info(0x0000, 'RewardAd', '【onAppForegroundChange】开始刷新');
+        await this.loadRewardSlotStatus();
+      } else {
+        hilog.info(0x0000, 'RewardAd', '【onAppForegroundChange】防抖跳过');
+      }
     }
   }
 
@@ -519,28 +555,32 @@ struct Index {
       const config = await fetchConfig();
       const banners = await fetchBanners();
 
+      // 记录刷新前的奖励位状态
+      const prevRewardSlotClaimed = this.rewardSlotClaimed;
+      const prevRewardSlotUserNickname = this.rewardSlotUser?.nickname || '无';
+
       // 静默刷新时：比对 config 是否变化
       if (silent && this.configCache) {
         const prevConfig = this.configCache;
-        // 比对关键字段
-        const prevBannerJson = JSON.stringify(prevConfig.carousel || []);
-        const newBannerJson = JSON.stringify(config.carousel || []);
+        // 只比对关键字段：banner 数量和 topTitle
+        const prevBannerCount = (prevConfig.carousel || []).length;
+        const newBannerCount = (config.carousel || []).length;
         const prevTitle = prevConfig.defaultTopTitle || '';
         const newTitle = config.defaultTopTitle || '';
 
-        if (prevBannerJson === newBannerJson && prevTitle === newTitle) {
-          // config 无变化，跳过更新
-          console.info('【轮播图】config 无变化，跳过更新');
+        if (prevBannerCount === newBannerCount && prevTitle === newTitle) {
+          // banner数量和title无变化，跳过更新
+          console.info('【轮播图】silent模式+banner数量title无变化，跳过更新');
           this.bannerLoaded = true;
           return;
         }
-        console.info('【轮播图】config 有变化，执行更新');
+        console.info('【轮播图】silent模式+banner数量或title有变化，执行更新');
       }
 
       // 更新缓存
       this.configCache = config;
 
-      // 解析配置更新UI
+      // 解析配置更新UI - 先重置为默认状态
       this.rewardTitle = config.rewardTitle || '呼叫飞手';
       this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
       this.rewardButtonText = config.rewardButtonText || '观看解锁';
@@ -549,6 +589,9 @@ struct Index {
       this.todayActiveUsers = config.todayActiveUsers ?? 0;
       this.totalPilotCount = config.totalPilotCount ?? 0;
       this.totalEmployerCount = config.totalEmployerCount ?? 0;
+
+      // 默认不显示奖励位用户名片
+      let hasValidRewardSlot = false;
 
       // 解析carousel中的奖励位数据
       if (config.carousel && config.carousel.length > 0) {
@@ -559,7 +602,9 @@ struct Index {
             this.rewardSubtitle = rewardSlot.reward_meta.subtitle || this.rewardSubtitle;
             this.rewardButtonText = rewardSlot.reward_meta.cta_text || this.rewardButtonText;
           }
-          if (rewardSlot.profile_card) {
+          // 只有当 rewardSlotUser 尚未被 loadRewardSlotStatus 设置时，才从carousel加载
+          // 如果 loadRewardSlotStatus 已经设置了 rewardSlotUser（无论是认领还是被他人占用），保持不变
+          if (rewardSlot.profile_card && !this.rewardSlotUser) {
             const card = rewardSlot.profile_card;
             this.rewardSlotUser = {
               openid: rewardSlot.publisher_openid || '',
@@ -597,21 +642,50 @@ struct Index {
               workKg: null,
               droneImages: [],
             };
-            this.rewardSlotClaimed = true;
+            hasValidRewardSlot = true;
+            console.info('【轮播图】rewardSlotUser为空，从carousel加载: nickname=' + this.rewardSlotUser.nickname);
+          } else if (this.rewardSlotUser) {
+            hasValidRewardSlot = true;
+            console.info('【轮播图】rewardSlotUser已存在(来自loadRewardSlotStatus): nickname=' + this.rewardSlotUser.nickname + ', claimed=' + this.rewardSlotClaimed);
+          } else {
+            console.info('【轮播图】carousel无profile_card，保持rewardSlotUser为空');
           }
         }
       }
 
+      // 根据carousel配置决定是否显示奖励位
+      // 注意：最终状态由loadRewardSlotStatus()根据用户是否认领来决定，这里只做记录
+      console.info('【轮播图】carousel奖励位状态: hasValidRewardSlot=' + hasValidRewardSlot + ', prevRewardSlotClaimed=' + prevRewardSlotClaimed + ', prevUser=' + prevRewardSlotUserNickname);
+
+      // 不在这里设置rewardSlotClaimed，改为标记hasValidRewardSlot
+      // 实际claimed状态由loadRewardSlotStatus()决定
+      this.bannerLoaded = true;
+
       // 更新banner列表
-      const baseBanners = banners.length > 0 ? banners : this.getDefaultBanners();
+      // 从banners中过滤掉奖励位，只保留普通banner
+      const allBanners = banners.length > 0 ? banners : this.getDefaultBanners();
+      const baseBanners = allBanners.filter((b: BannerItem) => !b.isRewardSlot);
       const rewardBanner = this.getRewardBanner();
-      this.bannerCache = [rewardBanner, ...baseBanners];
-      // 渐显动画
-      this.bannerOpacity = 0;
-      setTimeout(() => {
+      const newBannerCache = [rewardBanner, ...baseBanners];
+
+      // 比对 rewardBanner 的关键字段，只有真正变化时才更新
+      const prevRewardBanner = this.bannerCache[0];
+      const isRewardBannerChanged = !prevRewardBanner ||
+        prevRewardBanner.title !== rewardBanner.title ||
+        prevRewardBanner.subtitle !== rewardBanner.subtitle ||
+        prevRewardBanner.actionText !== rewardBanner.actionText;
+
+      // 比对 baseBanners
+      const baseBannersChanged = JSON.stringify(baseBanners.map((b: BannerItem) => b.uid)) !==
+        JSON.stringify((prevRewardBanner ? this.bannerCache.slice(1) : []).map((b: BannerItem) => b.uid));
+
+      if (isRewardBannerChanged || baseBannersChanged || this.imageList.length === 0) {
+        console.info('【轮播图】banner内容变化: reward=' + isRewardBannerChanged + ', base=' + baseBannersChanged + ', empty=' + (this.imageList.length === 0));
+        this.bannerCache = newBannerCache;
         this.imageList = this.bannerCache;
-        this.bannerOpacity = 1;
-      }, 50);
+      } else {
+        console.info('【轮播图】banner内容无变化，跳过更新');
+      }
     } catch {
       if (this.imageList.length === 0) {
         const rewardBanner = this.getRewardBanner();
@@ -1777,12 +1851,35 @@ struct Index {
         .expandSafeArea([SafeAreaType.SYSTEM])
         .clip(false)
         .onVisibleAreaChange([0, 1], (isVisible: boolean) => {
+          hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】isVisible=' + isVisible);
           if (isVisible) {
             // 页面显示时静默刷新数据（比对数据，有变化才更新UI）
-            this.loadBanner(true);
-            this.loadPilots(true);
-            this.loadOrders(true);
-            this.loadStandby(true);
+            const now = Date.now();
+            const hiddenDuration = now - this.pageHideTime;
+            hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】now=' + now + ', hideTime=' + this.pageHideTime + ', 离开时长=' + hiddenDuration + 'ms');
+
+            // 如果页面离开时间不足3秒，不刷新（快速切换）
+            if (hiddenDuration < 3000) {
+              hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】快速切换，跳过刷新');
+              return;
+            }
+
+            // 防抖：距离上次刷新不足2秒则跳过
+            if (now - this.lastRewardSlotRefreshTime > 2000) {
+              this.lastRewardSlotRefreshTime = now;
+              hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】开始刷新');
+              this.loadRewardSlotStatus();
+              this.loadBanner(true);
+              this.loadPilots(true);
+              this.loadOrders(true);
+              this.loadStandby(true);
+            } else {
+              hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】防抖跳过');
+            }
+          } else {
+            // 页面隐藏，记录时间
+            this.pageHideTime = Date.now();
+            hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】页面隐藏，记录时间=' + this.pageHideTime);
           }
         })
 
@@ -2037,8 +2134,8 @@ struct Index {
 
                       // 内容层
                       Column() {
-                        if (this.rewardSlotClaimed && this.rewardSlotUser) {
-                          // 已领取：显示用户名片（参考小程序样式）
+                        if (this.rewardSlotUser) {
+                          // 有用户数据：显示用户名片（无论是否当前用户认领）
                           Column() {
                             // 用户信息行
                             Row() {

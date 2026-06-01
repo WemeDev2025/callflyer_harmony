@@ -2551,6 +2551,8 @@ export interface RewardSlotClaimResult {
   slotKey?: string;
   slot: string;
   profileCard?: RewardProfileCard;
+  // 当前奖励位的占用者信息（当claimed=false时表示当前被谁占用）
+  profile?: RewardProfileCard;
 }
 
 // 领取奖励位（激励视频看完后调用）

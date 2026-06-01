@@ -10,6 +10,7 @@
     "pages/CityCoverage",
     "pages/ReferralLeaderboard",
     "pages/ContactLog",
-    "pages/Standby"
+    "pages/Standby",
+    "pages/ImagePreviewPage"
   ]
 }
