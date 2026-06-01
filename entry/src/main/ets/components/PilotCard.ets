@@ -664,6 +664,11 @@ export struct PilotCard {
     }
   }
 
+  isSquareTag(): boolean {
+    const t = this.user.licenseType?.toLowerCase() || '';
+    return t === '已审核' || t === 'cac' || t === 'utc';
+  }
+
   async handleLikeClick() {
     // 同步 internal 状态与 user prop
     if (this.internalLikedByMe !== this.user.likedByMe || this.internalLikeCount !== this.user.likeCount) {
@@ -812,11 +817,11 @@ export struct PilotCard {
       if (this.showRecentActive) {
         Row() {
           Text('最近活跃')
-            .fontSize(13)
+            .fontSize(14)
             .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Text(this.user.recentActiveText || '--')
-            .fontSize(13)
+            .fontSize(14)
             .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Medium)
         }
@@ -825,11 +830,11 @@ export struct PilotCard {
         .margin({ top: 9 })
       }
 
-      // 认证状态（飞手执照编号已显示在昵称下方，此处仅雇主/无执照编号的飞手显示）
-      if (this.user.userRole === 'employer' || !this.user.pilotCode) {
+      // 认证状态
+      if (this.user.licenseType || this.user.licenseStatus) {
         Row() {
           Text('认证状态')
-            .fontSize(13)
+            .fontSize(14)
             .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Row() {
@@ -838,13 +843,13 @@ export struct PilotCard {
                 .fontSize(10)
                 .fontColor('#FFFFFF')
                 .backgroundColor(this.user.licenseType.toLowerCase() === 'utc' ? $r('app.color.primary_color') : $r('app.color.accent_green'))
-                .borderRadius(3)
-                .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+                .borderRadius(this.isSquareTag() ? 0 : 2)
+                .padding({ top: 4, bottom: 4, left: 8, right: 8 })
                 .margin({ right: 8 })
             }
             if (this.user.licenseStatus) {
               Text(this.user.licenseStatus)
-                .fontSize(13)
+                .fontSize(14)
                 .fontColor($r('app.color.text_primary'))
                 .fontWeight(FontWeight.Medium)
             }
@@ -863,7 +868,7 @@ export struct PilotCard {
             .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Text(this.user.city)
-            .fontSize(13)
+            .fontSize(14)
             .fontColor($r('app.color.text_primary'))
             .fontWeight(FontWeight.Medium)
         }
@@ -878,11 +883,11 @@ export struct PilotCard {
           // 长文本模式：列布局 + 背景标签
           Column() {
             Text('主营业务')
-              .fontSize(13)
+              .fontSize(14)
               .fontColor($r('app.color.text_label'))
               .fontWeight(FontWeight.Medium)
             Text(this.user.businessScopeText)
-              .fontSize(13)
+              .fontSize(14)
               .fontColor($r('app.color.text_primary'))
               .backgroundColor($r('app.color.tag_bg'))
               .borderRadius(8)
@@ -918,11 +923,11 @@ export struct PilotCard {
           // 长文本模式：列布局 + 背景标签
           Column() {
             Text('常用机型')
-              .fontSize(13)
+              .fontSize(14)
               .fontColor($r('app.color.text_label'))
               .fontWeight(FontWeight.Medium)
             Text(this.user.droneModel)
-              .fontSize(13)
+              .fontSize(14)
               .fontColor($r('app.color.text_primary'))
               .backgroundColor($r('app.color.tag_bg'))
               .borderRadius(8)
@@ -955,24 +960,24 @@ export struct PilotCard {
       if (this.user.workMu != null || this.user.workKg != null) {
         Row() {
           Text('任务进度')
-            .fontSize(13)
+            .fontSize(14)
             .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Row() {
             if (this.user.workMu != null) {
               Text(this.user.workMu + '亩')
-                .fontSize(13)
+                .fontSize(14)
                 .fontColor($r('app.color.text_primary'))
                 .fontWeight(FontWeight.Medium)
             }
             if (this.user.workMu != null && this.user.workKg != null) {
               Text(' / ')
-                .fontSize(13)
+                .fontSize(14)
                 .fontColor($r('app.color.text_secondary'))
             }
             if (this.user.workKg != null) {
               Text(this.user.workKg + '千克')
-                .fontSize(13)
+                .fontSize(14)
                 .fontColor($r('app.color.text_primary'))
                 .fontWeight(FontWeight.Medium)
             }
@@ -987,11 +992,11 @@ export struct PilotCard {
       if (this.user.institutionId) {
         Row() {
           Text('机构认证')
-            .fontSize(13)
+            .fontSize(14)
             .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
           Text('已认证')
-            .fontSize(13)
+            .fontSize(14)
             .fontColor($r('app.color.accent_green'))
             .fontWeight(FontWeight.Medium)
         }
@@ -1004,7 +1009,7 @@ export struct PilotCard {
       if (this.user.droneImages && this.user.droneImages.length > 0) {
         Column() {
           Text('机型图片')
-            .fontSize(13)
+            .fontSize(14)
             .fontColor($r('app.color.text_label'))
             .fontWeight(FontWeight.Medium)
             .alignSelf(ItemAlign.Start)
