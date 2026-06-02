@@ -845,7 +845,7 @@ export struct PilotCard {
                 .fontColor('#FFFFFF')
                 .backgroundColor(this.user.licenseType.toLowerCase() === 'utc' ? $r('app.color.primary_color') : $r('app.color.accent_green'))
                 .borderRadius(this.isSquareTag() ? 0 : 2)
-                .padding({ top: 4, bottom: 4, left: 8, right: 8 })
+                .padding({ top: 3, bottom: 3, left: 6, right: 6 })
                 .margin({ right: 8 })
             }
             if (this.user.licenseStatus) {
@@ -892,7 +892,7 @@ export struct PilotCard {
               .fontColor($r('app.color.text_primary'))
               .backgroundColor($r('app.color.tag_bg'))
               .borderRadius(8)
-              .padding({ left: 11, right: 11, top: 9, bottom: 9 })
+              .padding(14)
               .width('100%')
               .textAlign(TextAlign.JUSTIFY)
               .margin({ top: 8 })
@@ -932,7 +932,7 @@ export struct PilotCard {
               .fontColor($r('app.color.text_primary'))
               .backgroundColor($r('app.color.tag_bg'))
               .borderRadius(8)
-              .padding({ left: 10, right: 10, top: 9, bottom: 9 })
+              .padding(14)
               .width('100%')
               .margin({ top: 8 })
           }
