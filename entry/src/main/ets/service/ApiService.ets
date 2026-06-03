@@ -2656,3 +2656,115 @@ export async function fetchRewardSlotStatus(): Promise<RewardSlotClaimResult | n
     );
   });
 }
+
+// ============ 创建订单 ============
+
+// 创建订单的客户信息
+export interface CreateOrderCustomer {
+  name?: string;
+  phone: string;
+  city: string;
+}
+
+// 项目工期
+export interface ProjectDuration {
+  template: string;
+  detail?: string;
+}
+
+// 预算信息
+export interface BudgetInfo {
+  amount: number;
+  unit: string;
+}
+
+// 订单创建请求参数
+export interface CreateOrderParams {
+  quote_params: QuoteParams;
+  task_category: string;
+  task_category_label: string;
+  task_category_detail?: string;
+  task_category_display: string;
+  customer: CreateOrderCustomer;
+  project_duration?: ProjectDuration;
+  budget?: BudgetInfo;
+  power_requirements?: string[];
+  notes?: string;
+  notes_images?: string[];
+  expires_at?: string;
+}
+
+// 报价参数
+export interface QuoteParams {
+  task_category: string;
+  distance_km?: number;
+  vertical_drop?: string;
+  payload_kg: number;
+  total_orders: number;
+  task_category_detail?: string;
+  area_mu?: number;
+}
+
+// 订单创建响应
+export interface CreateOrderResult {
+  order_id: string;
+  status: string;
+  quote?: QuoteResult;
+}
+
+// 报价结果
+export interface QuoteResult {
+  per_trip_price: number;
+  total_price: number;
+  breakdown?: Record<string, number>;
+  multipliers?: Record<string, number>;
+}
+
+// 创建订单
+export async function createOrder(payload: CreateOrderParams): Promise<CreateOrderResult> {
+  return new Promise<CreateOrderResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/orders`;
+    const token = AuthService.getAuthToken();
+
+    console.info('【接口请求】createOrder url:', url, 'payload:', JSON.stringify(payload));
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: headers,
+        extraData: payload,
+        connectTimeout: 15000,
+        readTimeout: 15000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【接口错误】createOrder:', JSON.stringify(err));
+          reject(err);
+          return;
+        }
+        console.info('【接口返回】createOrder:', data.result as string);
+        if (data.responseCode === 200 || data.responseCode === 201) {
+          try {
+            const res = JSON.parse(data.result as string) as CreateOrderResult;
+            resolve(res);
+          } catch (e) {
+            console.error('【createOrder解析失败】', JSON.stringify(e));
+            reject(new Error('解析响应失败'));
+          }
+        } else {
+          reject(new Error(`请求失败，状态码: ${data.responseCode}`));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}

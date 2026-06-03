@@ -2437,9 +2437,18 @@ struct Index {
             .padding({ left: 18, right: 18 })
             .margin({ top: 16 })
 
-            // 功能卡片行：2x2 网格
+            // 功能卡片行：2x3 网格
             Column() {
               Row() {
+                this.FeatureCard({
+                  title: '呼叫飞手',
+                  subtitle: '发布需求',
+                  iconUrl: 'https://wetofly.com/data/image/icon_find.webp',
+                  onClick: () => {
+                    router.pushUrl({ url: 'pages/PublishTask' });
+                  }
+                })
+                Blank()
                 this.FeatureCard({
                   title: '搜索飞手',
                   subtitle: '打造飞手库',
@@ -2448,7 +2457,10 @@ struct Index {
                     router.pushUrl({ url: 'pages/CertifiedUsers' });
                   }
                 })
-                Blank()
+              }
+              .width('100%')
+
+              Row() {
                 this.FeatureCard({
                   title: '覆盖城市',
                   subtitle: '开通城市',
@@ -2457,10 +2469,7 @@ struct Index {
                     router.pushUrl({ url: 'pages/CityCoverage' });
                   }
                 })
-              }
-              .width('100%')
-
-              Row() {
+                Blank()
                 this.FeatureCard({
                   title: '共创榜单',
                   subtitle: '邀请排行',
@@ -2469,7 +2478,11 @@ struct Index {
                     router.pushUrl({ url: 'pages/ReferralLeaderboard' });
                   }
                 })
-                Blank()
+              }
+              .width('100%')
+              .margin({ top: 12 })
+
+              Row() {
                 this.FeatureCard({
                   title: '个人中心',
                   subtitle: '管理资料',
