@@ -29,7 +29,7 @@ export default class EntryAbility extends UIAbility {
       const bgColor = colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC';
       win.setWindowBackgroundColor(bgColor);
       win.setWindowSystemBarProperties({
-        statusBarColor: '#00000000',
+        statusBarColor: bgColor,
         statusBarContentColor: colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
       });
     });
@@ -91,7 +91,7 @@ export default class EntryAbility extends UIAbility {
       const bgColor = colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC';
       win.setWindowBackgroundColor(bgColor);
       win.setWindowSystemBarProperties({
-        statusBarColor: '#00000000',
+        statusBarColor: bgColor,
         statusBarContentColor: colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
       });
     });

@@ -2156,8 +2156,7 @@ struct Index {
                       .height('100%')
                       .borderRadius(12)
                       .clip(true)
-                      .blur(50)
-
+                      
                       // 中层蒙版 - 黑色半透明提升文字可读性
                       Column()
                         .width('100%')
@@ -2335,7 +2334,7 @@ struct Index {
                                 .height(36)
                                 .borderRadius(6)
                                 .linearGradient({
-                                  direction: GradientDirection.Left,
+                                  direction: GradientDirection.Right,
                                   colors: [['#b2e933', 0], ['#4ace39', 1]]
                                 })
                                 .shadow({
