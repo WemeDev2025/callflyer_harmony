@@ -2331,8 +2331,8 @@ struct Index {
                             // 背景层用 matrix4 skewX 倾斜，文字层同步倾斜
                             Stack({ alignContent: Alignment.Center }) {
                               Row()
-                                .width(148)
-                                .height(40)
+                                .width(120)
+                                .height(36)
                                 .borderRadius(6)
                                 .linearGradient({
                                   direction: GradientDirection.Left,
@@ -2367,8 +2367,8 @@ struct Index {
                                   ]))
                                 )
                             }
-                            .width(160)
-                            .height(40)
+                            .width(132)
+                            .height(36)
                             .margin({ top: 10 })
                             .clip(true)
                           }
