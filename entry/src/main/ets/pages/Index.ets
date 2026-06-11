@@ -16,7 +16,7 @@ import curves from '@ohos.curves';
 import { imagePreview } from '../components/imagepreview/ImagePreview';
 import window from '@ohos.window';
 import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
-import { LengthMetrics } from '@kit.ArkUI';
+import { LengthMetrics, matrix4 } from '@kit.ArkUI';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
 import http from '@ohos.net.http';
 import photoAccessHelper from '@ohos.file.photoAccessHelper';
@@ -2327,26 +2327,50 @@ struct Index {
                                 offsetX: 0,
                                 offsetY: 0
                               })
-                            // 按钮 - 菱形绿色渐变
-                            Text(item.actionText || '观看解锁')
-                              .fontSize(15)
-                              .fontWeight(500)
-                              .fontFamily('DouyinFont')
-                              .fontColor('#2c2c2c')
-                              .padding({ left: 24, right: 24, top: 8, bottom: 8 })
-                              .margin({ top: 10 })
-                              .borderRadius(4)
-                              .border({ width: 1, color: 'rgba(103, 232, 249, 0.5)' })
-                              .shadow({
-                                radius: 12,
-                                color: 'rgba(6, 182, 212, 0.4)',
-                                offsetX: 0,
-                                offsetY: 4
-                              })
-                              .linearGradient({
-                                direction: GradientDirection.Left,
-                                colors: [['#b2e933', 0], ['#4ace39', 1]]
-                              })
+                            // 按钮 - 两侧斜切平行四边形
+                            // 背景层用 matrix4 skewX 倾斜，文字层同步倾斜
+                            Stack({ alignContent: Alignment.Center }) {
+                              Row()
+                                .width(148)
+                                .height(40)
+                                .borderRadius(6)
+                                .linearGradient({
+                                  direction: GradientDirection.Left,
+                                  colors: [['#b2e933', 0], ['#4ace39', 1]]
+                                })
+                                .shadow({
+                                  radius: 10,
+                                  color: 'rgba(6, 182, 212, 0.35)',
+                                  offsetX: 0,
+                                  offsetY: 3
+                                })
+                                .transform(matrix4.identity()
+                                  .combine(matrix4.init([
+                                    1, 0, 0, 0,
+                                    -0.2126, 1, 0, 0,
+                                    0, 0, 1, 0,
+                                    0, 0, 0, 1
+                                  ]))
+                                )
+                              Text(item.actionText || '观看解锁')
+                                .fontSize(15)
+                                .fontWeight(500)
+                                .fontFamily('DouyinFont')
+                                .fontColor('#2c2c2c')
+                                .textAlign(TextAlign.Center)
+                                .transform(matrix4.identity()
+                                  .combine(matrix4.init([
+                                    1, 0, 0, 0,
+                                    -0.2126, 1, 0, 0,
+                                    0, 0, 1, 0,
+                                    0, 0, 0, 1
+                                  ]))
+                                )
+                            }
+                            .width(160)
+                            .height(40)
+                            .margin({ top: 10 })
+                            .clip(true)
                           }
                           .margin({ bottom: 16 })
 
