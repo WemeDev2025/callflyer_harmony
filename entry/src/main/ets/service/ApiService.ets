@@ -42,6 +42,7 @@ interface RawConfig {
   todayActiveUsers?: number;
   totalPilotCount?: number;
   totalEmployerCount?: number;
+  totalContactCount?: number;
   rewardAdConfig?: RawRewardAdConfig;
 }
 
@@ -151,6 +152,7 @@ export interface ConfigResult {
   todayActiveUsers?: number;
   totalPilotCount?: number;
   totalEmployerCount?: number;
+  totalContactCount?: number;
   rewardTitle?: string;
   rewardSubtitle?: string;
   rewardButtonText?: string;
@@ -216,6 +218,7 @@ export async function fetchConfig(): Promise<ConfigResult> {
               todayActiveUsers: response.todayActiveUsers || 0,
               totalPilotCount: response.totalPilotCount || 0,
               totalEmployerCount: response.totalEmployerCount || 0,
+              totalContactCount: response.totalContactCount || 0,
               rewardTitle: rewardConfig.display_title || rewardConfig.title || '',
               rewardSubtitle: rewardConfig.display_subtitle || rewardConfig.subtitle || '',
               rewardButtonText: rewardConfig.cta_text || rewardConfig.ctaText || rewardConfig.buttonText || '',

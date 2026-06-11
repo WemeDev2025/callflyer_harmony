@@ -250,6 +250,7 @@ struct Index {
   @State todayActiveUsers: number = 0;
   @State totalPilotCount: number = 0;
   @State totalEmployerCount: number = 0;
+  @State totalContactCount: number = 0;
 
   // 奖励位光晕动画状态
   @State lightAOffsetX: number = 160;  // 左上
@@ -589,6 +590,7 @@ struct Index {
       this.todayActiveUsers = config.todayActiveUsers ?? 0;
       this.totalPilotCount = config.totalPilotCount ?? 0;
       this.totalEmployerCount = config.totalEmployerCount ?? 0;
+      this.totalContactCount = config.totalContactCount ?? 0;
 
       // 默认不显示奖励位用户名片
       let hasValidRewardSlot = false;
@@ -783,6 +785,7 @@ struct Index {
       this.todayActiveUsers = config.todayActiveUsers ?? 0;
       this.totalPilotCount = config.totalPilotCount ?? 0;
       this.totalEmployerCount = config.totalEmployerCount ?? 0;
+      this.totalContactCount = config.totalContactCount ?? 0;
       this.rewardTitle = config.rewardTitle || '呼叫飞手';
       this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
       this.rewardButtonText = config.rewardButtonText || '观看解锁';
@@ -1666,7 +1669,7 @@ struct Index {
           .fontFamily('DouyinFont')
         Blank()
         Text('师徒匹配')
-          .fontSize(13)
+          .fontSize(11)
           .fontFamily('DouyinFont')
           .fontColor('#FFFFFF')
           .backgroundColor('#3B82F6')
@@ -1676,7 +1679,7 @@ struct Index {
             router.pushUrl({ url: 'pages/Standby' });
           })
         Text(this.standbyIsJoined ? '取消等待' : '等待任务')
-          .fontSize(13)
+          .fontSize(11)
           .fontFamily('DouyinFont')
           .fontColor('#FFFFFF')
           .backgroundColor(this.standbyIsJoined ? '#EF4444' : '#22C55E')
@@ -2263,7 +2266,7 @@ struct Index {
                           Column() {
                             Text(item.title || '')
                               .fontSize(28)
-                              .fontWeight(900)
+                              .fontWeight(500)
                               .fontFamily('DouyinFont')
                               .fontColor('#FFFFFF')
                               .textAlign(TextAlign.Center)
@@ -2288,7 +2291,7 @@ struct Index {
                             // 按钮 - 菱形绿色渐变
                             Text(item.actionText || '观看解锁')
                               .fontSize(15)
-                              .fontWeight(700)
+                              .fontWeight(500)
                               .fontFamily('DouyinFont')
                               .fontColor('#2c2c2c')
                               .padding({ left: 24, right: 24, top: 8, bottom: 8 })
@@ -2312,28 +2315,38 @@ struct Index {
                           Row() {
                             if (this.todayActiveUsers > 0) {
                               Text('今日访问 ' + this.todayActiveUsers + ' 人')
-                                .fontSize(10)
-                                .fontColor('rgba(255, 255, 255, 0.9)')
+                                .fontSize(9)
+                                .fontColor('#59FFFFFF')
                             }
                             if (this.todayActiveUsers > 0 && this.totalPilotCount > 0) {
                               Text(' · ')
-                                .fontSize(10)
-                                .fontColor('rgba(255, 255, 255, 0.4)')
+                                .fontSize(9)
+                                .fontColor('#59FFFFFF')
                             }
                             if (this.totalPilotCount > 0) {
                               Text('报道飞手 ' + this.totalPilotCount + ' 人')
-                                .fontSize(10)
-                                .fontColor('rgba(255, 255, 255, 0.9)')
+                                .fontSize(9)
+                                .fontColor('#59FFFFFF')
                             }
                             if ((this.todayActiveUsers > 0 || this.totalPilotCount > 0) && this.totalEmployerCount > 0) {
                               Text(' · ')
-                                .fontSize(10)
-                                .fontColor('rgba(255, 255, 255, 0.4)')
+                                .fontSize(9)
+                                .fontColor('#59FFFFFF')
                             }
                             if (this.totalEmployerCount > 0) {
                               Text('注册雇主 ' + this.totalEmployerCount + ' 人')
-                                .fontSize(10)
-                                .fontColor('rgba(255, 255, 255, 0.9)')
+                                .fontSize(9)
+                                .fontColor('#59FFFFFF')
+                            }
+                            if ((this.todayActiveUsers > 0 || this.totalPilotCount > 0 || this.totalEmployerCount > 0) && this.totalContactCount > 0) {
+                              Text(' · ')
+                                .fontSize(9)
+                                .fontColor('#59FFFFFF')
+                            }
+                            if (this.totalContactCount > 0) {
+                              Text('联系记录 ' + this.totalContactCount + ' 条')
+                                .fontSize(9)
+                                .fontColor('#59FFFFFF')
                             }
                           }
                           .margin({ top: 8 })

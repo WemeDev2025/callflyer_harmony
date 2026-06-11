@@ -742,7 +742,7 @@ export struct PilotCard {
         Column() {
           Text(this.user.nickname.length > 12 ? this.user.nickname.substring(0, 12) + '...' : this.user.nickname)
             .fontSize(16)
-            .fontWeight(FontWeight.Bold)
+            .fontWeight(500)
             .fontColor($r('app.color.text_title'))
             .fontFamily('DouyinFont')
             .maxLines(1)
