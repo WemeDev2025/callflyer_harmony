@@ -6,6 +6,7 @@ import { notificationManager } from '@kit.NotificationKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import { Configuration, AbilityConstant } from '@kit.AbilityKit';
+import { text } from '@kit.ArkGraphics2D';
 
 const TAG = 'EntryAbility';
 const DOMAIN = 0x0001;
@@ -74,6 +75,15 @@ export default class EntryAbility extends UIAbility {
 
   onWindowStageCreate(windowStage: window.WindowStage) {
     hilog.info(DOMAIN, TAG, 'EntryAbility onWindowStageCreate');
+
+    // 注册抖音字体
+    try {
+      let fontCollection = text.FontCollection.getGlobalInstance();
+      fontCollection.loadFontSync('DouyinFont', $rawfile('DouyinSansBold.ttf'));
+      hilog.info(DOMAIN, TAG, 'DouyinFont registered successfully');
+    } catch (e) {
+      hilog.error(DOMAIN, TAG, 'Failed to register DouyinFont: %{public}s', JSON.stringify(e));
+    }
 
     // 设置窗口背景色跟随深浅色模式
     windowStage.getMainWindow().then((win: window.Window) => {

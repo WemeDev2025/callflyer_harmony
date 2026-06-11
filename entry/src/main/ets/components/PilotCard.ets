@@ -744,7 +744,7 @@ export struct PilotCard {
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_title'))
-            .fontFamily('DouyinSansBold')
+            .fontFamily('DouyinFont')
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .width('100%')
