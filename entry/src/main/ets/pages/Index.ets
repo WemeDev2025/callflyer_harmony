@@ -15,7 +15,7 @@ import pasteboard from '@ohos.pasteboard';
 import curves from '@ohos.curves';
 import { imagePreview } from '../components/imagepreview/ImagePreview';
 import window from '@ohos.window';
-import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
+import { HdsNavigation, HdsNavigationTitleMode } from '@kit.UIDesignKit';
 import { LengthMetrics, matrix4 } from '@kit.ArkUI';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
 import http from '@ohos.net.http';
@@ -363,10 +363,10 @@ struct Index {
         const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
         this.statusBarHeight = px2vp(avoidArea.topRect.height);
         console.info('状态栏高度:', this.statusBarHeight, 'vp');
-        // 状态栏透明 + 文字颜色跟随深浅色模式
+        // 状态栏背景色跟随深浅色模式，不设为透明
         const isDarkMode = this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
         win.setWindowSystemBarProperties({
-          statusBarColor: '#00000000',
+          statusBarColor: isDarkMode ? '#FF121212' : '#FFE7F8FC',
           statusBarContentColor: isDarkMode ? '#FFFFFF' : '#14233a'
         });
       });
@@ -1877,7 +1877,7 @@ struct Index {
         .width('100%')
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
-        .expandSafeArea([SafeAreaType.SYSTEM])
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
         .clip(false)
         .onVisibleAreaChange([0, 1], (isVisible: boolean) => {
           hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】isVisible=' + isVisible);
@@ -1918,6 +1918,11 @@ struct Index {
       HdsNavigation() {
         Scroll(this.scroller) {
           Column() {
+            // 顶部留白（导航栏高度）
+            Column()
+              .width('100%')
+              .height(40)
+
             // 跑马灯（两侧渐变遮罩）
             Stack() {
               // 背景层
@@ -2630,42 +2635,16 @@ struct Index {
         .scrollBar(BarState.Off)
         .edgeEffect(EdgeEffect.Spring)
         .clip(false)
-        .expandSafeArea([SafeAreaType.SYSTEM])
       }
       .width('100%')
       .height('100%')
       .hideBackButton(true)
-      .titleBar({
-        enableComponentSafeArea: true,
-        style: {
-          scrollEffectOpts: {
-            enableScrollEffect: true,
-            scrollEffectType: ScrollEffectType.GRADIENT_BLUR,
-            blurEffectiveStartOffset: LengthMetrics.vp(0),
-            blurEffectiveEndOffset: LengthMetrics.vp(20)
-          },
-          originalStyle: {
-            backgroundStyle: {
-              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#000000' : '#E7F8FC',
-            }
-          },
-          scrollEffectStyle: {
-            backgroundStyle: {
-              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#40000000' : '#40FFFFFF',
-            }
-          }
-        },
-        content: {
-          title: { mainTitle: '' },
-        }
-      })
+      .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC')
+      .titleBar({ style: { scrollEffectOpts: { enableScrollEffect: false } } })
       .systemBarStyle(
         { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' },
         { statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202' }
       )
-      .titleMode(HdsNavigationTitleMode.MINI)
-      .bindToScrollable([this.scroller])
-      .expandSafeArea([SafeAreaType.SYSTEM])
 
       // 复制成功提示
       if (this.showCopySuccess) {
