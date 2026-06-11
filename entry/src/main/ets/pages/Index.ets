@@ -1,4 +1,5 @@
 import router from '@ohos.router';
+import { PathShape } from '@ohos.arkui.shape';
 import { BannerItem, PilotItem, OrderItem, PilotContact, fetchBanners, fetchNearbyPilots, fetchPublicOrders, fetchPilotContact, reportVisit, registerPushToken, fetchStandby, StandbyItem, fetchConfig, claimRewardSlot, RewardSlotClaimResult, joinStandby, leaveStandby, fetchRewardSlotStatus, CarouselItem, fetchProfile, ConfigResult, reportStandbyView } from '../service/ApiService';
 import display from '@ohos.display';
 import AuthService, { HuaweiUserInfo } from '../service/AuthService';
@@ -274,6 +275,9 @@ struct Index {
   @State rewardSubtitle: string = '';  // 奖励位副标题
   @State rewardButtonText: string = '';  // 奖励位按钮文字
 
+  // 平行四边形按钮Canvas上下文（暂时未使用）
+  private canvasCtx: CanvasRenderingContext2D = new CanvasRenderingContext2D();
+
   // 飞手列表
   @State pilots: PilotItem[] = [];
   @State pilotsLoading: boolean = false;
@@ -376,6 +380,42 @@ struct Index {
   private maskPhone(phone: string): string {
     if (!phone || phone.length < 11) return phone;
     return phone.substring(0, 3) + '****' + phone.substring(7);
+  }
+
+  // 绘制平行四边形按钮（skewX斜切）
+  private drawSkewButton(ctx: CanvasRenderingContext2D, text: string): void {
+    const w = 130;
+    const h = 36;
+    const skewDeg = -10;
+    const skewRad = skewDeg * Math.PI / 180;
+
+    // 应用skewX(-10)变换
+    const matrix = new Matrix2D();
+    matrix.rotateY = skewDeg;  // rotateY是Vertical Tilt即skewX
+    ctx.setTransform(matrix);
+
+    // 绘制阴影矩形
+    ctx.shadowColor = 'rgba(6, 182, 212, 0.4)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 4;
+
+    // 绿色渐变填充
+    const gradient = ctx.createLinearGradient(0, 0, w, 0);
+    gradient.addColorStop(0, '#b2e933');
+    gradient.addColorStop(1, '#4ace39');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.roundRect(0, 0, w, h, 4);
+    ctx.fill();
+
+    // 青色边框
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = 'rgba(103, 232, 249, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(0, 0, w, h, 4);
+    ctx.stroke();
   }
 
   // 加载奖励位状态（检查用户是否已认领）
@@ -2288,28 +2328,36 @@ struct Index {
                                 offsetX: 0,
                                 offsetY: 0
                               })
-                            // 按钮 - 菱形绿色渐变
-                            Text(item.actionText || '观看解锁')
-                              .fontSize(15)
-                              .fontWeight(500)
-                              .fontFamily('DouyinFont')
-                              .fontColor('#2c2c2c')
-                              .padding({ left: 24, right: 24, top: 8, bottom: 8 })
-                              .margin({ top: 10 })
-                              .borderRadius(4)
-                              .border({ width: 1, color: 'rgba(103, 232, 249, 0.5)' })
-                              .shadow({
-                                radius: 12,
-                                color: 'rgba(6, 182, 212, 0.4)',
-                                offsetX: 0,
-                                offsetY: 4
-                              })
-                              .linearGradient({
-                                direction: GradientDirection.Left,
-                                colors: [['#b2e933', 0], ['#4ace39', 1]]
-                              })
-                          }
-                          .margin({ bottom: 16 })
+                            // 按钮 - 平行四边形（Shape + PathShape skewX斜切）
+                            Stack({ alignContent: Alignment.Center }) {
+                              Shape() {
+                                Rect()
+                                  .width(120)
+                                  .height(36)
+                              }
+                                .width(120)
+                                .height(36)
+                                .margin({ top: 10 })
+                                .maskShape(new PathShape({ commands: 'M6,0 L126,0 L120,36 L0,36 Z' }))
+                                .backgroundColor('#22C55E')
+                                .linearGradient({
+                                  direction: GradientDirection.Left,
+                                  colors: [['#b2e933', 0], ['#4ace39', 1]]
+                                })
+                                .shadow({
+                                  radius: 12,
+                                  color: 'rgba(6, 182, 212, 0.4)',
+                                  offsetX: 0,
+                                  offsetY: 4
+                                })
+                              Text(item.actionText || '观看解锁')
+                                .fontSize(15)
+                                .fontWeight(500)
+                                .fontFamily('DouyinFont')
+                                .fontColor('#2c2c2c')
+                            }
+                            }
+                            .margin({ bottom: 16 })
 
                           // 统计数据
                           Row() {
