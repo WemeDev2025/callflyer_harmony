@@ -1749,8 +1749,9 @@ struct Index {
                   Column() {
                     Text(item.profile.nickname)
                       .fontSize(13)
-                      .fontWeight(700)
+                      .fontWeight(400)
                       .fontColor($r('app.color.text_primary'))
+                      .fontFamily('DouyinFont')
                       .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
                     if (item.profile.city) {
@@ -2214,7 +2215,7 @@ struct Index {
                                       .fontColor('#FFFFFF')
                                       .backgroundColor('#3b82f6')
                                       .borderRadius(4)
-                                      .padding({ left: 4, right: 4, top: 2, bottom: 2 })
+                                      .padding({ left: 6, right: 6, top: 2, bottom: 2 })
                                       .margin({ left: 6 })
                                   } else if (this.rewardSlotUser.licenseType && this.rewardSlotUser.licenseType !== '已审核' && this.rewardSlotUser.licenseType !== '审核通过') {
                                     Text(this.rewardSlotUser.licenseType)
@@ -2518,7 +2519,7 @@ struct Index {
             .padding({ left: 18, right: 18 })
             .margin({ top: 16 })
 
-            // 功能卡片行：2x3 网格
+            // 功能卡片行：2x2 网格
             Column() {
               Row() {
                 this.FeatureCard({
@@ -2531,18 +2532,6 @@ struct Index {
                 })
                 Blank()
                 this.FeatureCard({
-                  title: '搜索飞手',
-                  subtitle: '打造飞手库',
-                  iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
-                  onClick: () => {
-                    router.pushUrl({ url: 'pages/CertifiedUsers' });
-                  }
-                })
-              }
-              .width('100%')
-
-              Row() {
-                this.FeatureCard({
                   title: '覆盖城市',
                   subtitle: '开通城市',
                   iconUrl: $r('app.media.icon_star'),
@@ -2550,7 +2539,11 @@ struct Index {
                     router.pushUrl({ url: 'pages/CityCoverage' });
                   }
                 })
-                Blank()
+              }
+              .width('100%')
+              .alignItems(VerticalAlign.Top)
+
+              Row() {
                 this.FeatureCard({
                   title: '共创榜单',
                   subtitle: '邀请排行',
@@ -2559,11 +2552,7 @@ struct Index {
                     router.pushUrl({ url: 'pages/ReferralLeaderboard' });
                   }
                 })
-              }
-              .width('100%')
-              .margin({ top: 12 })
-
-              Row() {
+                Blank()
                 this.FeatureCard({
                   title: '个人中心',
                   subtitle: '管理资料',
@@ -2575,6 +2564,7 @@ struct Index {
               }
               .width('100%')
               .margin({ top: 12 })
+              .alignItems(VerticalAlign.Top)
             }
             .width('100%')
             .padding({ left: 18, right: 18, top: 16, bottom: 16 })
@@ -3003,7 +2993,7 @@ struct Index {
                 Column() {
                   Text(order.profile.nickname || '匿名')
                     .fontSize(15)
-                    .fontWeight(FontWeight.Bold)
+                    .fontWeight(400)
                     .fontColor($r('app.color.text_title'))
                     .fontFamily('DouyinFont')
                     .margin({ top: 4 })

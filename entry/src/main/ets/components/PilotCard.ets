@@ -666,7 +666,7 @@ export struct PilotCard {
 
   isSquareTag(): boolean {
     const t = this.user.licenseType?.toLowerCase() || '';
-    return t === '已审核' || t === 'cac' || t === 'utc';
+    return t === '已审核' || t === 'cac';
   }
 
   async handleLikeClick() {
@@ -741,8 +741,8 @@ export struct PilotCard {
 
         Column() {
           Text(this.user.nickname.length > 12 ? this.user.nickname.substring(0, 12) + '...' : this.user.nickname)
-            .fontSize(16)
-            .fontWeight(500)
+            .fontSize(15)
+            .fontWeight(400)
             .fontColor($r('app.color.text_title'))
             .fontFamily('DouyinFont')
             .maxLines(1)
@@ -754,8 +754,8 @@ export struct PilotCard {
               if (this.user.userRole !== 'employer' && this.user.pilotCode) {
                 Row() {
                   Image($r('app.media.icon_banner'))
-                    .width(22)
-                    .height(22)
+                    .width(32)
+                    .height(32)
                     .objectFit(ImageFit.Contain)
                     .margin({ right: 4 })
                   Text(this.user.pilotCode)

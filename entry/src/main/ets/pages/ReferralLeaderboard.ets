@@ -62,7 +62,7 @@ struct ReferralLeaderboardItemView {
 
       Row() {
         Text(String(this.item.referral_count))
-          .fontSize(24).fontWeight(FontWeight.Bold).fontColor($r('app.color.badge_green'))
+          .fontSize(18).fontWeight(FontWeight.Bold).fontColor($r('app.color.badge_green'))
         Text('人').fontSize(14).fontColor($r('app.color.text_secondary')).margin({ left: 2 })
       }
     }
@@ -257,28 +257,26 @@ struct ReferralLeaderboard {
 
   build() {
     Stack() {
-      Column() {
+      Scroll() {
         Column() {
+          // 顶部 banner
           Column()
             .width('100%')
             .height(200)
             .backgroundImage('https://wetofly.com/data/image/pic_top.webp')
             .backgroundImageSize(ImageSize.Cover)
-            .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
-        }
-        .width('100%')
 
-        Column() {
-          if (this.loading) {
-            Text('加载中...')
-              .fontSize(16).fontColor($r('app.color.text_secondary')).width('100%')
-              .textAlign(TextAlign.Center).padding({ top: 100, bottom: 100 })
-          } else if (this.leaderboard.length === 0) {
-            Text('暂无榜单数据')
-              .fontSize(16).fontColor($r('app.color.text_secondary')).width('100%')
-              .textAlign(TextAlign.Center).padding({ top: 100, bottom: 100 })
-          } else {
-            Column() {
+          // 榜单卡片容器
+          Column() {
+            if (this.loading) {
+              Text('加载中...')
+                .fontSize(16).fontColor($r('app.color.text_secondary')).width('100%')
+                .textAlign(TextAlign.Center).padding({ top: 100, bottom: 100 })
+            } else if (this.leaderboard.length === 0) {
+              Text('暂无榜单数据')
+                .fontSize(16).fontColor($r('app.color.text_secondary')).width('100%')
+                .textAlign(TextAlign.Center).padding({ top: 100, bottom: 100 })
+            } else {
               ForEach(this.leaderboard, (item: ReferralLeaderboardItem, index: number) => {
                 Column() {
                   ReferralLeaderboardItemView({
@@ -289,29 +287,29 @@ struct ReferralLeaderboard {
                   Divider().color($r('app.color.divider')).margin({ left: 76 })
                 }
               })
-            }
-            .width('100%')
 
-            if (this.myRank > 0) {
-              Column() {
-                Text('我的排名：第 ' + this.myRank + ' 名（邀请 ' + this.myCount + ' 人）')
-                  .fontSize(14).fontColor($r('app.color.badge_green')).fontWeight(FontWeight.Medium)
+              if (this.myRank > 0) {
+                Column() {
+                  Text('我的排名：第 ' + this.myRank + ' 名（邀请 ' + this.myCount + ' 人）')
+                    .fontSize(14).fontColor($r('app.color.badge_green')).fontWeight(FontWeight.Medium)
+                }
+                .width('100%').padding(16)
+                .backgroundColor('rgba(22, 163, 74, 0.06)')
+                .borderRadius(12).margin({ top: 8 })
               }
-              .width('100%').padding(16)
-              .backgroundColor('rgba(22, 163, 74, 0.06)')
-              .borderRadius(12).margin({ top: 8 })
             }
           }
+          .width('100%')
+          .backgroundColor($r('app.color.card_bg'))
+          .borderRadius(24)
+          .margin({ left: 12, right: 12, top: -20 })
+          .padding({ bottom: 34 })
         }
         .width('100%')
-        .layoutWeight(1)
-        .backgroundColor($r('app.color.card_bg'))
-        .borderRadius(24)
-        .margin({ left: 12, right: 12, top: -60 })
-        .padding({ bottom: 34 })
       }
       .width('100%')
-      .height('100%')
+      .scrollBar(BarState.Off)
+      .align(Alignment.Top)
 
       if (this.showCopySuccess) {
         Column() {
