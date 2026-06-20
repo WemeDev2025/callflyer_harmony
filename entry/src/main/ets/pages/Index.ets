@@ -1072,9 +1072,9 @@ struct Index {
       this.pilotsLng = location?.longitude ?? 116.4;
       const result = await fetchNearbyPilots(this.pilotsLat, this.pilotsLng, 1, 50);
 
-      // 静默刷新时：比对列表是否变化
-      if (silent && this.pilots.length > 0) {
-        const prevIds = this.pilots.map((item: PilotItem) => item.openid).sort().join(',');
+      // 静默刷新时：比对列表是否变化（比较原始数据）
+      if (silent && this.pilotsCache.length > 0) {
+        const prevIds = this.pilotsCache.map((item: PilotItem) => item.openid).sort().join(',');
         const newIds = result.pilots.map((item: PilotItem) => item.openid).sort().join(',');
         if (prevIds === newIds) {
           // 列表无变化，跳过更新
@@ -1086,8 +1086,10 @@ struct Index {
         console.info('【附近飞手】列表有变化，执行更新');
       }
 
+      // 取前7个飞手显示
+      const MAX_DISPLAY = 7;
       this.pilotsCache = result.pilots;
-      this.pilots = result.pilots;
+      this.pilots = result.pilots.slice(0, MAX_DISPLAY);
     } catch {
       if (this.pilots.length === 0) {
         this.pilots = [];
@@ -2547,7 +2549,7 @@ struct Index {
                 this.FeatureCard({
                   title: '共创榜单',
                   subtitle: '邀请排行',
-                  iconUrl: 'https://wetofly.com/data/image/icon_my.webp',
+                  iconUrl: $r('app.media.icon_top'),
                   onClick: () => {
                     router.pushUrl({ url: 'pages/ReferralLeaderboard' });
                   }
@@ -2811,47 +2813,85 @@ struct Index {
       .padding(20)
     } else {
       List() {
-        ForEach(this.pilots, (pilot: PilotItem) => {
+        ForEach(this.pilots, (item: PilotItem) => {
           ListItem() {
             PilotCard({
               user: {
-                openid: pilot.openid,
-                nickname: pilot.nickname,
-                avatar: pilot.avatar,
-                city: pilot.city,
+                openid: item.openid,
+                nickname: item.nickname,
+                avatar: item.avatar,
+                city: item.city,
                 userRole: '',
-                roleLabel: pilot.roleLabel,
-                licenseType: pilot.licenseType,
-                licenseStatus: pilot.licenseStatus,
-                pilotCode: pilot.pilotCode,
-                company: pilot.company,
-                position: pilot.position,
-                droneModel: pilot.droneModel,
-                businessScopeText: pilot.businessScopeText,
-                recentActiveText: pilot.recentActiveText,
-                likeCount: pilot.likeCount,
-                likedByMe: pilot.likedByMe,
-                phone: pilot.phone,
-                wechatId: pilot.wechatId,
-                douyinId: pilot.douyinId,
-                distanceText: pilot.distanceText,
-                isNew: pilot.isNew,
-                workMu: pilot.workMu ?? null,
-                workKg: pilot.workKg ?? null,
-                droneImages: pilot.droneImages || [],
-                channelsId: pilot.channelsId || '',
-                institutionId: pilot.institutionId || '',
-                licenseUrl: pilot.licenseUrl || '',
+                roleLabel: item.roleLabel,
+                licenseType: item.licenseType,
+                licenseStatus: item.licenseStatus,
+                pilotCode: item.pilotCode,
+                company: item.company,
+                position: item.position,
+                droneModel: item.droneModel,
+                businessScopeText: item.businessScopeText,
+                recentActiveText: item.recentActiveText,
+                likeCount: item.likeCount,
+                likedByMe: item.likedByMe,
+                phone: item.phone,
+                wechatId: item.wechatId,
+                douyinId: item.douyinId,
+                distanceText: item.distanceText,
+                isNew: item.isNew,
+                workMu: item.workMu ?? null,
+                workKg: item.workKg ?? null,
+                droneImages: item.droneImages || [],
+                channelsId: item.channelsId || '',
+                institutionId: item.institutionId || '',
+                licenseUrl: item.licenseUrl || '',
               },
               showDistance: true,
               showActions: true,
-              onWechatClick: () => { this.onIconWechat(pilot); },
-              onCallClick: () => { this.onIconCall(pilot); }
+              onWechatClick: () => { this.onIconWechat(item); },
+              onCallClick: () => { this.onIconCall(item); }
             })
           }
+          .margin({ bottom: 12 })
         })
       }
       .padding({ left: 18, right: 18 })
+
+      // 地图入口Banner（插入在第8个位置）
+      Column() {
+        Row() {
+          Image($r('app.media.icon_map'))
+            .width(44)
+            .height(44)
+            .objectFit(ImageFit.Contain)
+            .opacity(0.85)
+          Column() {
+            Text('查看地图模式')
+              .fontSize(17)
+              .fontWeight(700)
+              .fontColor($r('app.color.text_title'))
+            Text('查看附近所有飞手分布')
+              .fontSize(12)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 4 })
+          }
+          .alignItems(HorizontalAlign.Start)
+          .layoutWeight(1)
+          .margin({ left: 12 })
+          Text('›')
+            .fontSize(24)
+            .fontColor($r('app.color.text_secondary'))
+        }
+        .width('100%')
+        .alignItems(VerticalAlign.Center)
+        .padding(16)
+        .backgroundColor($r('app.color.card_bg'))
+        .borderRadius(14)
+        .onClick(() => {
+          router.pushUrl({ url: 'pages/CertifiedUsers' });
+        })
+      }
+      .padding({ left: 18, right: 18 })
+      .margin({ bottom: 12 })
     }
   }
 
