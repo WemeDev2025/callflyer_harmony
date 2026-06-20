@@ -72,19 +72,6 @@ const VERTICAL_DROP_VALUES: string[] = [
   'gt_150m',
 ];
 
-// 预算单位选项
-const BUDGET_UNIT_LABELS: string[] = [
-  '总包（元）',
-  '按天（元/天）',
-  '按吨（元/吨）',
-];
-
-const BUDGET_UNIT_VALUES: string[] = [
-  'total',
-  'per_day',
-  'per_ton',
-];
-
 // 任务类型选项文本
 const TASK_CATEGORY_LABELS: string[] = TASK_CATEGORY_LIST.map(item => item.label);
 
@@ -111,9 +98,9 @@ struct PublishTask {
   @State distanceSelectedIndex: number = 0;
   @State payloadKg: string = '';
   @State totalOrders: string = '';
-  @State verticalDropIndex: number = 0;
+  @State verticalDropIndex: number = -1;
+  @State pickerSelectedVerticalDropIndex: number = 0;  // picker 内部选择
   @State budgetAmount: string = '';
-  @State budgetUnitIndex: number = 0;
   @State expiresAt: string = '';
   @State notes: string = '';
 
@@ -227,7 +214,7 @@ struct PublishTask {
 
   getDistanceDisplay(): string {
     if (this.distanceBrackets.length === 0) {
-      return '请选择';
+      return '未选择';
     }
     const labels = this.distanceBrackets
       .map(v => DISTANCE_BRACKETS.find(d => d.value === v)?.label || v)
@@ -236,11 +223,10 @@ struct PublishTask {
   }
 
   getVerticalDropLabel(): string {
-    return VERTICAL_DROP_LABELS[this.verticalDropIndex] || '请选择';
-  }
-
-  getBudgetUnitLabel(): string {
-    return BUDGET_UNIT_LABELS[this.budgetUnitIndex] || '请选择';
+    if (this.verticalDropIndex < 0) {
+      return '未选择';
+    }
+    return VERTICAL_DROP_LABELS[this.verticalDropIndex] || '未选择';
   }
 
   toggleDistanceBracket(value: string) {
@@ -372,7 +358,6 @@ struct PublishTask {
       } as CreateOrderCustomer,
       budget: this.budgetAmount ? {
         amount: Number(this.budgetAmount),
-        unit: BUDGET_UNIT_VALUES[this.budgetUnitIndex],
       } as BudgetInfo : undefined,
       notes: this.notes.trim() || undefined,
       expires_at: this.expiresAt || undefined,
@@ -434,14 +419,14 @@ struct PublishTask {
 
       Row() {
         Text('取消')
-          .fontSize(16)
+          .fontSize(15)
           .fontColor('#1A1A1A')
           .backgroundColor('#F0F0F0')
           .borderRadius(8)
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .onClick(() => { this.showTaskCategoryPicker = false; })
         Text('确定')
-          .fontSize(16)
+          .fontSize(15)
           .fontColor('#FFFFFF')
           .fontWeight(FontWeight.Bold)
           .backgroundColor('#07C160')
@@ -470,7 +455,7 @@ struct PublishTask {
   @Builder
   VerticalDropSheet() {
     Column() {
-      TextPicker({ range: VERTICAL_DROP_LABELS, selected: this.verticalDropIndex })
+      TextPicker({ range: VERTICAL_DROP_LABELS, selected: this.pickerSelectedVerticalDropIndex })
         .width('100%')
         .height(200)
         .canLoop(false)
@@ -479,21 +464,21 @@ struct PublishTask {
         .disappearTextStyle({ color: '#999999', font: { size: 14 } })
         .onChange((value: string | string[], index: number | number[]) => {
           if (typeof index === 'number') {
-            this.verticalDropIndex = index;
+            this.pickerSelectedVerticalDropIndex = index;
             vibrator.startVibration({ type: 'time', duration: 10 }, { usage: 'touch' });
           }
         })
 
       Row() {
         Text('取消')
-          .fontSize(16)
+          .fontSize(15)
           .fontColor('#1A1A1A')
           .backgroundColor('#F0F0F0')
           .borderRadius(8)
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .onClick(() => { this.showVerticalDropPicker = false; })
         Text('确定')
-          .fontSize(16)
+          .fontSize(15)
           .fontColor('#FFFFFF')
           .fontWeight(FontWeight.Bold)
           .backgroundColor('#07C160')
@@ -501,55 +486,8 @@ struct PublishTask {
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .margin({ left: 24 })
           .onClick(() => {
+            this.verticalDropIndex = this.pickerSelectedVerticalDropIndex;
             this.showVerticalDropPicker = false;
-          })
-      }
-      .width('100%')
-      .padding({ left: 20, right: 20, top: 48 })
-      .justifyContent(FlexAlign.Center)
-    }
-    .width('100%')
-    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
-    .borderRadius({ topLeft: 22, topRight: 22 })
-    .padding({ bottom: 34 })
-  }
-
-  // 预算单位选择弹窗
-  @Builder
-  BudgetUnitSheet() {
-    Column() {
-      TextPicker({ range: BUDGET_UNIT_LABELS, selected: this.budgetUnitIndex })
-        .width('100%')
-        .height(200)
-        .canLoop(false)
-        .selectedTextStyle({ color: '#1A1A1A', font: { size: 20, weight: FontWeight.Medium } })
-        .textStyle({ color: '#999999', font: { size: 16 } })
-        .disappearTextStyle({ color: '#999999', font: { size: 14 } })
-        .onChange((value: string | string[], index: number | number[]) => {
-          if (typeof index === 'number') {
-            this.budgetUnitIndex = index;
-            vibrator.startVibration({ type: 'time', duration: 10 }, { usage: 'touch' });
-          }
-        })
-
-      Row() {
-        Text('取消')
-          .fontSize(16)
-          .fontColor('#1A1A1A')
-          .backgroundColor('#F0F0F0')
-          .borderRadius(8)
-          .padding({ left: 36, right: 36, top: 10, bottom: 10 })
-          .onClick(() => { this.showBudgetUnitPicker = false; })
-        Text('确定')
-          .fontSize(16)
-          .fontColor('#FFFFFF')
-          .fontWeight(FontWeight.Bold)
-          .backgroundColor('#07C160')
-          .borderRadius(8)
-          .padding({ left: 36, right: 36, top: 10, bottom: 10 })
-          .margin({ left: 24 })
-          .onClick(() => {
-            this.showBudgetUnitPicker = false;
           })
       }
       .width('100%')
@@ -582,14 +520,14 @@ struct PublishTask {
 
       Row() {
         Text('取消')
-          .fontSize(16)
+          .fontSize(15)
           .fontColor('#1A1A1A')
           .backgroundColor('#F0F0F0')
           .borderRadius(8)
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .onClick(() => { this.showDistancePicker = false; })
         Text('确定')
-          .fontSize(16)
+          .fontSize(15)
           .fontColor('#FFFFFF')
           .fontWeight(FontWeight.Bold)
           .backgroundColor('#07C160')
@@ -634,14 +572,14 @@ struct PublishTask {
 
       Row() {
         Text('取消')
-          .fontSize(16)
+          .fontSize(15)
           .fontColor('#1A1A1A')
           .backgroundColor('#F0F0F0')
           .borderRadius(8)
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .onClick(() => { this.showDatePicker = false; })
         Text('确定')
-          .fontSize(16)
+          .fontSize(15)
           .fontColor('#FFFFFF')
           .fontWeight(FontWeight.Bold)
           .backgroundColor('#07C160')
@@ -664,10 +602,15 @@ struct PublishTask {
 
   @State showTaskCategoryPicker: boolean = false;
   @State showVerticalDropPicker: boolean = false;
-  @State showBudgetUnitPicker: boolean = false;
 
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#0F1216' : '#E7F8FC')
+        .expandSafeArea([SafeAreaType.SYSTEM])
+
       Scroll() {
         Column() {
           // 顶部导航栏
@@ -694,14 +637,17 @@ struct PublishTask {
             Column() {
               Row() {
                 Text('所在城市')
-                  .fontSize(14)
+                  .fontSize(15)
                   .fontColor('#666666')
                   .flexShrink(0)
                 TextInput({ placeholder: '请输入城市', text: this.city })
-                  .fontSize(16)
+                  .height(40)
+                  .fontSize(15)
                   .fontColor('#1A1A1A')
                   .placeholderColor('#999999')
-                  .backgroundColor(Color.Transparent)
+                  .placeholderFont({ size: 15 })
+                  .backgroundColor('#F5F5F5')
+                  .borderRadius(8)
                   .layoutWeight(1)
                   .margin({ left: 12 })
                   .textAlign(TextAlign.End)
@@ -715,6 +661,8 @@ struct PublishTask {
                 }
               }
               .width('100%')
+              .height(40)
+              .alignItems(VerticalAlign.Center)
             }
             .width('100%')
             .padding(16)
@@ -729,16 +677,19 @@ struct PublishTask {
             Column() {
               Row() {
                 Text('任务类型')
-                  .fontSize(14)
+                  .fontSize(15)
                   .fontColor('#666666')
                   .flexGrow(1)
                 Text(this.getTaskCategoryLabel())
-                  .fontSize(16)
+                  .fontSize(15)
                   .fontColor(this.taskCategoryIndex >= 0 ? '#1A1A1A' : '#999999')
+                  .textAlign(TextAlign.End)
+                  .margin({ right: 12 })
               }
               .width('100%')
+              .height(40)
+              .alignItems(VerticalAlign.Center)
               .onClick(() => {
-                // 同步 picker 选择与当前已选值
                 if (this.taskCategoryIndex >= 0) {
                   this.pickerSelectedCategoryIndex = this.taskCategoryIndex;
                 } else {
@@ -769,7 +720,9 @@ struct PublishTask {
                   .fontSize(14)
                   .fontColor('#1A1A1A')
                   .placeholderColor('#999999')
+                  .placeholderFont({ size: 15 })
                   .backgroundColor('#F5F5F5')
+                  .borderRadius(8)
                   .borderRadius(8)
                   .padding({ left: 12, right: 12, top: 10, bottom: 10 })
                   .onChange((value: string) => { this.taskCategoryDetail = value; })
@@ -789,22 +742,24 @@ struct PublishTask {
               Column() {
                 Row() {
                   Text('运输距离')
-                    .fontSize(14)
+                    .fontSize(15)
                     .fontColor('#666666')
                     .flexGrow(1)
                   Text(this.getDistanceDisplay())
-                    .fontSize(16)
+                    .fontSize(15)
                     .fontColor(this.distanceBrackets.length > 0 ? '#1A1A1A' : '#999999')
+                    .textAlign(TextAlign.End)
+                    .margin({ right: 12 })
                 }
                 .width('100%')
+                .height(40)
+                .alignItems(VerticalAlign.Center)
                 .onClick(() => {
-                  // 同步已选项到 picker
                   if (this.distanceBrackets.length > 0) {
                     const idx = DISTANCE_BRACKETS.findIndex(d => d.value === this.distanceBrackets[0]);
                     this.distanceSelectedIndex = idx >= 0 ? idx : 0;
                   } else {
                     this.distanceSelectedIndex = 0;
-                    this.distanceBrackets = [DISTANCE_BRACKETS[0].value];
                   }
                   this.showDistancePicker = true;
                 })
@@ -831,15 +786,19 @@ struct PublishTask {
               Column() {
                 Row() {
                   Text('作业面积（亩）')
-                    .fontSize(14)
+                    .fontSize(15)
                     .fontColor('#666666')
                     .flexShrink(0)
+                    .alignSelf(ItemAlign.Center)
                   TextInput({ placeholder: '请输入作业面积', text: this.totalOrders })
-                    .fontSize(16)
+                    .fontSize(15)
                     .fontColor('#1A1A1A')
                     .placeholderColor('#999999')
-                    .backgroundColor(Color.Transparent)
+                  .placeholderFont({ size: 15 })
+                    .backgroundColor('#F5F5F5')
+                  .borderRadius(8)
                     .layoutWeight(1)
+                    .height(40)
                     .margin({ left: 12 })
                     .textAlign(TextAlign.End)
                     .onChange((value: string) => { this.totalOrders = value; })
@@ -861,15 +820,26 @@ struct PublishTask {
               Column() {
                 Row() {
                   Text('垂直落差')
-                    .fontSize(14)
+                    .fontSize(15)
                     .fontColor('#666666')
                     .flexGrow(1)
                   Text(this.getVerticalDropLabel())
-                    .fontSize(16)
-                    .fontColor('#1A1A1A')
+                    .fontSize(15)
+                    .fontColor(this.verticalDropIndex >= 0 ? '#1A1A1A' : '#999999')
+                    .textAlign(TextAlign.End)
+                    .margin({ right: 12 })
                 }
                 .width('100%')
-                .onClick(() => { this.showVerticalDropPicker = true; })
+                .height(40)
+                .alignItems(VerticalAlign.Center)
+                .onClick(() => {
+                  if (this.verticalDropIndex >= 0) {
+                    this.pickerSelectedVerticalDropIndex = this.verticalDropIndex;
+                  } else {
+                    this.pickerSelectedVerticalDropIndex = 0;
+                  }
+                  this.showVerticalDropPicker = true;
+                })
               }
               .width('100%')
               .padding(16)
@@ -892,15 +862,19 @@ struct PublishTask {
             Column() {
               Row() {
                 Text('单次载重（kg）')
-                  .fontSize(14)
+                  .fontSize(15)
                   .fontColor('#666666')
                   .flexShrink(0)
-                TextInput({ placeholder: '请输入载重', text: this.payloadKg })
-                  .fontSize(16)
+                  .alignSelf(ItemAlign.Center)
+                TextInput({ placeholder: '请输入', text: this.payloadKg })
+                  .fontSize(15)
                   .fontColor('#1A1A1A')
                   .placeholderColor('#999999')
-                  .backgroundColor(Color.Transparent)
+                  .placeholderFont({ size: 15 })
+                  .backgroundColor('#F5F5F5')
+                  .borderRadius(8)
                   .layoutWeight(1)
+                  .height(40)
                   .margin({ left: 12 })
                   .textAlign(TextAlign.End)
                   .onChange((value: string) => { this.payloadKg = value; })
@@ -921,15 +895,19 @@ struct PublishTask {
               Column() {
                 Row() {
                   Text('订单总量（kg）')
-                    .fontSize(14)
+                    .fontSize(15)
                     .fontColor('#666666')
                     .flexShrink(0)
-                  TextInput({ placeholder: '请输入订单总量', text: this.totalOrders })
-                    .fontSize(16)
+                    .alignSelf(ItemAlign.Center)
+                  TextInput({ placeholder: '请输入', text: this.totalOrders })
+                    .fontSize(15)
                     .fontColor('#1A1A1A')
                     .placeholderColor('#999999')
-                    .backgroundColor(Color.Transparent)
+                  .placeholderFont({ size: 15 })
+                    .backgroundColor('#F5F5F5')
+                  .borderRadius(8)
                     .layoutWeight(1)
+                    .height(40)
                     .margin({ left: 12 })
                     .textAlign(TextAlign.End)
                     .onChange((value: string) => { this.totalOrders = value; })
@@ -950,24 +928,22 @@ struct PublishTask {
             Column() {
               Row() {
                 Text('项目预算（元）')
-                  .fontSize(14)
+                  .fontSize(15)
                   .fontColor('#666666')
                   .flexShrink(0)
+                  .alignSelf(ItemAlign.Center)
                 TextInput({ placeholder: '请输入', text: this.budgetAmount })
-                  .fontSize(16)
+                  .fontSize(15)
                   .fontColor('#1A1A1A')
                   .placeholderColor('#999999')
-                  .backgroundColor(Color.Transparent)
+                  .placeholderFont({ size: 15 })
+                  .backgroundColor('#F5F5F5')
+                  .borderRadius(8)
                   .layoutWeight(1)
+                  .height(40)
                   .margin({ left: 12 })
                   .textAlign(TextAlign.End)
                   .onChange((value: string) => { this.budgetAmount = value; })
-                Text(this.getBudgetUnitLabel())
-                  .fontSize(14)
-                  .fontColor('#666666')
-                  .flexShrink(0)
-                  .margin({ left: 8 })
-                  .onClick(() => { this.showBudgetUnitPicker = true; })
               }
               .width('100%')
             }
@@ -978,31 +954,24 @@ struct PublishTask {
           }
           .width('100%')
           .padding({ left: 18, right: 18, top: 12, bottom: 0 })
-          .bindSheet($$this.showBudgetUnitPicker, this.BudgetUnitSheet(), {
-            height: 360,
-            dragBar: true,
-            showClose: false,
-            backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF',
-            radius: { topLeft: 22, topRight: 22 }
-          })
 
           // 任务截止日期
           Column() {
             Column() {
               Row() {
                 Text('任务截止日期')
-                  .fontSize(14)
+                  .fontSize(15)
                   .fontColor('#666666')
                   .flexGrow(1)
-                Text(this.expiresAt || '选择日期')
-                  .fontSize(16)
+                Text(this.expiresAt || '请选择')
+                  .fontSize(15)
                   .fontColor(this.expiresAt ? '#1A1A1A' : '#999999')
-                Text('>')
-                  .fontSize(14)
-                  .fontColor('#CCCCCC')
-                  .margin({ left: 8 })
+                  .textAlign(TextAlign.End)
+                  .margin({ right: 12 })
               }
               .width('100%')
+              .height(40)
+              .alignItems(VerticalAlign.Center)
               .onClick(() => { this.showDatePicker = true; })
             }
             .width('100%')
@@ -1024,16 +993,17 @@ struct PublishTask {
           Column() {
             Column() {
               Text('备注信息')
-                .fontSize(14)
+                .fontSize(15)
                 .fontColor('#666666')
                 .width('100%')
                 .margin({ bottom: 10 })
 
-              TextArea({ placeholder: '补充更多信息（选填）', text: this.notes })
+              TextArea({ placeholder: '请输入', text: this.notes })
                 .fontSize(15)
                 .fontColor('#1A1A1A')
                 .placeholderColor('#CCCCCC')
                 .backgroundColor('#F5F5F5')
+                  .borderRadius(8)
                 .borderRadius(10)
                 .padding(12)
                 .height(100)
@@ -1051,7 +1021,6 @@ struct PublishTask {
         .padding({ bottom: 40 })
       }
       .width('100%')
-      .height('100%')
       .scrollBar(BarState.Off)
       .edgeEffect(EdgeEffect.Spring)
 
@@ -1063,17 +1032,14 @@ struct PublishTask {
           .fontColor('#FFFFFF')
           .backgroundColor('#07C160')
           .borderRadius(24)
-          .width('100%')
+          .width(200)
           .height(48)
           .enabled(!this.submitting)
           .onClick(() => { this.handleSubmit(); })
       }
-      .width('100%')
-      .padding({ left: 18, right: 18, bottom: 20 })
-      .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC')
+      .alignItems(HorizontalAlign.Center)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#0F1216' : '#E7F8FC')
   }
 }
