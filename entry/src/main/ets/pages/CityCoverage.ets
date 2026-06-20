@@ -118,6 +118,20 @@ struct CityCoverage {
       HdsNavigation() {
         Scroll(this.scroller) {
           Column() {
+            // 搜索栏
+            Row() {
+              TextInput({ placeholder: '搜索城市或省份', text: this.keyword })
+                .width('100%')
+                .height(44)
+                .backgroundColor($r('app.color.card_bg'))
+                .borderRadius(22)
+                .placeholderColor($r('app.color.text_caption'))
+                .fontSize(14)
+                .onChange((text: string) => { this.onSearchChange(text); })
+            }
+            .width('90%')
+            .margin({ top: 12, bottom: 12 })
+
             if (this.loading) {
               Column() {
                 Text('加载中...')
@@ -299,19 +313,12 @@ struct CityCoverage {
       .width('100%')
       .height('100%')
       .hideBackButton(true)
+      .backgroundColor('#00000000')
       .titleBar({
-        enableComponentSafeArea: true,
+        enableComponentSafeArea: false,
         style: {
           scrollEffectOpts: {
-            enableScrollEffect: true,
-            scrollEffectType: ScrollEffectType.GRADIENT_BLUR,
-            blurEffectiveStartOffset: LengthMetrics.vp(0),
-            blurEffectiveEndOffset: LengthMetrics.vp(20)
-          },
-          scrollEffectStyle: {
-            backgroundStyle: {
-              backgroundColor: $r('app.color.card_bg')
-            }
+            enableScrollEffect: false,
           }
         },
         content: {
@@ -325,20 +332,6 @@ struct CityCoverage {
       .titleMode(HdsNavigationTitleMode.MINI)
       .bindToScrollable([this.scroller])
       .expandSafeArea([SafeAreaType.SYSTEM])
-
-      // 搜索栏在最上层
-      Row() {
-        TextInput({ placeholder: '搜索城市或省份', text: this.keyword })
-          .width('100%')
-          .height(44)
-          .backgroundColor($r('app.color.card_bg'))
-          .borderRadius(22)
-          .placeholderColor($r('app.color.text_caption'))
-          .fontSize(14)
-          .onChange((text: string) => { this.onSearchChange(text); })
-      }
-      .width('90%')
-      .margin({ top: -668, bottom: 32 })
     }
     .width('100%')
     .height('100%')

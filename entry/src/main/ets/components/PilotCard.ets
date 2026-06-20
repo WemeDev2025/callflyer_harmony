@@ -891,7 +891,6 @@ export struct PilotCard {
               .fontSize(13)
               .fontColor($r('app.color.text_primary'))
               .lineHeight(20)
-              .backgroundColor($r('app.color.tag_bg'))
               .borderRadius(8)
               .padding(14)
               .width('100%')
