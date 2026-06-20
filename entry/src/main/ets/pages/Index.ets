@@ -1801,7 +1801,7 @@ struct Index {
               .justifyContent(FlexAlign.Center)
               .margin({ right: 11 })
               .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-              .backgroundColor($r('app.color.card_bg_secondary'))
+              .backgroundColor('rgba(240, 240, 240, 0.4)')
               .borderRadius(9)
               .onClick(() => this.onStandbyCardTap(item))
             }
@@ -2535,7 +2535,7 @@ struct Index {
                 Blank()
                 this.FeatureCard({
                   title: '覆盖城市',
-                  subtitle: '开通城市',
+                  subtitle: '全国覆盖率',
                   iconUrl: $r('app.media.icon_star'),
                   onClick: () => {
                     router.pushUrl({ url: 'pages/CityCoverage' });
