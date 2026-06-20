@@ -2385,7 +2385,7 @@ struct Index {
                           // 统计数据
                           Row() {
                             if (this.todayActiveUsers > 0) {
-                              Text('今日访问 ' + this.todayActiveUsers + ' 人')
+                              Text('今日访问 ' + this.todayActiveUsers)
                                 .fontSize(9)
                                 .fontColor('#59FFFFFF')
                             }
@@ -2395,7 +2395,7 @@ struct Index {
                                 .fontColor('#59FFFFFF')
                             }
                             if (this.totalPilotCount > 0) {
-                              Text('报道飞手 ' + this.totalPilotCount + ' 人')
+                              Text('报道飞手 ' + this.totalPilotCount)
                                 .fontSize(9)
                                 .fontColor('#59FFFFFF')
                             }
@@ -2405,7 +2405,7 @@ struct Index {
                                 .fontColor('#59FFFFFF')
                             }
                             if (this.totalEmployerCount > 0) {
-                              Text('注册雇主 ' + this.totalEmployerCount + ' 人')
+                              Text('注册雇主 ' + this.totalEmployerCount)
                                 .fontSize(9)
                                 .fontColor('#59FFFFFF')
                             }
@@ -2415,7 +2415,7 @@ struct Index {
                                 .fontColor('#59FFFFFF')
                             }
                             if (this.totalContactCount > 0) {
-                              Text('联系记录 ' + this.totalContactCount + ' 条')
+                              Text('联系记录 ' + this.totalContactCount)
                                 .fontSize(9)
                                 .fontColor('#59FFFFFF')
                             }
