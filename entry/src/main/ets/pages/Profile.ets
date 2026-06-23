@@ -48,7 +48,9 @@ struct Profile {
       window.getLastWindow(getContext(this)).then((win) => {
         win.setWindowSystemBarProperties({
           statusBarColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC',
-          statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202'
+          statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202',
+          navigationBarColor: '#00000000',
+          navigationBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
         });
       });
     } catch (e) {}
@@ -60,7 +62,9 @@ struct Profile {
       window.getLastWindow(getContext(this)).then((win) => {
         win.setWindowSystemBarProperties({
           statusBarColor: '#00000000',
-          statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
+          statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a',
+          navigationBarColor: '#00000000',
+          navigationBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
         });
       });
     } catch (e) {}
@@ -752,7 +756,7 @@ struct Profile {
     }
     .width('100%')
     .height('100%')
-    .expandSafeArea([SafeAreaType.SYSTEM])
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   // 构建输入项

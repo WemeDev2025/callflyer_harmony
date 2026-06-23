@@ -23,6 +23,10 @@ import photoAccessHelper from '@ohos.file.photoAccessHelper';
 import fileIo from '@ohos.file.fs';
 import fileUri from '@ohos.file.fileuri';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
+import dataPreferences from '@ohos.data.preferences';
+
+// Preferences 存储配置（与 EntryAbility 保持一致）
+const PREFS_NAME = 'callflyer_prefs';
 
 // 默认头像
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
@@ -52,6 +56,9 @@ interface SystemBarStyleInterface {
 // 激励广告状态订阅处理器
 const KEY_REWARD_DATA = 'reward_ad_data';
 const KEY_REWARD_STATUS = 'reward_ad_status';
+
+// 协议确认存储键
+const KEY_AGREEMENT_ACCEPTED = 'callflyer_agreement_accepted';
 
 class RewardAdStatusHandler {
   private subscriber: commonEventManager.CommonEventSubscriber | null = null;
@@ -219,6 +226,97 @@ struct StandbyPilotCardDialog {
   }
 }
 
+// 协议确认弹窗
+@CustomDialog
+struct AgreementDialog {
+  controller: CustomDialogController;
+  onAccept: () => void = () => {};
+  onViewAgreement: () => void = () => {};
+  onViewPrivacy: () => void = () => {};
+
+  build() {
+    Stack() {
+      // 蒙层
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor('rgba(0, 0, 0, 0.6)')
+
+      // 弹窗卡片
+      Column() {
+        Column() {
+          Text('欢迎使用')
+            .fontSize(22)
+            .fontWeight(600)
+            .fontColor('#333333')
+            .margin({ top: 24 })
+
+          Text('欢迎使用呼叫飞手！为了向您提供更好的服务，请您仔细阅读并同意以下协议：')
+            .fontSize(14)
+            .fontColor('#666666')
+            .textAlign(TextAlign.Center)
+            .margin({ top: 16 })
+
+          Row() {
+            Text('《用户协议》')
+              .fontSize(14)
+              .fontColor('#4caf50')
+              .onClick(() => {
+                this.controller.close();
+                this.onViewAgreement();
+              })
+            Text('和')
+              .fontSize(14)
+              .fontColor('#666666')
+            Text('《隐私政策》')
+              .fontSize(14)
+              .fontColor('#4caf50')
+              .onClick(() => {
+                this.controller.close();
+                this.onViewPrivacy();
+              })
+          }
+          .margin({ top: 16 })
+
+          Row() {
+            Button('拒绝')
+              .width('45%')
+              .height(44)
+              .fontSize(16)
+              .backgroundColor('#f5f5f5')
+              .fontColor('#666666')
+              .borderRadius(22)
+              .onClick(() => {
+                promptAction.showToast({ message: '您需要同意用户协议和隐私政策才能使用本服务' });
+              })
+
+            Button('同意')
+              .width('45%')
+              .height(44)
+              .fontSize(16)
+              .backgroundColor('#4caf50')
+              .fontColor('#ffffff')
+              .borderRadius(22)
+              .onClick(() => {
+                this.controller.close();
+                this.onAccept();
+              })
+          }
+          .width('100%')
+          .margin({ top: 24, bottom: 16 })
+          .justifyContent(FlexAlign.SpaceBetween)
+        }
+        .width('85%')
+        .padding(24)
+        .backgroundColor('#ffffff')
+        .borderRadius(16)
+      }
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
 @Entry
 @Component
 struct Index {
@@ -325,7 +423,13 @@ struct Index {
   private lastRewardSlotRefreshTime: number = 0;  // 上次奖励位刷新时间（防抖）
   private pageHideTime: number = 0;  // 页面隐藏时间
 
+  // 协议弹窗控制器
+  agreementDialogController: CustomDialogController | null = null;
+  // 是否正在查看协议（从协议页返回时需要重新显示弹窗）
   aboutToAppear() {
+    // 检查是否首次启动需要显示协议弹窗
+    this.checkAgreementStatus();
+
     // 初始化渐变颜色
     this.updateMarqueeGradient();
     // 只在首次加载时刷新轮播图，返回页面时不重复刷新
@@ -372,6 +476,19 @@ struct Index {
       });
     } catch (e) {
       console.info('获取状态栏高度失败', JSON.stringify(e));
+    }
+  }
+
+  // 页面每次显示时触发（包括首次显示和从协议页返回）
+  onPageShow() {
+    // 只要协议未同意，就确保弹窗处于打开状态（含从协议页返回的场景）
+    const accepted = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
+    if (!accepted) {
+      // agreementDialogController 为 null 说明弹窗还未创建（首次由 checkAgreementStatus 创建）
+      // 不为 null 说明是从协议页返回，弹窗被 close 了，需要重新 open
+      if (this.agreementDialogController) {
+        this.agreementDialogController.open();
+      }
     }
   }
 
@@ -527,6 +644,48 @@ struct Index {
   async checkLoginStatus() {
     this.isLoggedIn = AuthService.isLogin();
     this.userInfo = AuthService.getCurrentUser();
+  }
+
+  // 检查协议状态，首次显示协议弹窗
+  checkAgreementStatus() {
+    try {
+      const storage = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
+      if (!storage) {
+        // 首次启动，显示协议弹窗
+        this.showAgreementDialog();
+      }
+    } catch (e) {
+      // 出错也显示弹窗
+      this.showAgreementDialog();
+    }
+  }
+
+  // 显示协议弹窗
+  showAgreementDialog() {
+    this.agreementDialogController = new CustomDialogController({
+      builder: AgreementDialog({
+        onAccept: () => {
+          // 同步写入 Preferences（进程强杀后仍可恢复），同时更新 AppStorage
+          try {
+            const prefs = dataPreferences.getPreferencesSync(getContext(this), { name: PREFS_NAME });
+            prefs.putSync(KEY_AGREEMENT_ACCEPTED, 'true');
+            prefs.flushSync();
+          } catch (e) {
+            hilog.error(0x0000, 'Agreement', '写入 Preferences 失败: ' + JSON.stringify(e));
+          }
+          AppStorage.set<string>(KEY_AGREEMENT_ACCEPTED, 'true');
+        },
+        onViewAgreement: () => {
+          router.pushUrl({ url: 'pages/UserAgreement' });
+        },
+        onViewPrivacy: () => {
+          router.pushUrl({ url: 'pages/PrivacyPolicy' });
+        }
+      }),
+      customStyle: true,
+      maskColor: 'rgba(0, 0, 0, 0.01)'
+    });
+    this.agreementDialogController.open();
   }
 
   async handleLogin() {

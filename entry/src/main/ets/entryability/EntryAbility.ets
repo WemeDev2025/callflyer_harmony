@@ -7,13 +7,26 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import { Configuration, AbilityConstant } from '@kit.AbilityKit';
 import { text } from '@kit.ArkGraphics2D';
+import dataPreferences from '@ohos.data.preferences';
 
 const TAG = 'EntryAbility';
 const DOMAIN = 0x0001;
+const PREFS_NAME = 'callflyer_prefs';
+const KEY_AGREEMENT_ACCEPTED = 'callflyer_agreement_accepted';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
     hilog.info(DOMAIN, TAG, 'EntryAbility onCreate');
+    // 从 Preferences 读取协议同意状态，写入 AppStorage 供页面同步读取
+    try {
+      const prefs = dataPreferences.getPreferencesSync(this.context, { name: PREFS_NAME });
+      const accepted = prefs.getSync(KEY_AGREEMENT_ACCEPTED, '') as string;
+      hilog.info(DOMAIN, TAG, 'agreement accepted from prefs: %{public}s', accepted);
+      AppStorage.setOrCreate<string>(KEY_AGREEMENT_ACCEPTED, accepted);
+    } catch (e) {
+      hilog.error(DOMAIN, TAG, 'Failed to read preferences: %{public}s', JSON.stringify(e));
+      AppStorage.setOrCreate<string>(KEY_AGREEMENT_ACCEPTED, '');
+    }
     // 保存当前颜色模式到 AppStorage
     AppStorage.setOrCreate('colorMode', this.context.config.colorMode ?? ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
   }
