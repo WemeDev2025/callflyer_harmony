@@ -934,9 +934,19 @@ struct Index {
       this.bannerLoaded = true;
 
       // 更新banner列表
-      // 从banners中过滤掉奖励位，只保留普通banner
+      // 从banners中过滤掉奖励位和 pilot-map 页面，只保留普通banner
       const allBanners = banners.length > 0 ? banners : this.getDefaultBanners();
-      const baseBanners = allBanners.filter((b: BannerItem) => !b.isRewardSlot);
+      const baseBanners = allBanners.filter((b: BannerItem) => {
+        if (b.isRewardSlot) return false;
+        const clickPage = b.clickPage || '';
+        // 过滤掉 pilot-map 页面
+        if (clickPage === 'pages/pilot-map/index' || clickPage === '/pages/pilot-map/index') {
+          console.info('【轮播图】过滤 pilot-map banner: uid=' + b.uid + ', clickPage=' + clickPage);
+          return false;
+        }
+        return true;
+      });
+      console.info('【轮播图】过滤后数量: ' + baseBanners.length + ', 原始数量: ' + allBanners.length);
       const rewardBanner = this.getRewardBanner();
       const newBannerCache = [rewardBanner, ...baseBanners];
 
@@ -947,9 +957,14 @@ struct Index {
         prevRewardBanner.subtitle !== rewardBanner.subtitle ||
         prevRewardBanner.actionText !== rewardBanner.actionText;
 
-      // 比对 baseBanners
+      // 比对 baseBanners（过滤后）
+      const prevBaseBanners = prevRewardBanner ? this.bannerCache.slice(1) : [];
+      const prevBaseBannersFiltered = prevBaseBanners.filter((b: BannerItem) => {
+        const clickPage = b.clickPage || '';
+        return !(clickPage === 'pages/pilot-map/index' || clickPage === '/pages/pilot-map/index');
+      });
       const baseBannersChanged = JSON.stringify(baseBanners.map((b: BannerItem) => b.uid)) !==
-        JSON.stringify((prevRewardBanner ? this.bannerCache.slice(1) : []).map((b: BannerItem) => b.uid));
+        JSON.stringify(prevBaseBannersFiltered.map((b: BannerItem) => b.uid));
 
       if (isRewardBannerChanged || baseBannersChanged || this.imageList.length === 0) {
         console.info('【轮播图】banner内容变化: reward=' + isRewardBannerChanged + ', base=' + baseBannersChanged + ', empty=' + (this.imageList.length === 0));
