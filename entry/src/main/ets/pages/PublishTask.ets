@@ -6,6 +6,11 @@ import promptAction from '@ohos.promptAction';
 import window from '@ohos.window';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import vibrator from '@ohos.vibrator';
+import dataPreferences from '@ohos.data.preferences';
+
+// Preferences 存储配置
+const PREFS_NAME = 'callflyer_prefs';
+const KEY_AGREEMENT_ACCEPTED = 'agreement_accepted';
 
 // 任务类型列表
 class TaskCategoryItem {
@@ -126,6 +131,18 @@ struct PublishTask {
         });
       });
     } catch (e) {}
+
+    // 隐私协议未同意时，不获取位置
+    try {
+      const prefs = dataPreferences.getPreferencesSync(getContext(this), { name: PREFS_NAME });
+      const agreed = prefs.getSync(KEY_AGREEMENT_ACCEPTED, '') as string;
+      if (!agreed) {
+        console.info('【PublishTask】隐私协议未同意，延迟获取位置');
+        return;
+      }
+    } catch (e) {
+      console.info('【PublishTask】读取协议状态失败:', JSON.stringify(e));
+    }
 
     // 自动获取当前位置并填充城市
     this.locationLoading = true;

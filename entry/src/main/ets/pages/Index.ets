@@ -425,8 +425,13 @@ struct Index {
 
   // 协议弹窗控制器
   agreementDialogController: CustomDialogController | null = null;
+  // 协议弹窗是否已显示（防止重复显示）
+  private agreementDialogShown: boolean = false;
+  // 协议弹窗是否已打开（防止 onPageShow 重复调用 open）
+  private isDialogOpened: boolean = false;
   // 是否正在查看协议（从协议页返回时需要重新显示弹窗）
   aboutToAppear() {
+    console.info('【协议检查】aboutToAppear called');
     // 检查是否首次启动需要显示协议弹窗
     this.checkAgreementStatus();
 
@@ -438,7 +443,15 @@ struct Index {
       this.loadBanner();
     }
     this.loadConfig();
-    // 先等待登录完成再上报访问（每次启动只上报一次）
+
+    // 隐私协议未同意时，不执行登录、位置等需要权限的操作
+    const agreed = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
+    if (!agreed) {
+      console.info('【数据加载】隐私协议未同意，延迟登录和获取位置等信息');
+      return;
+    }
+
+    // 已同意隐私协议，开始登录和数据加载
     this.handleLogin().then(() => {
       if (!visitReported) {
         visitReported = true;
@@ -481,14 +494,22 @@ struct Index {
 
   // 页面每次显示时触发（包括首次显示和从协议页返回）
   onPageShow() {
+    console.info('【协议检查】onPageShow called, controller=' + (this.agreementDialogController !== null) + ', opened=' + this.isDialogOpened);
     // 只要协议未同意，就确保弹窗处于打开状态（含从协议页返回的场景）
     const accepted = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
-    if (!accepted) {
+    console.info('【协议检查】onPageShow accepted=' + accepted);
+    if (!accepted && !this.isDialogOpened) {
       // agreementDialogController 为 null 说明弹窗还未创建（首次由 checkAgreementStatus 创建）
       // 不为 null 说明是从协议页返回，弹窗被 close 了，需要重新 open
       if (this.agreementDialogController) {
+        console.info('【协议检查】onPageShow 调用 open');
         this.agreementDialogController.open();
+        this.isDialogOpened = true;
+      } else {
+        console.info('【协议检查】onPageShow controller 为 null，不操作');
       }
+    } else if (this.isDialogOpened) {
+      console.info('【协议检查】onPageShow 弹窗已打开，跳过');
     }
   }
 
@@ -648,23 +669,46 @@ struct Index {
 
   // 检查协议状态，首次显示协议弹窗
   checkAgreementStatus() {
+    console.info('【协议检查】checkAgreementStatus called, shown=' + this.agreementDialogShown);
+    // 防止重复显示弹窗
+    if (this.agreementDialogShown) {
+      console.info('【协议检查】已显示过，直接返回');
+      return;
+    }
     try {
       const storage = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
+      console.info('【协议检查】storage=' + storage);
       if (!storage) {
         // 首次启动，显示协议弹窗
+        this.agreementDialogShown = true;
+        console.info('【协议检查】调用 showAgreementDialog');
         this.showAgreementDialog();
       }
     } catch (e) {
       // 出错也显示弹窗
+      this.agreementDialogShown = true;
+      console.info('【协议检查】异常，调用 showAgreementDialog');
       this.showAgreementDialog();
     }
   }
 
   // 显示协议弹窗
   showAgreementDialog() {
+    console.info('【协议检查】showAgreementDialog start, controller=' + (this.agreementDialogController !== null));
+    // 防止重复创建
+    if (this.agreementDialogController !== null) {
+      console.info('【协议检查】controller 已存在，直接返回');
+      return;
+    }
+    console.info('【协议检查】创建新 CustomDialogController');
     this.agreementDialogController = new CustomDialogController({
       builder: AgreementDialog({
         onAccept: () => {
+          console.info('【协议检查】onAccept 被调用');
+          // 关闭弹窗
+          this.agreementDialogController = null;
+          this.isDialogOpened = false;
+          console.info('【协议检查】controller 已置为 null');
           // 同步写入 Preferences（进程强杀后仍可恢复），同时更新 AppStorage
           try {
             const prefs = dataPreferences.getPreferencesSync(getContext(this), { name: PREFS_NAME });
@@ -674,18 +718,46 @@ struct Index {
             hilog.error(0x0000, 'Agreement', '写入 Preferences 失败: ' + JSON.stringify(e));
           }
           AppStorage.set<string>(KEY_AGREEMENT_ACCEPTED, 'true');
+          // 重置标志，允许下次重新显示（如从设置页返回）
+          this.agreementDialogShown = false;
+          // 隐私协议同意后，执行登录并加载数据
+          this.handleLogin().then(() => {
+            if (!visitReported) {
+              visitReported = true;
+              const user = AuthService.getCurrentUser();
+              reportVisit(user?.openId || '').catch((e: Error) => {
+                console.info('【访问上报失败】', e.message);
+              });
+            }
+            this.loadPilots();
+            this.loadOrders();
+            this.loadStandby();
+            this.loadRewardSlotStatus();
+          });
+          const token = AppStorage.get<string>('authToken');
+          const user = AuthService.getCurrentUser();
+          if (token && user && user.openId && (!user.displayName || !user.avatar)) {
+            this.fetchAndUpdateUserProfile(user.openId, token);
+          }
         },
         onViewAgreement: () => {
+          // 标记弹窗已关闭，返回时可以重新打开
+          this.isDialogOpened = false;
           router.pushUrl({ url: 'pages/UserAgreement' });
         },
         onViewPrivacy: () => {
+          // 标记弹窗已关闭，返回时可以重新打开
+          this.isDialogOpened = false;
           router.pushUrl({ url: 'pages/PrivacyPolicy' });
         }
       }),
       customStyle: true,
       maskColor: 'rgba(0, 0, 0, 0.01)'
     });
+    console.info('【协议检查】调用 controller.open()');
     this.agreementDialogController.open();
+    this.isDialogOpened = true;
+    console.info('【协议检查】controller.open() 返回');
   }
 
   async handleLogin() {
@@ -2044,6 +2116,13 @@ struct Index {
         .onVisibleAreaChange([0, 1], (isVisible: boolean) => {
           hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】isVisible=' + isVisible);
           if (isVisible) {
+            // 隐私协议未同意时，不执行位置等需要权限的操作
+            const agreed = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
+            if (!agreed) {
+              hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】隐私协议未同意，跳过刷新');
+              return;
+            }
+
             // 页面显示时静默刷新数据（比对数据，有变化才更新UI）
             const now = Date.now();
             const hiddenDuration = now - this.pageHideTime;
