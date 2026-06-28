@@ -403,15 +403,6 @@ struct Profile {
                     .borderRadius(42)
                     .backgroundColor($r('app.color.avatar_placeholder'))
                     .onClick(() => this.handleChooseAvatar())
-                  if (this.uploadingAvatar) {
-                    LoadingProgress()
-                      .width(84)
-                      .height(84)
-                      .borderRadius(42)
-                      .color($r('app.color.primary_color'))
-                      .backgroundColor('rgba(0,0,0,0.3)')
-                      .position({ x: 0, y: 0 })
-                  }
                 }
                 .width('100%')
                 .alignItems(HorizontalAlign.Center)
