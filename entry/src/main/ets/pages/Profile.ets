@@ -508,8 +508,8 @@ struct Profile {
                   if (this.form.licenseVerified) {
                     Text(this.form.licenseType || '已认证')
                       .fontSize(13)
-                      .backgroundColor('#00C85333')
-                      .fontColor('#00C853')
+                      .backgroundColor('#00C853')
+                      .fontColor('#FFFFFF')
                       .borderRadius(4)
                       .padding({ left: 8, right: 8, top: 2, bottom: 2 })
                       .margin({ left: 8 })
