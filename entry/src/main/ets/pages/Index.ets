@@ -1257,14 +1257,62 @@ struct Index {
       this.rewardSlotDialogController = new CustomDialogController({
         builder: StandbyPilotCardDialog({
           user: user,
-          onWechatClick: () => {
+          onWechatClick: async () => {
+            // 校验个人资料完整性
+            const currentUser = AuthService.getCurrentUser();
+            if (!currentUser) {
+              promptAction.showToast({ message: '请先登录' });
+              return;
+            }
+            const missing: string[] = [];
+            if (!currentUser.avatar) missing.push('头像');
+            if (!currentUser.displayName) missing.push('昵称');
+            if (!currentUser.phone) missing.push('电话');
+            if (missing.length > 0) {
+              const dialogRes = await promptAction.showDialog({
+                title: '无法复制',
+                message: '请先完善个人资料（' + missing.join('、') + '）',
+                buttons: [
+                  { text: '取消', color: '#999999' },
+                  { text: '去完善', color: '#07C160' }
+                ]
+              });
+              if (dialogRes.index === 1) {
+                router.push({ url: 'pages/Profile' });
+              }
+              return;
+            }
             if (user.wechatId) {
               promptAction.showToast({ message: '微信号: ' + user.wechatId });
             } else {
               promptAction.showToast({ message: '暂无微信号' });
             }
           },
-          onCallClick: () => {
+          onCallClick: async () => {
+            // 校验个人资料完整性
+            const currentUser = AuthService.getCurrentUser();
+            if (!currentUser) {
+              promptAction.showToast({ message: '请先登录' });
+              return;
+            }
+            const missing: string[] = [];
+            if (!currentUser.avatar) missing.push('头像');
+            if (!currentUser.displayName) missing.push('昵称');
+            if (!currentUser.phone) missing.push('电话');
+            if (missing.length > 0) {
+              const dialogRes = await promptAction.showDialog({
+                title: '无法拨打电话',
+                message: '请先完善个人资料（' + missing.join('、') + '）',
+                buttons: [
+                  { text: '取消', color: '#999999' },
+                  { text: '去完善', color: '#07C160' }
+                ]
+              });
+              if (dialogRes.index === 1) {
+                router.push({ url: 'pages/Profile' });
+              }
+              return;
+            }
             if (user.phone) {
               call.makeCall(user.phone, (err) => {
                 if (err) {
@@ -1503,7 +1551,31 @@ struct Index {
     this.standbyDialogController = new CustomDialogController({
       builder: StandbyPilotCardDialog({
         user: pilotData,
-        onWechatClick: () => {
+        onWechatClick: async () => {
+          // 校验个人资料完整性
+          const currentUser = AuthService.getCurrentUser();
+          if (!currentUser) {
+            promptAction.showToast({ message: '请先登录' });
+            return;
+          }
+          const missing: string[] = [];
+          if (!currentUser.avatar) missing.push('头像');
+          if (!currentUser.displayName) missing.push('昵称');
+          if (!currentUser.phone) missing.push('电话');
+          if (missing.length > 0) {
+            const dialogRes = await promptAction.showDialog({
+              title: '无法复制',
+              message: '请先完善个人资料（' + missing.join('、') + '）',
+              buttons: [
+                { text: '取消', color: '#999999' },
+                { text: '去完善', color: '#07C160' }
+              ]
+            });
+            if (dialogRes.index === 1) {
+              router.push({ url: 'pages/Profile' });
+            }
+            return;
+          }
           console.info('【今日有空弹窗微信点击】pilotData.wechatId:', pilotData.wechatId);
           const wechatId = pilotData.wechatId || '';
           if (wechatId) {
@@ -1519,7 +1591,31 @@ struct Index {
             promptAction.showToast({ message: '暂无微信号' });
           }
         },
-        onCallClick: () => {
+        onCallClick: async () => {
+          // 校验个人资料完整性
+          const currentUser = AuthService.getCurrentUser();
+          if (!currentUser) {
+            promptAction.showToast({ message: '请先登录' });
+            return;
+          }
+          const missing: string[] = [];
+          if (!currentUser.avatar) missing.push('头像');
+          if (!currentUser.displayName) missing.push('昵称');
+          if (!currentUser.phone) missing.push('电话');
+          if (missing.length > 0) {
+            const dialogRes = await promptAction.showDialog({
+              title: '无法拨打电话',
+              message: '请先完善个人资料（' + missing.join('、') + '）',
+              buttons: [
+                { text: '取消', color: '#999999' },
+                { text: '去完善', color: '#07C160' }
+              ]
+            });
+            if (dialogRes.index === 1) {
+              router.push({ url: 'pages/Profile' });
+            }
+            return;
+          }
           const phone = pilotData.phone || '';
           if (phone) {
             call.makeCall(phone, (err) => {
@@ -1550,7 +1646,31 @@ struct Index {
         showDistance: false,
         showRecentActive: false,
         showActions: true,
-        onWechatClick: (_openid: string) => {
+        onWechatClick: async (_openid: string) => {
+          // 校验个人资料完整性
+          const currentUser = AuthService.getCurrentUser();
+          if (!currentUser) {
+            promptAction.showToast({ message: '请先登录' });
+            return;
+          }
+          const missing: string[] = [];
+          if (!currentUser.avatar) missing.push('头像');
+          if (!currentUser.displayName) missing.push('昵称');
+          if (!currentUser.phone) missing.push('电话');
+          if (missing.length > 0) {
+            const dialogRes = await promptAction.showDialog({
+              title: '无法复制',
+              message: '请先完善个人资料（' + missing.join('、') + '）',
+              buttons: [
+                { text: '取消', color: '#999999' },
+                { text: '去完善', color: '#07C160' }
+              ]
+            });
+            if (dialogRes.index === 1) {
+              router.push({ url: 'pages/Profile' });
+            }
+            return;
+          }
           const wechatId = this.expandedPilotCardData?.wechatId || '';
           if (wechatId) {
             const pasteData = pasteboard.createData('text/plain', wechatId);
@@ -1560,7 +1680,31 @@ struct Index {
             setTimeout(() => { this.showCopySuccess = false; }, 1500);
           }
         },
-        onCallClick: (_openid: string) => {
+        onCallClick: async (_openid: string) => {
+          // 校验个人资料完整性
+          const currentUser = AuthService.getCurrentUser();
+          if (!currentUser) {
+            promptAction.showToast({ message: '请先登录' });
+            return;
+          }
+          const missing: string[] = [];
+          if (!currentUser.avatar) missing.push('头像');
+          if (!currentUser.displayName) missing.push('昵称');
+          if (!currentUser.phone) missing.push('电话');
+          if (missing.length > 0) {
+            const dialogRes = await promptAction.showDialog({
+              title: '无法拨打电话',
+              message: '请先完善个人资料（' + missing.join('、') + '）',
+              buttons: [
+                { text: '取消', color: '#999999' },
+                { text: '去完善', color: '#07C160' }
+              ]
+            });
+            if (dialogRes.index === 1) {
+              router.push({ url: 'pages/Profile' });
+            }
+            return;
+          }
           const phone = this.expandedPilotCardData?.phone || '';
           if (phone) {
             call.makeCall(phone, (err) => {

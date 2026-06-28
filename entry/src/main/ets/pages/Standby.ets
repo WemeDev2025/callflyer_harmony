@@ -702,12 +702,36 @@ struct Standby {
       return;
     }
 
+    // 校验个人资料完整性
+    const currentUser = AuthService.getCurrentUser();
+    if (!currentUser) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+    const missing: string[] = [];
+    if (!currentUser.avatar) missing.push('头像');
+    if (!currentUser.displayName) missing.push('昵称');
+    if (!currentUser.phone) missing.push('电话');
+    if (missing.length > 0) {
+      const dialogRes = await promptAction.showDialog({
+        title: '无法收徒',
+        message: '请先完善个人资料（' + missing.join('、') + '）',
+        buttons: [
+          { text: '取消', color: '#999999' },
+          { text: '去完善', color: '#07C160' }
+        ]
+      });
+      if (dialogRes.index === 1) {
+        router.push({ url: 'pages/Profile' });
+      }
+      return;
+    }
+
     try {
       await matchDisciple(item.openid, token);
       promptAction.showToast({ message: '收徒成功' });
 
       // 本地更新 UI（不重建列表）
-      const currentUser = AuthService.getCurrentUser();
       const currentOpenId = AuthService.getCurrentOpenId();
       item.isMine = true;
       item.masterCount = (item.masterCount || 0) + 1;
@@ -770,6 +794,30 @@ struct Standby {
       promptAction.showToast({ message: '请先登录' });
       return;
     }
+    // 校验个人资料完整性
+    const currentUser = AuthService.getCurrentUser();
+    if (!currentUser) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+    const missing: string[] = [];
+    if (!currentUser.avatar) missing.push('头像');
+    if (!currentUser.displayName) missing.push('昵称');
+    if (!currentUser.phone) missing.push('电话');
+    if (missing.length > 0) {
+      const dialogRes = await promptAction.showDialog({
+        title: '无法联系',
+        message: '请先完善个人资料（' + missing.join('、') + '）',
+        buttons: [
+          { text: '取消', color: '#999999' },
+          { text: '去完善', color: '#07C160' }
+        ]
+      });
+      if (dialogRes.index === 1) {
+        router.push({ url: 'pages/Profile' });
+      }
+      return;
+    }
 
     try {
       const contact: PilotContact = await fetchPilotContact(item.openid, token);
@@ -815,6 +863,30 @@ struct Standby {
     const token = AuthService.getAuthToken();
     if (!token) {
       promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+    // 校验个人资料完整性
+    const currentUser = AuthService.getCurrentUser();
+    if (!currentUser) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+    const missing: string[] = [];
+    if (!currentUser.avatar) missing.push('头像');
+    if (!currentUser.displayName) missing.push('昵称');
+    if (!currentUser.phone) missing.push('电话');
+    if (missing.length > 0) {
+      const dialogRes = await promptAction.showDialog({
+        title: '无法联系',
+        message: '请先完善个人资料（' + missing.join('、') + '）',
+        buttons: [
+          { text: '取消', color: '#999999' },
+          { text: '去完善', color: '#07C160' }
+        ]
+      });
+      if (dialogRes.index === 1) {
+        router.push({ url: 'pages/Profile' });
+      }
       return;
     }
 
