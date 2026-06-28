@@ -248,29 +248,29 @@ struct AgreementDialog {
           Text('欢迎使用')
             .fontSize(22)
             .fontWeight(600)
-            .fontColor('#333333')
+            .fontColor($r('app.color.text_primary'))
             .margin({ top: 24 })
 
           Text('欢迎使用呼叫飞手！为了向您提供更好的服务，请您仔细阅读并同意以下协议：')
             .fontSize(14)
-            .fontColor('#666666')
+            .fontColor($r('app.color.text_body'))
             .textAlign(TextAlign.Center)
             .margin({ top: 16 })
 
           Row() {
             Text('《用户协议》')
               .fontSize(14)
-              .fontColor('#4caf50')
+              .fontColor($r('app.color.accent_green'))
               .onClick(() => {
                 this.controller.close();
                 this.onViewAgreement();
               })
             Text('和')
               .fontSize(14)
-              .fontColor('#666666')
+              .fontColor($r('app.color.text_body'))
             Text('《隐私政策》')
               .fontSize(14)
-              .fontColor('#4caf50')
+              .fontColor($r('app.color.accent_green'))
               .onClick(() => {
                 this.controller.close();
                 this.onViewPrivacy();
@@ -283,8 +283,8 @@ struct AgreementDialog {
               .width('45%')
               .height(44)
               .fontSize(16)
-              .backgroundColor('#f5f5f5')
-              .fontColor('#666666')
+              .backgroundColor($r('app.color.card_bg_secondary'))
+              .fontColor($r('app.color.text_body'))
               .borderRadius(22)
               .onClick(() => {
                 promptAction.showToast({ message: '您需要同意用户协议和隐私政策才能使用本服务' });
@@ -294,8 +294,8 @@ struct AgreementDialog {
               .width('45%')
               .height(44)
               .fontSize(16)
-              .backgroundColor('#4caf50')
-              .fontColor('#ffffff')
+              .backgroundColor($r('app.color.accent_green'))
+              .fontColor('#FFFFFF')
               .borderRadius(22)
               .onClick(() => {
                 this.controller.close();
@@ -308,7 +308,7 @@ struct AgreementDialog {
         }
         .width('85%')
         .padding(24)
-        .backgroundColor('#ffffff')
+        .backgroundColor($r('app.color.card_bg'))
         .borderRadius(16)
       }
     }
@@ -2047,7 +2047,7 @@ struct Index {
               .justifyContent(FlexAlign.Center)
               .margin({ right: 11 })
               .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-              .backgroundColor('rgba(240, 240, 240, 0.4)')
+              .backgroundColor($r('app.color.card_bg_secondary'))
               .borderRadius(9)
               .onClick(() => this.onStandbyCardTap(item))
             }

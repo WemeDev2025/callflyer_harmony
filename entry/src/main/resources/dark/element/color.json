@@ -50,7 +50,7 @@
     },
     {
       "name": "card_bg_secondary",
-      "value": "#2D2D2D"
+      "value": "#252B3B"
     },
     {
       "name": "tag_bg",
@@ -70,7 +70,7 @@
     },
     {
       "name": "text_label",
-      "value": "#90A4AE"
+      "value": "#FFFFFF"
     },
     {
       "name": "divider",
