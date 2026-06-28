@@ -553,6 +553,7 @@ struct Profile {
                       .placeholderColor($r('app.color.text_secondary'))
                       .borderRadius(8)
                       .padding({ left: 10, right: 10 })
+                      .caretColor('#999999')
                       .onChange((v: string) => this.currentBusinessScope = v)
                       .onSubmit(() => this.handleAddBusinessScope())
                   }
@@ -587,6 +588,7 @@ struct Profile {
                       .placeholderColor($r('app.color.text_secondary'))
                       .borderRadius(8)
                       .padding({ left: 10, right: 10 })
+                      .caretColor('#999999')
                       .onChange((v: string) => this.currentDroneModel = v)
                       .onSubmit(() => this.handleAddDroneModel())
                   }
@@ -616,7 +618,7 @@ struct Profile {
                     Text('机型贴图')
                       .fontSize(14)
                       .fontColor($r('app.color.text_secondary'))
-                      .width('88%')
+                      .width('95%')
                       .padding({ left: 12, right: 12, top: 12, bottom: 8 })
 
                     List() {
@@ -664,7 +666,7 @@ struct Profile {
                         }
                       }
                     }
-                    .width('88%')
+                    .width('95%')
                     .listDirection(Axis.Horizontal)
                     .scrollBar(BarState.Off)
                     .padding({ left: 12, right: 12, bottom: 12 })
@@ -768,13 +770,17 @@ struct Profile {
         .fontColor($r('app.color.text_secondary'))
         .width(76)
       TextInput({ placeholder: placeholder, text: value })
+        .id('input_' + label)
         .layoutWeight(1)
         .height(48)
         .backgroundColor('transparent')
         .fontSize(15)
         .fontColor($r('app.color.text_primary'))
+        .placeholderColor('#AAAAAA')
+        .placeholderFont({ size: 15 })
         .type(inputType)
         .padding(0)
+        .caretColor('#999999')
         .onChange((v: string) => {
           if (label === '昵称') this.form.nickname = v;
           else if (label === '手机号码') this.form.phone = v;
@@ -790,6 +796,9 @@ struct Profile {
     .padding({ left: 14, right: 14 })
     .backgroundColor($r('app.color.card_bg_secondary'))
     .borderRadius(10)
+    .onClick(() => {
+      focusControl.requestFocus('input_' + label);
+    })
   }
 
   // 构建分割线
@@ -858,6 +867,7 @@ struct OrgCodeDialog {
         .placeholderColor($r('app.color.text_secondary'))
         .type(InputType.Number)
         .maxLength(6)
+        .caretColor('#999999')
         .onChange((v: string) => {
           this.orgCodeInput = v;
           this.orgCodeError = '';
