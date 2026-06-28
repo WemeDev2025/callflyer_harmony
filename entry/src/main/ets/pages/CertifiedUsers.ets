@@ -265,11 +265,34 @@ struct CertifiedUsers {
     this.isLoading = false;
   }
 
-  onCopyWechatByOpenid(openid: string) {
+  async onCopyWechatByOpenid(openid: string) {
+    // 校验个人资料完整性
+    const currentUser = AuthService.getCurrentUser();
+    if (!currentUser) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+    const missing: string[] = [];
+    if (!currentUser.avatar) missing.push('头像');
+    if (!currentUser.displayName) missing.push('昵称');
+    if (!currentUser.phone) missing.push('电话');
+    if (missing.length > 0) {
+      const dialogRes = await promptAction.showDialog({
+        title: '无法复制',
+        message: '请先完善个人资料（' + missing.join('、') + '）',
+        buttons: [
+          { text: '取消', color: '#999999' },
+          { text: '去完善', color: '#07C160' }
+        ]
+      });
+      if (dialogRes.index === 1) {
+        router.push({ url: 'pages/Profile' });
+      }
+      return;
+    }
+
     console.info('>>> CertifiedUsers onCopyWechatByOpenid ENTERED openid:', openid);
-    console.info('>>> this:', this ? 'defined' : 'undefined');
     const user = this.users.find(u => u.openid === openid);
-    console.info('>>> user found:', !!user, 'wechatId:', user?.wechatId);
     if (!user) {
       promptAction.showToast({ message: '用户不存在' });
       return;
@@ -290,6 +313,31 @@ struct CertifiedUsers {
   }
 
   async onCallPhoneByOpenid(openid: string) {
+    // 校验个人资料完整性
+    const currentUser = AuthService.getCurrentUser();
+    if (!currentUser) {
+      promptAction.showToast({ message: '请先登录' });
+      return;
+    }
+    const missing: string[] = [];
+    if (!currentUser.avatar) missing.push('头像');
+    if (!currentUser.displayName) missing.push('昵称');
+    if (!currentUser.phone) missing.push('电话');
+    if (missing.length > 0) {
+      const dialogRes = await promptAction.showDialog({
+        title: '无法拨打电话',
+        message: '请先完善个人资料（' + missing.join('、') + '）',
+        buttons: [
+          { text: '取消', color: '#999999' },
+          { text: '去完善', color: '#07C160' }
+        ]
+      });
+      if (dialogRes.index === 1) {
+        router.push({ url: 'pages/Profile' });
+      }
+      return;
+    }
+
     const user = this.users.find(u => u.openid === openid);
     if (!user) return;
     const contact = await this.getContactByOpenid(openid);
