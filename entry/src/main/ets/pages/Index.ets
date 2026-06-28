@@ -3750,7 +3750,7 @@ struct Index {
                 }
                 .alignItems(HorizontalAlign.Center)
                 Column() {
-                  Image($r('app.media.iconcall'))
+                  Image($r('app.media.icon_callu'))
                     .width(44)
                     .height(44)
                     .onClick(() => {
