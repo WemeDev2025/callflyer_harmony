@@ -13,6 +13,7 @@ const TAG = 'EntryAbility';
 const DOMAIN = 0x0001;
 const PREFS_NAME = 'callflyer_prefs';
 const KEY_AGREEMENT_ACCEPTED = 'callflyer_agreement_accepted';
+const KEY_NOTIFICATION_REFUSED = 'notification_refused'; // 记录通知权限是否被用户拒绝
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
@@ -23,9 +24,14 @@ export default class EntryAbility extends UIAbility {
       const accepted = prefs.getSync(KEY_AGREEMENT_ACCEPTED, '') as string;
       hilog.info(DOMAIN, TAG, 'agreement accepted from prefs: %{public}s', accepted);
       AppStorage.setOrCreate<string>(KEY_AGREEMENT_ACCEPTED, accepted);
+      // 读取通知权限拒绝状态
+      const notificationRefused = prefs.getSync(KEY_NOTIFICATION_REFUSED, false) as boolean;
+      AppStorage.setOrCreate<boolean>(KEY_NOTIFICATION_REFUSED, notificationRefused);
+      hilog.info(DOMAIN, TAG, 'notification refused from prefs: %{public}s', notificationRefused.toString());
     } catch (e) {
       hilog.error(DOMAIN, TAG, 'Failed to read preferences: %{public}s', JSON.stringify(e));
       AppStorage.setOrCreate<string>(KEY_AGREEMENT_ACCEPTED, '');
+      AppStorage.setOrCreate<boolean>(KEY_NOTIFICATION_REFUSED, false);
     }
     // 保存当前颜色模式到 AppStorage
     AppStorage.setOrCreate('colorMode', this.context.config.colorMode ?? ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
@@ -54,12 +60,25 @@ export default class EntryAbility extends UIAbility {
 
   // 请求通知权限
   private async requestNotificationPermission(): Promise<void> {
+    // 检查用户是否之前拒绝过通知权限，如果拒绝过则不再弹窗申请
+    const wasRefused = AppStorage.get<boolean>(KEY_NOTIFICATION_REFUSED) ?? false;
+    if (wasRefused) {
+      hilog.info(DOMAIN, TAG, '[ANS] 用户之前已拒绝通知权限，不再弹窗申请');
+      return;
+    }
+
     try {
       // 检查当前通知权限状态
       let isEnabled = notificationManager.isNotificationEnabledSync();
       hilog.info(DOMAIN, TAG, '[ANS] 通知权限状态: %{public}s', isEnabled ? '已开启' : '未开启');
 
-      // 直接请求通知权限（系统会自动处理：已开启则不弹窗，未开启则弹窗）
+      // 已开启则不需要申请
+      if (isEnabled) {
+        hilog.info(DOMAIN, TAG, '[ANS] 通知权限已开启，无需申请');
+        return;
+      }
+
+      // 未开启才请求通知权限（系统会弹窗）
       hilog.info(DOMAIN, TAG, '[ANS] 调用 requestEnableNotification...');
       await notificationManager.requestEnableNotification();
       hilog.info(DOMAIN, TAG, '[ANS] requestEnableNotification success');
@@ -69,13 +88,18 @@ export default class EntryAbility extends UIAbility {
 
       // 根据错误码处理
       if (err.code === 1600004) {
-        // 用户拒绝授权，拉起通知设置页面
-        hilog.info(DOMAIN, TAG, '[ANS] 用户拒绝，打开通知设置页面');
+        // 用户拒绝授权，保存拒绝状态，不再弹窗或打开设置页
+        hilog.info(DOMAIN, TAG, '[ANS] 用户拒绝通知权限，保存状态');
         try {
-          notificationManager.openNotificationSettings(this.context);
+          const prefs = dataPreferences.getPreferencesSync(this.context, { name: PREFS_NAME });
+          prefs.putSync(KEY_NOTIFICATION_REFUSED, true);
+          prefs.flushSync();
+          AppStorage.setOrCreate<boolean>(KEY_NOTIFICATION_REFUSED, true);
+          hilog.info(DOMAIN, TAG, '[ANS] 已保存拒绝状态');
         } catch (e) {
-          hilog.error(DOMAIN, TAG, '[ANS] openNotificationSettings failed');
+          hilog.error(DOMAIN, TAG, '[ANS] 保存拒绝状态失败: %{public}s', JSON.stringify(e));
         }
+        // 不再打开通知设置页面，静默处理
       } else if (err.code === 1600013) {
         // 1600013: 渲染异常，延迟重试
         hilog.warn(DOMAIN, TAG, '[ANS] 1600013 渲染异常，1秒后重试');

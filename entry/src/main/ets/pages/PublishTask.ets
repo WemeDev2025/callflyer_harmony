@@ -982,7 +982,7 @@ struct PublishTask {
                   .flexGrow(1)
                 Text(this.expiresAt || '请选择')
                   .fontSize(15)
-                  .fontColor(this.expiresAt ? '#1A1A1A' : '#999999')
+                  .fontColor(this.expiresAt ? (this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#1A1A1A') : '#999999')
                   .textAlign(TextAlign.End)
                   .margin({ right: 12 })
               }
