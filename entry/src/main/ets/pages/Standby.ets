@@ -702,7 +702,8 @@ struct Standby {
       return;
     }
 
-    // 校验个人资料完整性
+    // 校验个人资料完整性，先刷新获取最新数据
+    await AuthService.refreshCurrentUser();
     const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       promptAction.showToast({ message: '请先登录' });
@@ -794,7 +795,8 @@ struct Standby {
       promptAction.showToast({ message: '请先登录' });
       return;
     }
-    // 校验个人资料完整性
+    // 校验个人资料完整性，先刷新获取最新数据
+    await AuthService.refreshCurrentUser();
     const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       promptAction.showToast({ message: '请先登录' });
@@ -865,7 +867,8 @@ struct Standby {
       promptAction.showToast({ message: '请先登录' });
       return;
     }
-    // 校验个人资料完整性
+    // 校验个人资料完整性，先刷新获取最新数据
+    await AuthService.refreshCurrentUser();
     const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       promptAction.showToast({ message: '请先登录' });

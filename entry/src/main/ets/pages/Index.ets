@@ -1217,8 +1217,12 @@ struct Index {
   }
 
   // 点击奖励位
-  onRewardSlotClick(): void {
-    console.info('【奖励位点击】rewardSlotClaimed: ' + this.rewardSlotClaimed + ', rewardSlotUser: ' + JSON.stringify(this.rewardSlotUser) + ', isProfileComplete: ' + this.isProfileComplete());
+  async onRewardSlotClick(): Promise<void> {
+    console.info('【奖励位点击】rewardSlotClaimed: ' + this.rewardSlotClaimed + ', rewardSlotUser: ' + JSON.stringify(this.rewardSlotUser));
+    // 先刷新用户资料再检查
+    await AuthService.refreshCurrentUser();
+    const profileComplete = this.isProfileComplete();
+    console.info('【奖励位点击】isProfileComplete: ' + profileComplete);
     if (this.rewardSlotClaimed && this.rewardSlotUser) {
       const user: PilotCardData = {
         openid: this.rewardSlotUser.openid,
@@ -1258,7 +1262,8 @@ struct Index {
         builder: StandbyPilotCardDialog({
           user: user,
           onWechatClick: async () => {
-            // 校验个人资料完整性
+            // 校验个人资料完整性，先刷新获取最新数据
+            await AuthService.refreshCurrentUser();
             const currentUser = AuthService.getCurrentUser();
             if (!currentUser) {
               promptAction.showToast({ message: '请先登录' });
@@ -1289,7 +1294,8 @@ struct Index {
             }
           },
           onCallClick: async () => {
-            // 校验个人资料完整性
+            // 校验个人资料完整性，先刷新获取最新数据
+            await AuthService.refreshCurrentUser();
             const currentUser = AuthService.getCurrentUser();
             if (!currentUser) {
               promptAction.showToast({ message: '请先登录' });
@@ -1336,7 +1342,7 @@ struct Index {
       return;
     }
 
-    if (!this.isProfileComplete()) {
+    if (!profileComplete) {
       promptAction.showToast({ message: '请先完善个人资料' });
       return;
     }
@@ -1552,7 +1558,8 @@ struct Index {
       builder: StandbyPilotCardDialog({
         user: pilotData,
         onWechatClick: async () => {
-          // 校验个人资料完整性
+          // 校验个人资料完整性，先刷新获取最新数据
+          await AuthService.refreshCurrentUser();
           const currentUser = AuthService.getCurrentUser();
           if (!currentUser) {
             promptAction.showToast({ message: '请先登录' });
@@ -1592,7 +1599,8 @@ struct Index {
           }
         },
         onCallClick: async () => {
-          // 校验个人资料完整性
+          // 校验个人资料完整性，先刷新获取最新数据
+          await AuthService.refreshCurrentUser();
           const currentUser = AuthService.getCurrentUser();
           if (!currentUser) {
             promptAction.showToast({ message: '请先登录' });
@@ -1647,7 +1655,8 @@ struct Index {
         showRecentActive: false,
         showActions: true,
         onWechatClick: async (_openid: string) => {
-          // 校验个人资料完整性
+          // 校验个人资料完整性，先刷新获取最新数据
+          await AuthService.refreshCurrentUser();
           const currentUser = AuthService.getCurrentUser();
           if (!currentUser) {
             promptAction.showToast({ message: '请先登录' });
@@ -1681,7 +1690,8 @@ struct Index {
           }
         },
         onCallClick: async (_openid: string) => {
-          // 校验个人资料完整性
+          // 校验个人资料完整性，先刷新获取最新数据
+          await AuthService.refreshCurrentUser();
           const currentUser = AuthService.getCurrentUser();
           if (!currentUser) {
             promptAction.showToast({ message: '请先登录' });
@@ -1933,7 +1943,8 @@ struct Index {
   }
 
   async onIconCall(pilot: PilotItem) {
-    // 校验个人资料完整性
+    // 校验个人资料完整性，先刷新获取最新数据
+    await AuthService.refreshCurrentUser();
     const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       promptAction.showToast({ message: '请先登录' });
@@ -1972,7 +1983,8 @@ struct Index {
   }
 
   async onIconWechat(pilot: PilotItem) {
-    // 校验个人资料完整性
+    // 校验个人资料完整性，先刷新获取最新数据
+    await AuthService.refreshCurrentUser();
     const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       promptAction.showToast({ message: '请先登录' });
@@ -2027,7 +2039,8 @@ struct Index {
   }
 
   async onOrderCall(order: OrderItem) {
-    // 校验个人资料完整性
+    // 校验个人资料完整性，先刷新获取最新数据
+    await AuthService.refreshCurrentUser();
     const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       promptAction.showToast({ message: '请先登录' });
@@ -2072,7 +2085,8 @@ struct Index {
   }
 
   async onOrderWechat(order: OrderItem) {
-    // 校验个人资料完整性
+    // 校验个人资料完整性，先刷新获取最新数据
+    await AuthService.refreshCurrentUser();
     const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       promptAction.showToast({ message: '请先登录' });

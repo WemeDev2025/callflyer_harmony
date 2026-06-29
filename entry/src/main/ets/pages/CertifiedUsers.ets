@@ -503,7 +503,8 @@ struct CertifiedUsers {
       user: user,
       showActions: true,
       onWechatClick: async () => {
-        // 校验个人资料完整性
+        // 校验个人资料完整性，先刷新获取最新数据
+        await AuthService.refreshCurrentUser();
         const currentUser = AuthService.getCurrentUser();
         if (!currentUser) {
           promptAction.showToast({ message: '请先登录' });
@@ -557,7 +558,8 @@ struct CertifiedUsers {
         }
       },
       onCallClick: async () => {
-        // 校验个人资料完整性
+        // 校验个人资料完整性，先刷新获取最新数据
+        await AuthService.refreshCurrentUser();
         const currentUser = AuthService.getCurrentUser();
         if (!currentUser) {
           promptAction.showToast({ message: '请先登录' });

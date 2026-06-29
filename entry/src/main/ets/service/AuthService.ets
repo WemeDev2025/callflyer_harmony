@@ -2,7 +2,7 @@ import { authentication } from '@kit.AccountKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { util } from '@kit.ArkTS';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { exchangeHuaweiToken } from './ApiService';
+import { exchangeHuaweiToken, fetchProfile } from './ApiService';
 
 /**
  * 华为账号登录服务 - 使用Account Kit
@@ -169,6 +169,36 @@ class AuthService {
    */
   getCurrentOpenId(): string {
     return this.currentUser?.openId ?? '';
+  }
+
+  /**
+   * 刷新当前用户资料（从服务器获取最新数据）
+   * 用于解决登录后用户完善资料但本地缓存未更新的问题
+   */
+  async refreshCurrentUser(): Promise<boolean> {
+    if (!this.currentUser?.openId) {
+      hilog.warn(DOMAIN, TAG, 'refreshCurrentUser: no openId, skip');
+      return false;
+    }
+    const token = this.getAuthToken();
+    if (!token) {
+      hilog.warn(DOMAIN, TAG, 'refreshCurrentUser: no token, skip');
+      return false;
+    }
+    try {
+      const profile = await fetchProfile(this.currentUser.openId, token);
+      if (profile) {
+        this.currentUser.displayName = profile.nickname;
+        this.currentUser.avatar = profile.avatarUrl;
+        this.currentUser.phone = profile.phone;
+        this.currentUser.email = profile.wechatId; // wechatId 暂存在 email 字段
+        hilog.info(DOMAIN, TAG, 'refreshCurrentUser: updated successfully');
+        return true;
+      }
+    } catch (err) {
+      hilog.error(DOMAIN, TAG, 'refreshCurrentUser failed: %{public}s', JSON.stringify(err));
+    }
+    return false;
   }
 
   /**
