@@ -10,7 +10,6 @@ import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import curves from '@ohos.curves';
 
 const PHONE_REGEX = /^1[3-9]\d{9}$/;
-const DEFAULT_AVATAR = 'https://minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com/ccv2%2F2026-06-28%2FMiniMax-M2.7-highspeed%2F2056041922304156137%2Fbfaed8af666ddb5085614d108123767651745bc5bac751920a67baa3898edf8d..webp?Expires=1782726347&OSSAccessKeyId=LTAI5tGLnRTkBjLuYPjNcKQ8&Signature=BUqB4%2BEW2isFi9Fkp6cwYv%2Fvk6g%3D';
 
 class RoleOption {
   label: string;
@@ -171,7 +170,7 @@ struct Profile {
     const payload: ProfileForm = {
       openid: AuthService.getCurrentUser()?.openId || '',
       nickname: nickname,
-      avatarUrl: this.form.avatarUrl || DEFAULT_AVATAR,
+      avatarUrl: this.form.avatarUrl,
       phone: phone,
       wechatId: this.form.wechatId,
       douyinId: this.form.douyinId,
@@ -397,12 +396,21 @@ struct Profile {
               Column({ space: 16 }) {
                 // 头像区域
                 Column() {
-                  Image(this.form.avatarUrl || DEFAULT_AVATAR)
-                    .width(84)
-                    .height(84)
-                    .borderRadius(42)
-                    .backgroundColor($r('app.color.avatar_placeholder'))
-                    .onClick(() => this.handleChooseAvatar())
+                  if (this.form.avatarUrl) {
+                    Image(this.form.avatarUrl)
+                      .width(84)
+                      .height(84)
+                      .borderRadius(42)
+                      .backgroundColor($r('app.color.avatar_placeholder'))
+                      .onClick(() => this.handleChooseAvatar())
+                  } else {
+                    Image($r('app.media.icon_avatar_default'))
+                      .width(84)
+                      .height(84)
+                      .borderRadius(42)
+                      .backgroundColor($r('app.color.avatar_placeholder'))
+                      .onClick(() => this.handleChooseAvatar())
+                  }
                 }
                 .width('100%')
                 .alignItems(HorizontalAlign.Center)
