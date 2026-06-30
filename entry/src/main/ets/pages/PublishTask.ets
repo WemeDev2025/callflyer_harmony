@@ -438,7 +438,7 @@ struct PublishTask {
         Text('取消')
           .fontSize(15)
           .fontColor($r('app.color.text_primary'))
-          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
           .borderRadius(8)
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .onClick(() => { this.showTaskCategoryPicker = false; })
@@ -463,7 +463,7 @@ struct PublishTask {
       .justifyContent(FlexAlign.Center)
     }
     .width('100%')
-    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
     .borderRadius({ topLeft: 22, topRight: 22 })
     .padding({ bottom: 20 })
   }
@@ -490,7 +490,7 @@ struct PublishTask {
         Text('取消')
           .fontSize(15)
           .fontColor($r('app.color.text_primary'))
-          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
           .borderRadius(8)
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .onClick(() => { this.showVerticalDropPicker = false; })
@@ -512,7 +512,7 @@ struct PublishTask {
       .justifyContent(FlexAlign.Center)
     }
     .width('100%')
-    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
     .borderRadius({ topLeft: 22, topRight: 22 })
     .padding({ bottom: 34 })
   }
@@ -539,7 +539,7 @@ struct PublishTask {
         Text('取消')
           .fontSize(15)
           .fontColor($r('app.color.text_primary'))
-          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
           .borderRadius(8)
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .onClick(() => { this.showDistancePicker = false; })
@@ -561,7 +561,7 @@ struct PublishTask {
       .justifyContent(FlexAlign.Center)
     }
     .width('100%')
-    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
     .borderRadius({ topLeft: 22, topRight: 22 })
     .padding({ bottom: 20 })
   }
@@ -591,7 +591,7 @@ struct PublishTask {
         Text('取消')
           .fontSize(15)
           .fontColor($r('app.color.text_primary'))
-          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+          .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
           .borderRadius(8)
           .padding({ left: 36, right: 36, top: 10, bottom: 10 })
           .onClick(() => { this.showDatePicker = false; })
@@ -612,7 +612,7 @@ struct PublishTask {
       .justifyContent(FlexAlign.Center)
     }
     .width('100%')
-    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
     .borderRadius({ topLeft: 22, topRight: 22 })
     .padding({ bottom: 20 })
   }
@@ -625,7 +625,7 @@ struct PublishTask {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121828' : '#E7F8FC')
+        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#000000' : '#E7F8FC')
         .expandSafeArea([SafeAreaType.SYSTEM])
 
       Scroll() {
@@ -663,12 +663,12 @@ struct PublishTask {
                   .fontColor($r('app.color.text_primary'))
                   .placeholderColor($r('app.color.text_secondary'))
                   .placeholderFont({ size: 15 })
-                  .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+                  .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
                   .borderRadius(8)
                   .layoutWeight(1)
                   .margin({ left: 12 })
                   .textAlign(TextAlign.End)
-                  .opacity(0.75)
+                  .opacity(0.8)
                   .onChange((value: string) => { this.city = value; })
                 if (this.locationFailed) {
                   Text('定位失败')
@@ -684,7 +684,7 @@ struct PublishTask {
             }
             .width('100%')
             .padding(16)
-            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
             .borderRadius(14)
           }
           .width('100%')
@@ -718,7 +718,7 @@ struct PublishTask {
             }
             .width('100%')
             .padding(16)
-            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
             .borderRadius(14)
           }
           .width('100%')
@@ -727,7 +727,7 @@ struct PublishTask {
             height: 360,
             dragBar: true,
             showClose: false,
-            backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF',
+            backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF',
             radius: { topLeft: 22, topRight: 22 }
           })
 
@@ -739,7 +739,7 @@ struct PublishTask {
                   .fontColor($r('app.color.text_primary'))
                   .placeholderColor($r('app.color.text_secondary'))
                   .placeholderFont({ size: 15 })
-                  .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+                  .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
                   .borderRadius(8)
                   .borderRadius(8)
                   .padding({ left: 12, right: 12, top: 10, bottom: 10 })
@@ -747,7 +747,7 @@ struct PublishTask {
               }
               .width('100%')
               .padding(16)
-              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
               .borderRadius(14)
             }
             .width('100%')
@@ -784,7 +784,7 @@ struct PublishTask {
               }
               .width('100%')
               .padding(16)
-              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
               .borderRadius(14)
             }
             .width('100%')
@@ -793,7 +793,7 @@ struct PublishTask {
               height: 360,
               dragBar: true,
               showClose: false,
-              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF',
+              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF',
               radius: { topLeft: 22, topRight: 22 }
             })
           }
@@ -813,7 +813,7 @@ struct PublishTask {
                     .fontColor($r('app.color.text_primary'))
                     .placeholderColor($r('app.color.text_secondary'))
                   .placeholderFont({ size: 15 })
-                    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+                    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
                   .borderRadius(8)
                     .layoutWeight(1)
                     .height(40)
@@ -825,7 +825,7 @@ struct PublishTask {
               }
               .width('100%')
               .padding(16)
-              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
               .borderRadius(14)
             }
             .width('100%')
@@ -861,7 +861,7 @@ struct PublishTask {
               }
               .width('100%')
               .padding(16)
-              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
               .borderRadius(14)
             }
             .width('100%')
@@ -870,7 +870,7 @@ struct PublishTask {
               height: 360,
               dragBar: true,
               showClose: false,
-              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF',
+              backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF',
               radius: { topLeft: 22, topRight: 22 }
             })
           }
@@ -889,7 +889,7 @@ struct PublishTask {
                   .fontColor($r('app.color.text_primary'))
                   .placeholderColor($r('app.color.text_secondary'))
                   .placeholderFont({ size: 15 })
-                  .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+                  .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
                   .borderRadius(8)
                   .layoutWeight(1)
                   .height(40)
@@ -901,7 +901,7 @@ struct PublishTask {
             }
             .width('100%')
             .padding(16)
-            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
             .borderRadius(14)
           }
           .width('100%')
@@ -922,7 +922,7 @@ struct PublishTask {
                     .fontColor($r('app.color.text_primary'))
                     .placeholderColor($r('app.color.text_secondary'))
                   .placeholderFont({ size: 15 })
-                    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+                    .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
                   .borderRadius(8)
                     .layoutWeight(1)
                     .height(40)
@@ -934,7 +934,7 @@ struct PublishTask {
               }
               .width('100%')
               .padding(16)
-              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+              .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
               .borderRadius(14)
             }
             .width('100%')
@@ -955,7 +955,7 @@ struct PublishTask {
                   .fontColor($r('app.color.text_primary'))
                   .placeholderColor($r('app.color.text_secondary'))
                   .placeholderFont({ size: 15 })
-                  .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+                  .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
                   .borderRadius(8)
                   .layoutWeight(1)
                   .height(40)
@@ -967,7 +967,7 @@ struct PublishTask {
             }
             .width('100%')
             .padding(16)
-            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
             .borderRadius(14)
           }
           .width('100%')
@@ -994,7 +994,7 @@ struct PublishTask {
             }
             .width('100%')
             .padding(16)
-            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
             .borderRadius(14)
           }
           .width('100%')
@@ -1003,7 +1003,7 @@ struct PublishTask {
             height: 360,
             dragBar: true,
             showClose: false,
-            backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF',
+            backgroundColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF',
             radius: { topLeft: 22, topRight: 22 }
           })
 
@@ -1020,7 +1020,7 @@ struct PublishTask {
                 .fontSize(15)
                 .fontColor($r('app.color.text_primary'))
                 .placeholderColor('#CCCCCC')
-                .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a27' : $r('app.color.card_bg_secondary'))
+                .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1a1a1a' : $r('app.color.card_bg_secondary'))
                 .borderRadius(10)
                 .padding(12)
                 .height(100)
@@ -1028,7 +1028,7 @@ struct PublishTask {
             }
             .width('100%')
             .padding(16)
-            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#1C2130' : '#FFFFFF')
+            .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#FFFFFF')
             .borderRadius(14)
           }
           .width('100%')

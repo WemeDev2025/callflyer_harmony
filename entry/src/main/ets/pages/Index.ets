@@ -2516,7 +2516,7 @@ struct Index {
                       Column()
                         .width('100%')
                         .height('100%')
-                        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#3d3d3d' : '#242325')
+                        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#2D2D2D' : '#242325')
                         .onClick(() => { this.onRewardSlotClick(); })
 
                       // 光斑层 - 圆角矩形包裹
