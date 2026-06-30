@@ -553,9 +553,12 @@ const DISTANCE_LABELS: Record<string, string> = {
 
 // 垂直落差标签映射
 const VERTICAL_DROP_LABELS: Record<string, string> = {
+  'lt_50mm': '<50m',
+  'it_50mm': '<50m',
   'lt_50m': '<50m',
-  '50_150m': '50-150m',
-  'gt_150m': '>150m'
+  'it_50m': '<50m',
+  '50_150mm': '50-150m',
+  'gt_150mm': '>150m'
 };
 
 // 载重标签映射
@@ -563,7 +566,11 @@ const PAYLOAD_LABELS: Record<string, string> = {
   'lt_100kg': '<100kg',
   '100_300kg': '100-300kg',
   '300_600kg': '300-600kg',
-  'gt_600kg': '>600kg'
+  'gt_600kg': '>600kg',
+  'lt_100': '<100kg',
+  '100_300': '100-300kg',
+  '300_600': '300-600kg',
+  'gt_600': '>600kg'
 };
 
 function mapDistanceLabel(label: string): string {
@@ -572,7 +579,10 @@ function mapDistanceLabel(label: string): string {
 
 function mapVerticalDropLabel(label: string): string {
   if (!label) return '';
-  return VERTICAL_DROP_LABELS[label] || label;
+  const lower = label.toLowerCase();
+  const mapped = VERTICAL_DROP_LABELS[lower];
+  console.info('【垂直落差】原始:', label, '→ 小写:', lower, '→ 映射:', mapped);
+  return mapped || label;
 }
 
 function mapPayloadLabel(label: string): string {
@@ -651,6 +661,7 @@ interface RawOrder {
   per_trip_price?: number;
   total_price?: number;
   notes?: string;
+  remark?: string;
   publisher_openid?: string;
   publisherOpenid?: string;
   profile?: RawOrderProfile;
@@ -756,11 +767,19 @@ export async function fetchPublicOrders(): Promise<OrderItem[]> {
                 // 垂直落差
                 const verticalDrop = quote?.vertical_drop ?? o.vertical_drop ?? 0;
                 const verticalDropLabelRaw = quote?.vertical_drop_label || o.vertical_drop_label || '';
-                const verticalDropLabel = mapVerticalDropLabel(verticalDropLabelRaw) || (verticalDrop ? `${verticalDrop}m` : '');
+                const verticalDropLabelMapped = mapVerticalDropLabel(verticalDropLabelRaw);
+                // 兼容后端返回字符串类型的情况（如 "lt_50m"）
+                const verticalDropStr = typeof verticalDrop === 'string' ? verticalDrop : '';
+                const verticalDropLabelMapped2 = verticalDropStr ? mapVerticalDropLabel(verticalDropStr) : '';
+                const verticalDropLabel = verticalDropLabelMapped || verticalDropLabelMapped2 || (verticalDrop && typeof verticalDrop === 'number' ? `${verticalDrop}m` : '');
                 // 单次载重
                 const payloadKg = quote?.payload_kg ?? o.payload_kg ?? 0;
                 const payloadLabelRaw = quote?.payload_kg_label || o.payload_kg_label || '';
-                const payloadLabel = mapPayloadLabel(payloadLabelRaw) || (payloadKg ? `${payloadKg}kg` : '');
+                const payloadLabelMapped = mapPayloadLabel(payloadLabelRaw);
+                // 兼容后端返回字符串类型的情况（如 "lt_100kg"）
+                const payloadKgStr = typeof payloadKg === 'string' ? payloadKg : '';
+                const payloadLabelMapped2 = payloadKgStr ? mapPayloadLabel(payloadKgStr) : '';
+                const payloadLabel = payloadLabelMapped || payloadLabelMapped2 || (payloadKg && typeof payloadKg === 'number' ? `${payloadKg}kg` : '');
                 // 总单数
                 const totalOrders = quote?.total_orders ?? o.total_orders ?? 0;
                 // 预算
@@ -788,7 +807,7 @@ export async function fetchPublicOrders(): Promise<OrderItem[]> {
                   price: price,
                   budgetAmount: budgetAmount,
                   budgetUnit: budgetUnit,
-                  notes: o.notes || '',
+                  notes: o.notes || o.remark || '',
                   profile: {
                     openid: profile?.openid || profile?.openId || '',
                     nickname: profile?.nickname || '匿名',

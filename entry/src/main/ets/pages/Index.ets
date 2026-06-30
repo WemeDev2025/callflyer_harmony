@@ -3209,8 +3209,13 @@ struct Index {
               .width('100%')
               .alignItems(VerticalAlign.Center)
 
-              Divider()
-                .color($r('app.color.divider'))
+              Column()
+                .width('100%')
+                .border({
+                  width: { top: 0, right: 0, bottom: 1, left: 0 },
+                  color: $r('app.color.divider'),
+                  style: BorderStyle.Dashed
+                })
                 .margin({ top: 12, bottom: 12 })
 
               // 信息行占位
@@ -3445,8 +3450,13 @@ struct Index {
               .width('100%')
               .alignItems(VerticalAlign.Center)
 
-              Divider()
-                .color($r('app.color.divider'))
+              Column()
+                .width('100%')
+                .border({
+                  width: { top: 0, right: 0, bottom: 1, left: 0 },
+                  color: $r('app.color.divider'),
+                  style: BorderStyle.Dashed
+                })
                 .margin({ top: 12, bottom: 12 })
 
               // 信息行占位
@@ -3574,8 +3584,13 @@ struct Index {
               .alignItems(VerticalAlign.Center)
 
               // 分隔线
-              Divider()
-                .color($r('app.color.divider'))
+              Column()
+                .width('100%')
+                .border({
+                  width: { top: 0, right: 0, bottom: 1, left: 0 },
+                  color: $r('app.color.divider'),
+                  style: BorderStyle.Dashed
+                })
                 .margin({ top: 12, bottom: 12 })
 
               // 所在城市
@@ -3698,13 +3713,19 @@ struct Index {
 
                 // 备注
                 if (order.notes) {
-                  Text(order.notes)
-                    .fontSize(15)
-                    .fontColor($r('app.color.text_primary'))
-                    .fontWeight(FontWeight.Medium)
-                    .width('100%')
-                    .textAlign(TextAlign.Start)
-                    .margin({ top: 9 })
+                  Column() {
+                    Text(order.notes)
+                      .fontSize(15)
+                      .fontColor($r('app.color.text_primary'))
+                      .fontWeight(FontWeight.Medium)
+                      .width('100%')
+                      .textAlign(TextAlign.Start)
+                  }
+                  .width('100%')
+                  .backgroundColor($r('app.color.card_bg_secondary'))
+                  .borderRadius(8)
+                  .padding(12)
+                  .margin({ top: 9 })
                 }
 
                 // 评分
@@ -3747,8 +3768,13 @@ struct Index {
               .margin({ top: 12 })
 
               // 分隔线
-              Divider()
-                .color($r('app.color.divider'))
+              Column()
+                .width('100%')
+                .border({
+                  width: { top: 0, right: 0, bottom: 1, left: 0 },
+                  color: $r('app.color.divider'),
+                  style: BorderStyle.Dashed
+                })
                 .margin({ top: 12 })
 
               // 联系图标行

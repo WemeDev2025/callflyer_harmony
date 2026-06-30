@@ -333,7 +333,7 @@ struct DiscipleCard {
         .alignItems(VerticalAlign.Center)
         .width('42%')
         .height('100%')
-        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2A2A2A')
+        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2D2D2D')
         .borderRadius(8)
         .padding({ top: 6, bottom: 6, left: 8, right: 8 })
 
@@ -403,7 +403,7 @@ struct DiscipleCard {
         .alignItems(VerticalAlign.Center)
         .width('42%')
         .height('100%')
-        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2A2A2A')
+        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2D2D2D')
         .borderRadius(8)
         .padding({ top: 6, bottom: 6, left: 8, right: 8 })
       }
@@ -419,7 +419,7 @@ struct DiscipleCard {
         }
         .width('100%')
         .padding(12)
-        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2A2A2A')
+        .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT ? '#F5F5F5' : '#2D2D2D')
         .borderRadius(8)
         .margin({ top: 10 })
       }
