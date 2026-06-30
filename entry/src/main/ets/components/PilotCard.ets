@@ -1020,8 +1020,9 @@ export struct PilotCard {
               ForEach(this.user.droneImages, (img: string, index: number) => {
                 Image(img)
                   .width(80)
-                  .height(60)
-                  .borderRadius(4)
+                  .height(80)
+                  .borderRadius(6)
+                  .objectFit(ImageFit.Cover)
                   .margin({ right: 8 })
                   .onClick(() => {
                     this.openPreview(this.user.droneImages, index);
