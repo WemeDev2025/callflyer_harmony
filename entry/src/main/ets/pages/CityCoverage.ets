@@ -118,19 +118,8 @@ struct CityCoverage {
       HdsNavigation() {
         Scroll(this.scroller) {
           Column() {
-            // 搜索栏
-            Row() {
-              TextInput({ placeholder: '搜索城市或省份', text: this.keyword })
-                .width('100%')
-                .height(44)
-                .backgroundColor($r('app.color.card_bg'))
-                .borderRadius(22)
-                .placeholderColor($r('app.color.text_caption'))
-                .fontSize(14)
-                .onChange((text: string) => { this.onSearchChange(text); })
-            }
-            .width('90%')
-            .margin({ top: 12, bottom: 12 })
+            // 占位，撑开搜索栏以下的空间
+            Blank().height(8)
 
             if (this.loading) {
               Column() {
@@ -312,6 +301,7 @@ struct CityCoverage {
       }
       .width('100%')
       .height('100%')
+      .position({ y: 56 })
       .hideBackButton(true)
       .backgroundColor('#00000000')
       .titleBar({
@@ -332,6 +322,21 @@ struct CityCoverage {
       .titleMode(HdsNavigationTitleMode.MINI)
       .bindToScrollable([this.scroller])
       .expandSafeArea([SafeAreaType.SYSTEM])
+
+      // 搜索栏 - 放 Stack 最后确保在最上层，水平居中
+      Column() {
+        TextInput({ placeholder: '搜索城市或省份', text: this.keyword })
+          .width('100%')
+          .height(44)
+          .backgroundColor($r('app.color.card_bg'))
+          .borderRadius(22)
+          .placeholderColor($r('app.color.text_caption'))
+          .fontSize(14)
+          .onChange((text: string) => { this.onSearchChange(text); })
+      }
+      .width('90%')
+      .position({ x: '5%', y: 12 })
+      .zIndex(1)
     }
     .width('100%')
     .height('100%')
