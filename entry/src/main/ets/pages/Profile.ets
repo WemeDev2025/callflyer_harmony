@@ -562,7 +562,7 @@ struct Profile {
                         Row() {
                           Text(scope + '  ×')
                             .fontSize(12)
-                            .backgroundColor('#F5F5F5')
+                            .backgroundColor($r('app.color.card_bg_secondary'))
                             .fontColor($r('app.color.text_primary'))
                             .borderRadius(4)
                             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
@@ -597,7 +597,7 @@ struct Profile {
                         Row() {
                           Text(model + '  ×')
                             .fontSize(12)
-                            .backgroundColor('#F5F5F5')
+                            .backgroundColor($r('app.color.card_bg_secondary'))
                             .fontColor($r('app.color.text_primary'))
                             .borderRadius(4)
                             .padding({ left: 10, right: 10, top: 5, bottom: 5 })
