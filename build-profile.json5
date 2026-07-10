@@ -13,12 +13,38 @@
           "profile": "/Users/zhaojing/Downloads/callflyerDebugDebug (1).p7b",
           "certpath": "/Users/zhaojing/Downloads/callflyerDebug.cer"
         }
+      },
+      {
+        "name": "release",
+        "type": "HarmonyOS",
+        "material": {
+          "storeFile": "/Users/zhaojing/Downloads/callflyerRealease.p12",
+          "storePassword": "00000018B06D31DFCFAD48C5591E56FB29C4EEB60C4290E5B1E3F0AE3F3E9565D85A97E6A0FD744F",
+          "keyAlias": "callflyerRelease",
+          "keyPassword": "00000018970E437BB05D392817D59FE826D69A7B32F638F7E9515B17DCFF546C48F0BD55ECDA9DBE",
+          "signAlg": "SHA256withECDSA",
+          "profile": "/Users/zhaojing/Downloads/callflyerRealeaseRelease.p7b",
+          "certpath": "/Users/zhaojing/Downloads/callflyerRealease.cer"
+        }
       }
     ],
     "products": [
       {
         "name": "default",
         "signingConfig": "default",
+        "targetSdkVersion": "5.1.0(18)",
+        "compatibleSdkVersion": "5.1.0(18)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      },
+      {
+        "name": "release",
+        "signingConfig": "release",
         "targetSdkVersion": "5.1.0(18)",
         "compatibleSdkVersion": "5.1.0(18)",
         "runtimeOS": "HarmonyOS",
@@ -47,7 +73,8 @@
         {
           "name": "default",
           "applyToProducts": [
-            "default"
+            "default",
+            "release"
           ]
         }
       ]
