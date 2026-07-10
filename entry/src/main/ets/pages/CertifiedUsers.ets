@@ -80,7 +80,9 @@ struct CertifiedUsers {
 
   private skip: number = 0;
   private isLoading: boolean = false;
+  private skeletonTimer: number = -1;
 
+  @State skeletonShimmer: boolean = false;
   @State roleOptions: RoleOption[] = [];
 
   scroller: Scroller = new Scroller();
@@ -131,8 +133,25 @@ struct CertifiedUsers {
     }
   }
 
+  startSkeletonShimmer() {
+    this.skeletonShimmer = false;
+    this.skeletonTimer = setInterval(() => {
+      this.skeletonShimmer = !this.skeletonShimmer;
+    }, 600) as number;
+  }
+
+  stopSkeletonShimmer() {
+    if (this.skeletonTimer >= 0) {
+      clearInterval(this.skeletonTimer);
+      this.skeletonTimer = -1;
+    }
+    this.skeletonShimmer = false;
+  }
+
   aboutToAppear() {
+    // 并行加载标签和用户列表（无依赖关系）
     this.loadTags();
+    this.loadCertifiedUsers();
   }
 
   async loadTags() {
@@ -152,11 +171,9 @@ struct CertifiedUsers {
         console.info('【加载标签】tags为空或格式异常');
         this.roleOptions = [];
       }
-      this.loadCertifiedUsers();
     } catch (err) {
       console.error('【加载标签失败】', JSON.stringify(err));
       this.roleOptions = [];
-      this.loadCertifiedUsers();
     }
   }
 
@@ -166,6 +183,7 @@ struct CertifiedUsers {
     }
     this.isLoading = true;
     this.loading = true;
+    this.startSkeletonShimmer();
 
     try {
       const token = AuthService.getAuthToken();
@@ -204,6 +222,7 @@ struct CertifiedUsers {
 
     this.loading = false;
     this.isLoading = false;
+    this.stopSkeletonShimmer();
   }
 
   onSearch(value: string) {
@@ -404,39 +423,151 @@ struct CertifiedUsers {
             .scrollBar(BarState.Off)
           }
           .width('100%')
+          .padding({ top: 12, bottom: 0 })
         }
-        .padding({ left: 18, right: 18, top: 12 })
 
         if (this.loading) {
-          ForEach([1, 2, 3], (i: number) => {
+          ForEach([1, 2, 3, 4, 5], (i: number) => {
             ListItem() {
               Column() {
+                // 头部：头像 + 昵称
                 Row() {
                   Row()
                     .width(56)
                     .height(56)
                     .borderRadius(28)
                     .backgroundColor($r('app.color.skeleton_bg'))
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
                   Column() {
-                    Row().width(120).height(18).borderRadius(4).backgroundColor($r('app.color.skeleton_bg')).margin({ top: 4 })
-                    Row().width(80).height(12).borderRadius(4).backgroundColor($r('app.color.skeleton_bg')).margin({ top: 8 })
+                    Row()
+                      .width(100)
+                      .height(18)
+                      .borderRadius(4)
+                      .backgroundColor($r('app.color.skeleton_bg'))
+                      .margin({ top: 4 })
+                      .opacity(this.skeletonShimmer ? 1 : 0.4)
+                      .animation({ duration: 300 })
+                    Row()
+                      .width(60)
+                      .height(12)
+                      .borderRadius(4)
+                      .backgroundColor($r('app.color.skeleton_bg'))
+                      .margin({ top: 8 })
+                      .opacity(this.skeletonShimmer ? 1 : 0.4)
+                      .animation({ duration: 300 })
                   }
                   .margin({ left: 14 })
                 }
                 .width('100%')
-                Divider().color($r('app.color.divider')).margin({ top: 12, bottom: 12 })
+                .alignItems(VerticalAlign.Center)
+
+                Column()
+                  .width('100%')
+                  .border({
+                    width: { top: 0, right: 0, bottom: 1, left: 0 },
+                    color: $r('app.color.divider'),
+                    style: BorderStyle.Dashed
+                  })
+                  .margin({ top: 12, bottom: 12 })
+
+                // 信息行占位（3行，匹配 PilotCard 字段数）
                 Row() {
-                  Row().width(100).height(15).borderRadius(4).backgroundColor($r('app.color.skeleton_bg'))
-                  Row().width(60).height(15).borderRadius(4).backgroundColor($r('app.color.skeleton_bg'))
+                  Row()
+                    .width(60)
+                    .height(15)
+                    .borderRadius(4)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
+                  Row()
+                    .width(50)
+                    .height(15)
+                    .borderRadius(4)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
                 }
                 .width('100%')
                 .justifyContent(FlexAlign.SpaceBetween)
+                .margin({ top: 9 })
+
+                Row() {
+                  Row()
+                    .width(80)
+                    .height(15)
+                    .borderRadius(4)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
+                  Row()
+                    .width(40)
+                    .height(15)
+                    .borderRadius(4)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
+                }
+                .width('100%')
+                .justifyContent(FlexAlign.SpaceBetween)
+                .margin({ top: 9 })
+
+                Row() {
+                  Row()
+                    .width(55)
+                    .height(15)
+                    .borderRadius(4)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
+                  Row()
+                    .width(70)
+                    .height(15)
+                    .borderRadius(4)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
+                }
+                .width('100%')
+                .justifyContent(FlexAlign.SpaceBetween)
+                .margin({ top: 9 })
+
+                // 按钮行占位
+                Row() {
+                  Row()
+                    .width(40)
+                    .height(26)
+                    .borderRadius(3)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
+                  Blank()
+                  Row()
+                    .width(40)
+                    .height(40)
+                    .borderRadius(20)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .margin({ left: 12 })
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
+                  Row()
+                    .width(40)
+                    .height(40)
+                    .borderRadius(20)
+                    .backgroundColor($r('app.color.skeleton_bg'))
+                    .margin({ left: 12 })
+                    .opacity(this.skeletonShimmer ? 1 : 0.4)
+                    .animation({ duration: 300 })
+                }
+                .width('100%')
+                .alignItems(VerticalAlign.Center)
+                .margin({ top: 12 })
               }
               .width('100%')
-              .padding(24)
+              .padding(16)
               .backgroundColor($r('app.color.card_bg'))
               .borderRadius(14)
-              .margin({ left: 18, right: 18, bottom: 12 })
+              .margin({ bottom: 12 })
             }
           })
         } else if (this.users.length === 0) {
@@ -455,7 +586,6 @@ struct CertifiedUsers {
             ListItem() {
               this.PilotCardItem(user)
             }
-            .padding({ left: 18, right: 18 })
           }, (user: PilotCardData) => user.openid)
 
           if (this.loadingMore) {
@@ -483,6 +613,7 @@ struct CertifiedUsers {
       }
       .width('100%')
       .height('100%')
+      .padding({ left: 18, right: 18 })
       .sticky(0)
       .onReachEnd(() => {
         this.loadMore()
