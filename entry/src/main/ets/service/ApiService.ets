@@ -1057,6 +1057,11 @@ export interface UploadAvatarResult {
   url: string;
 }
 
+export interface UploadStickerImageResult {
+  imageUrl: string;
+  url?: string;
+}
+
 export async function uploadAvatar(buffer: ArrayBuffer, token?: string): Promise<UploadAvatarResult> {
   const authToken = token || '';
 
@@ -1116,6 +1121,75 @@ export async function uploadAvatar(buffer: ArrayBuffer, token?: string): Promise
         try {
           const resultObj = JSON.parse(data.result as string) as Record<string, string>;
           resolve({ url: resultObj.url || '' });
+        } catch (parseErr) {
+          reject(new Error('解析响应失败'));
+        }
+        httpRequest.destroy();
+      }
+    );
+  });
+}
+
+// 机型图片上传（贴纸图片接口）
+export async function uploadStickerImage(buffer: ArrayBuffer, token?: string): Promise<UploadStickerImageResult> {
+  const authToken = token || '';
+
+  return new Promise<UploadStickerImageResult>((resolve, reject) => {
+    const httpRequest = http.createHttp();
+    const url = `${BASE_URL}/api/stickers/upload`;
+    const boundary = '----StickerBoundary' + Date.now();
+
+    const headerParts: string[] = [];
+    headerParts.push(`--${boundary}\r\n`);
+    headerParts.push('Content-Disposition: form-data; name="file"; filename="sticker.jpg"\r\n');
+    headerParts.push('Content-Type: image/jpeg\r\n\r\n');
+
+    const headerStr = headerParts.join('');
+    const footerStr = `\r\n--${boundary}--\r\n`;
+    const headerBytes = new Uint8Array(headerStr.length);
+    for (let i = 0; i < headerStr.length; i++) {
+      headerBytes[i] = headerStr.charCodeAt(i);
+    }
+    const footerBytes = new Uint8Array(footerStr.length);
+    for (let i = 0; i < footerStr.length; i++) {
+      footerBytes[i] = footerStr.charCodeAt(i);
+    }
+
+    const totalSize = headerBytes.length + buffer.byteLength + footerBytes.length;
+    const bodyBuffer = new ArrayBuffer(totalSize);
+    const bodyView = new Uint8Array(bodyBuffer);
+    let offset = 0;
+    bodyView.set(headerBytes, offset);
+    offset += headerBytes.length;
+    const bufferView = new Uint8Array(buffer);
+    bodyView.set(bufferView, offset);
+    offset += buffer.byteLength;
+    bodyView.set(footerBytes, offset);
+
+    const headers: Record<string, string> = {
+      'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      'Authorization': `Bearer ${authToken}`
+    };
+
+    httpRequest.request(
+      url,
+      {
+        method: http.RequestMethod.POST,
+        header: headers,
+        extraData: bodyBuffer,
+        connectTimeout: 15000,
+        readTimeout: 15000
+      },
+      (err: Error, data: http.HttpResponse) => {
+        if (err) {
+          console.error('【机型图片上传失败】', JSON.stringify(err));
+          reject(new Error('上传失败'));
+          return;
+        }
+        console.info('【机型图片上传响应】', data.result as string);
+        try {
+          const resultObj = JSON.parse(data.result as string) as Record<string, string>;
+          resolve({ imageUrl: resultObj.imageUrl || resultObj.url || '', url: resultObj.imageUrl || resultObj.url || '' });
         } catch (parseErr) {
           reject(new Error('解析响应失败'));
         }

@@ -1,4 +1,4 @@
-import { ProfileForm, fetchProfile, updateProfile, uploadAvatar } from '../service/ApiService';
+import { ProfileForm, fetchProfile, updateProfile, uploadAvatar, uploadStickerImage } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import promptAction from '@ohos.promptAction';
 import router from '@ohos.router';
@@ -244,9 +244,9 @@ struct Profile {
         const file = fileIo.openSync(uri, fileIo.OpenMode.READ_ONLY);
         fileIo.readSync(file.fd, buffer);
         fileIo.closeSync(file.fd);
-        const uploadResult = await uploadAvatar(buffer, token);
-        if (uploadResult.url) {
-          newImages.push(uploadResult.url);
+        const uploadResult = await uploadStickerImage(buffer, token);
+        if (uploadResult.url || uploadResult.imageUrl) {
+          newImages.push(uploadResult.url || uploadResult.imageUrl || '');
         }
       }
 
