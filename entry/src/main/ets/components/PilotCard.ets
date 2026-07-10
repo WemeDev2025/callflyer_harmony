@@ -754,8 +754,8 @@ export struct PilotCard {
               if (this.user.userRole !== 'employer' && this.user.pilotCode) {
                 Row() {
                   Image($r('app.media.icon_banner'))
-                    .width(32)
-                    .height(32)
+                    .width(44)
+                    .height(36)
                     .objectFit(ImageFit.Contain)
                     .margin({ right: 4 })
                   Text(this.user.pilotCode)
@@ -812,6 +812,7 @@ export struct PilotCard {
 
       Divider()
         .color($r('app.color.divider'))
+        .strokeWidth(0.5)
         .margin({ top: 12, bottom: 12 })
 
       // 最近活跃
@@ -1042,6 +1043,7 @@ export struct PilotCard {
       if (this.showActions || this.showDistance) {
         Divider()
           .color($r('app.color.divider'))
+          .strokeWidth(0.5)
           .margin({ top: 12 })
 
         Row() {
