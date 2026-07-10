@@ -3873,6 +3873,17 @@ struct Index {
         })
       }
       .padding({ left: 18, right: 18 })
+      .onScrollIndex((firstIndex: number) => {
+        // 预加载：当可见的首项索引接近总项数时，提前触发加载
+        // 屏幕约可见2-3项，这里用6作为预加载阈值（倒数第6项时触发）
+        const preloadThreshold = 6;
+        if (this.ordersHasMore && !this.ordersLoading && !this.ordersLoadMoreInProgress) {
+          if (firstIndex >= this.orders.length - preloadThreshold) {
+            console.info('【最新任务】预加载, firstIndex=' + firstIndex + ', orders.length=' + this.orders.length);
+            this.loadOrders(false, true);
+          }
+        }
+      })
       .onReachEnd(() => {
         console.info('【最新任务】onReachEnd 触发, hasMore=' + this.ordersHasMore + ', loading=' + this.ordersLoading + ', loadMoreInProgress=' + this.ordersLoadMoreInProgress + ', orders.length=' + this.orders.length);
         if (this.ordersHasMore && !this.ordersLoading && !this.ordersLoadMoreInProgress) {
