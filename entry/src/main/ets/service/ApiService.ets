@@ -722,18 +722,25 @@ interface RawQuote {
   per_trip_price?: number;
 }
 
-export async function fetchPublicOrders(): Promise<OrderItem[]> {
-  return new Promise<OrderItem[]>((resolve, reject) => {
+export interface OrdersPageResult {
+  items: OrderItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export async function fetchPublicOrders(page: number = 1, pageSize: number = 10): Promise<OrdersPageResult> {
+  return new Promise<OrdersPageResult>((resolve, reject) => {
     const httpRequest = http.createHttp();
-    const url = `${BASE_URL}/api/orders/public`;
-    console.info('【接口请求】url:', url);
+    const url = `${BASE_URL}/api/orders/public?page=${page}&page_size=${pageSize}`;
+    console.info('【接口请求】fetchPublicOrders url:', url);
     httpRequest.request(
       url,
       {
         method: http.RequestMethod.GET,
         header: [{ 'Content-Type': 'application/json' }],
-        connectTimeout: 10000,
-        readTimeout: 10000
+        connectTimeout: 15000,
+        readTimeout: 30000
       },
       (err: Error, data: http.HttpResponse) => {
         if (err) {
@@ -742,7 +749,7 @@ export async function fetchPublicOrders(): Promise<OrderItem[]> {
           return;
         }
         if (data.result) {
-          console.info('【接口返回】fetchPublicOrders:', data.result as string);
+          console.info('【接口返回】fetchPublicOrders:', (data.result as string).substring(0, 500) + '...');
           try {
             const response = JSON.parse(data.result as string) as OrdersResponse;
             const orders: OrderItem[] = [];
@@ -833,12 +840,18 @@ export async function fetchPublicOrders(): Promise<OrderItem[]> {
                 orders.push(item);
               }
             }
-            resolve(orders);
+            // 如果 API 返回了 total 就用它，否则根据 items 数量判断是否有更多
+            const apiTotal = response.total;
+            const computedTotal = apiTotal ?? (orders.length >= pageSize ? page * pageSize + 1 : orders.length);
+            console.info('【API返回】fetchPublicOrders: page=' + page + ', items=' + orders.length + ', apiTotal=' + apiTotal + ', computedTotal=' + computedTotal);
+            resolve({ items: orders, total: computedTotal, page, pageSize });
           } catch (parseErr) {
+            console.error('【解析错误】fetchPublicOrders:', JSON.stringify(parseErr), '原始数据:', data.result);
             reject(parseErr);
           }
         } else {
-          resolve([]);
+          console.warn('【警告】fetchPublicOrders data.result 为空');
+          resolve({ items: [], total: 0, page, pageSize });
         }
         httpRequest.destroy();
       }

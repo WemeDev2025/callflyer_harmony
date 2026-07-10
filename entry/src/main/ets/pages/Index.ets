@@ -389,6 +389,12 @@ struct Index {
   @State expandedOrderIds: string[] = [];
   @State ordersSkeletonShimmer: boolean = false;
   private ordersSkeletonTimer: number = -1;
+  // 分页
+  private ordersPage: number = 1;
+  private ordersPageSize: number = 10;
+  private ordersTotal: number = 0;
+  private ordersHasMore: boolean = true;
+  private ordersLoadMoreInProgress: boolean = false;  // 防止重复触发加载更多
 
   // Tab
   @State currentTab: string = 'pilots';
@@ -1399,44 +1405,90 @@ struct Index {
     this.stopSkeletonShimmer();
   }
 
-  async loadOrders(silent: boolean = false) {
-    // 首次或缓存为空时，显示骨架屏
-    if (!silent || this.orders.length === 0) {
+  async loadOrders(refresh: boolean = false, loadMore: boolean = false) {
+    // refresh: 下拉刷新，重新加载第一页
+    // loadMore: 加载更多，追加到列表末尾
+
+    // 防止加载更多时重复触发
+    if (loadMore && this.ordersLoadMoreInProgress) {
+      console.info('【最新任务】loadMore 已在进行中，跳过');
+      return;
+    }
+
+    if (refresh) {
+      this.ordersPage = 1;
+      this.ordersHasMore = true;
+    }
+
+    // 首次或刷新时显示骨架屏
+    if (!loadMore || this.orders.length === 0) {
       this.ordersLoading = true;
       this.startOrdersSkeletonShimmer();
     }
 
-    // 优先使用缓存
-    if (this.orders.length > 0) {
+    // 已经是最后一页，无需加载
+    if (loadMore && !this.ordersHasMore) {
       this.ordersLoading = false;
+      this.stopOrdersSkeletonShimmer();
+      return;
     }
 
-    try {
-      const newOrders = await fetchPublicOrders();
+    // 标记加载更多开始
+    if (loadMore) {
+      this.ordersLoadMoreInProgress = true;
+    }
 
-      // 静默刷新时：比对列表是否变化
-      if (silent && this.orders.length > 0) {
-        const prevIds = this.orders.map((item: OrderItem) => item.orderId).sort().join(',');
-        const newIds = newOrders.map((item: OrderItem) => item.orderId).sort().join(',');
-        if (prevIds === newIds) {
-          // 列表无变化，跳过更新
-          console.info('【最新任务】列表无变化，跳过更新');
-          this.ordersLoading = false;
-          this.stopOrdersSkeletonShimmer();
-          return;
-        }
-        console.info('【最新任务】列表有变化，执行更新');
+    const currentPage = this.ordersPage;
+    console.info('【最新任务】开始加载: page=' + currentPage + ', refresh=' + refresh + ', loadMore=' + loadMore);
+
+    try {
+      const result = await fetchPublicOrders(currentPage, this.ordersPageSize);
+
+      // 检查是否还有后续加载请求被拦截
+      if (this.ordersPage !== currentPage) {
+        console.info('【最新任务】页码已变化(' + currentPage + ' -> ' + this.ordersPage + ')，丢弃本次结果');
+        this.ordersLoadMoreInProgress = false;
+        return;
       }
 
-      this.ordersCache = newOrders;
-      this.orders = newOrders;
-    } catch {
+      if (refresh) {
+        // 下拉刷新：替换整个列表
+        this.orders = result.items;
+        this.ordersCache = result.items;
+      } else if (loadMore) {
+        // 加载更多：追加到列表（带去重）
+        const existingIds = new Set(this.orders.map((item: OrderItem) => item.orderId));
+        const newItems = result.items.filter((item: OrderItem) => !existingIds.has(item.orderId));
+        if (newItems.length > 0) {
+          this.orders = [...this.orders, ...newItems];
+          this.ordersCache = this.orders;
+          console.info('【最新任务】追加新数据: ' + newItems.length + ' 条（过滤重复: ' + (result.items.length - newItems.length) + ' 条）');
+        } else {
+          console.info('【最新任务】新数据全部重复，跳过追加');
+        }
+      } else {
+        // 首次加载
+        this.orders = result.items;
+        this.ordersCache = result.items;
+      }
+
+      this.ordersTotal = result.total;
+      this.ordersHasMore = this.orders.length < this.ordersTotal;
+      this.ordersPage++;
+
+      console.info('【最新任务】加载成功: page=' + currentPage + ', refresh=' + refresh + ', loadMore=' + loadMore +
+        ', 本次=' + result.items.length + ', 累计=' + this.orders.length + ', 总数=' + this.ordersTotal +
+        ', hasMore=' + this.ordersHasMore);
+    } catch (err) {
+      console.error('【最新任务】loadOrders 失败:', JSON.stringify(err), ', orders当前值:', this.orders.length);
       if (this.orders.length === 0) {
         this.orders = [];
       }
+    } finally {
+      this.ordersLoading = false;
+      this.ordersLoadMoreInProgress = false;
+      this.stopOrdersSkeletonShimmer();
     }
-    this.ordersLoading = false;
-    this.stopOrdersSkeletonShimmer();
   }
 
   async loadStandby(silent: boolean = false) {
@@ -3138,6 +3190,14 @@ struct Index {
         .scrollBar(BarState.Off)
         .edgeEffect(EdgeEffect.Spring)
         .clip(false)
+        .onScrollStop(() => {
+          // 滚动停止时检查是否需要加载更多
+          console.info('【最新任务】onScrollStop triggered, tab=' + this.currentTab + ', hasMore=' + this.ordersHasMore + ', loading=' + this.ordersLoading + ', loadMoreInProgress=' + this.ordersLoadMoreInProgress);
+          if (this.currentTab === 'orders' && this.ordersHasMore && !this.ordersLoading && !this.ordersLoadMoreInProgress) {
+            console.info('【最新任务】滚动停止，触发加载更多');
+            this.loadOrders(false, true);
+          }
+        })
       }
       .width('100%')
       .height('100%')
@@ -3813,6 +3873,13 @@ struct Index {
         })
       }
       .padding({ left: 18, right: 18 })
+      .onReachEnd(() => {
+        console.info('【最新任务】onReachEnd 触发, hasMore=' + this.ordersHasMore + ', loading=' + this.ordersLoading + ', loadMoreInProgress=' + this.ordersLoadMoreInProgress + ', orders.length=' + this.orders.length);
+        if (this.ordersHasMore && !this.ordersLoading && !this.ordersLoadMoreInProgress) {
+          console.info('【最新任务】触达底部，加载更多');
+          this.loadOrders(false, true);
+        }
+      })
     }
   }
 }
