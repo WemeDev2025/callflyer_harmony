@@ -607,7 +607,7 @@ struct Index {
           nickname: p.nickname || '匿名用户',
           avatar: p.avatarUrl || DEFAULT_AVATAR,
           city: p.city || '',
-          roleLabel: p.userRole || '',
+          roleLabel: p.userRole === 'pilot' ? '飞手' : p.userRole === 'employer' ? '雇主' : (p.userRole || ''),
           licenseType: p.licenseType || '',
           licenseStatus: p.licenseType === '已审核' ? '审核通过' : p.licenseType || '',
           pilotCode: '',
@@ -3512,7 +3512,8 @@ struct Index {
         .backgroundColor($r('app.color.card_bg'))
         .borderRadius(14)
         .onClick(() => {
-          router.pushUrl({ url: 'pages/CertifiedUsers' });
+          const mapUrl = 'https://wetofly.com/map';
+          router.pushUrl({ url: 'pages/WebView', params: { url: mapUrl, title: '地图' } });
         })
       }
       .padding({ left: 18, right: 18 })
