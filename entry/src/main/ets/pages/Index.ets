@@ -377,6 +377,7 @@ struct Index {
   @State adImagePath: string = '';  // 广告图路径
   @State adImageUrl: string = '';  // 广告图URL
   @State adImageLoading: boolean = false;  // 广告图加载中
+  @State adImageOpacity: number = 0;  // 广告图透明度（用于淡入动画）
   private adImageShownThisSession: boolean = false;  // 本次启动是否已展示过
   private adImageDisplayTimer: number = -1;
 
@@ -734,6 +735,11 @@ struct Index {
           AppStorage.set<string>(KEY_AGREEMENT_ACCEPTED, 'true');
           // 重置标志，允许下次重新显示（如从设置页返回）
           this.agreementDialogShown = false;
+          // 协议同意后，立即触发开屏广告展示（如果之前因协议未同意而跳过了）
+          if (this.adImageUrl && !this.adImageShownThisSession) {
+            console.info('【广告图】协议同意后，补充展示广告图:', this.adImageUrl);
+            this.loadAdImage(this.adImageUrl);
+          }
           // 隐私协议同意后，执行登录并加载数据
           this.handleLogin().then(() => {
             if (!visitReported) {
@@ -1102,6 +1108,14 @@ struct Index {
     // 需要同时满足：有 adImageUrl 且 showAdImage 为 true
     if (config.adImageUrl && config.showAdImage) {
       console.info('【广告图】检测到广告图URL且允许显示，开始加载', config.adImageUrl);
+      // 缓存广告图URL，以便协议同意后再展示
+      this.adImageUrl = config.adImageUrl;
+      // 隐私协议未同意时，不显示广告图（弹窗会遮盖且会提前标记已展示）
+      const agreed = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
+      if (!agreed) {
+        console.info('【广告图】隐私协议未同意，暂不显示广告图，等待协议确认后再展示');
+        return;
+      }
       this.loadAdImage(config.adImageUrl);
     }
   }
@@ -1115,7 +1129,6 @@ struct Index {
     }
 
     console.info('【广告图】开始加载', imageUrl);
-    this.adImageShownThisSession = true;
     this.adImageUrl = imageUrl;
 
     // 直接用网络URL显示（简化处理，参考小程序的兜底逻辑）
@@ -1130,7 +1143,7 @@ struct Index {
       return;
     }
 
-    // 延迟显示，确保页面已准备好
+    // 延迟显示，确保页面已准备好（减少延迟时间）
     if (this.adImageDisplayTimer > 0) {
       clearTimeout(this.adImageDisplayTimer);
     }
@@ -1138,13 +1151,22 @@ struct Index {
       this.adImageDisplayTimer = -1;
       this.adImagePath = imagePath;
       this.showAdImage = true;
-    }, 1200) as number;
+      this.adImageOpacity = 0; // 初始透明度为0
+      // 淡入动画
+      animateTo({ duration: 400, curve: Curve.EaseInOut }, () => {
+        this.adImageOpacity = 1;
+      });
+      // 真正显示时才标记为已展示
+      this.adImageShownThisSession = true;
+      console.info('【广告图】广告图已显示，标记本次启动已展示');
+    }, 300) as number;
   }
 
   // 关闭广告图
   closeAdImage() {
     this.showAdImage = false;
     this.adImagePath = '';
+    this.adImageOpacity = 0; // 重置透明度
   }
 
   // 广告图点击处理
@@ -2495,6 +2517,35 @@ struct Index {
 
   build() {
     Stack() {
+      // 开屏广告图遮罩层（在最外层）
+      if (this.showAdImage) {
+        Stack() {
+          // 半透明遮罩
+          Column()
+            .width('100%')
+            .height('100%')
+            .backgroundColor('rgba(0, 0, 0, 0.65)')
+            .onClick(() => { this.closeAdImage(); })
+
+          // 广告图内容
+          Column() {
+            Image(this.adImagePath)
+              .width('72%') // 缩小20%（原90% * 0.8 = 72%）
+              .objectFit(ImageFit.Contain)
+              .opacity(this.adImageOpacity) // 淡入动画
+              .onClick(() => { this.onAdImageClick(); })
+          }
+          .width('100%')
+          .height('100%')
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Center)
+        }
+        .width('100%')
+        .height('100%')
+        .position({ x: 0, y: 0 })
+        .zIndex(9999)
+      }
+
       Column()
         .width('100%')
         .height('100%')
@@ -3945,33 +3996,6 @@ struct Index {
           this.loadOrders(false, true);
         }
       })
-
-      // 开屏广告图遮罩层
-      if (this.showAdImage) {
-        Stack() {
-          // 半透明遮罩
-          Column()
-            .width('100%')
-            .height('100%')
-            .backgroundColor('rgba(0, 0, 0, 0.65)')
-            .onClick(() => { this.closeAdImage(); })
-
-          // 广告图内容
-          Column() {
-            Image(this.adImagePath)
-              .width('90%')
-              .objectFit(ImageFit.Contain)
-              .onClick(() => { this.onAdImageClick(); })
-          }
-          .width('100%')
-          .height('100%')
-          .justifyContent(FlexAlign.Center)
-          .alignItems(HorizontalAlign.Center)
-        }
-        .width('100%')
-        .height('100%')
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-      }
     }
   }
 }
