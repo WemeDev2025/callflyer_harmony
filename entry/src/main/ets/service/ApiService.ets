@@ -44,6 +44,13 @@ interface RawConfig {
   totalEmployerCount?: number;
   totalContactCount?: number;
   rewardAdConfig?: RawRewardAdConfig;
+  // 开屏广告图
+  adImageUrl?: string;
+  showAdImage?: boolean;
+  adClickType?: string;
+  adClickPage?: string;
+  adClickUrl?: string;
+  adClickMiniprogram?: string;
 }
 
 interface RawRewardAdConfig {
@@ -230,7 +237,14 @@ export async function fetchConfig(): Promise<ConfigResult> {
               rewardSubtitle: rewardConfig.display_subtitle || rewardConfig.subtitle || '',
               rewardButtonText: rewardConfig.cta_text || rewardConfig.ctaText || rewardConfig.buttonText || '',
               rewardOccupiedSubtitle: rewardConfig.occupied_subtitle || rewardConfig.occupiedSubtitle || '',
-              carousel: response.carousel || []
+              carousel: response.carousel || [],
+              // 开屏广告图
+              adImageUrl: response.adImageUrl,
+              showAdImage: response.showAdImage,
+              adClickType: response.adClickType,
+              adClickPage: response.adClickPage,
+              adClickUrl: response.adClickUrl,
+              adClickMiniprogram: response.adClickMiniprogram
             });
           } catch (parseErr) {
             reject(parseErr);
@@ -747,7 +761,8 @@ export async function fetchPublicOrders(page: number = 1, pageSize: number = 10)
         method: http.RequestMethod.GET,
         header: [{ 'Content-Type': 'application/json' }],
         connectTimeout: 15000,
-        readTimeout: 30000
+        readTimeout: 30000,
+        usingCache: false
       },
       (err: Error, data: http.HttpResponse) => {
         if (err) {

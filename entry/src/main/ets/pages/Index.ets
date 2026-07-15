@@ -24,9 +24,11 @@ import fileIo from '@ohos.file.fs';
 import fileUri from '@ohos.file.fileuri';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import dataPreferences from '@ohos.data.preferences';
+import { notificationManager } from '@kit.NotificationKit';
 
 // Preferences 存储配置（与 EntryAbility 保持一致）
 const PREFS_NAME = 'callflyer_prefs';
+const KEY_NOTIFICATION_REFUSED = 'notification_refused'; // 记录通知权限是否被用户拒绝
 
 // 默认头像
 const DEFAULT_AVATAR = 'https://wetofly.com/data/image/avatar_placeholder.webp';
@@ -38,6 +40,14 @@ const WHITE_FILL_MATRIX: number[] = [
   0, 0, 0, 0, 1,
   0, 0, 0, 1, 0
 ];
+
+// 格式化日期为 日期/月份/年份
+function formatDateShort(dateStr: string): string {
+  if (!dateStr) return '';
+  const parts = dateStr.split('T')[0].split('-'); // ["2026", "07", "14"]
+  if (parts.length < 3) return dateStr;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
 
 // 防抖标记：确保每次启动只上报一次访问
 let visitReported = false;
@@ -372,15 +382,6 @@ struct Index {
   @State rewardSubtitle: string = '';  // 奖励位副标题
   @State rewardButtonText: string = '';  // 奖励位按钮文字
 
-  // 开屏广告图
-  @State showAdImage: boolean = false;  // 是否显示广告图
-  @State adImagePath: string = '';  // 广告图路径
-  @State adImageUrl: string = '';  // 广告图URL
-  @State adImageLoading: boolean = false;  // 广告图加载中
-  @State adImageOpacity: number = 0;  // 广告图透明度（用于淡入动画）
-  private adImageShownThisSession: boolean = false;  // 本次启动是否已展示过
-  private adImageDisplayTimer: number = -1;
-
   // 平行四边形按钮Canvas上下文（暂时未使用）
   private canvasCtx: CanvasRenderingContext2D = new CanvasRenderingContext2D();
 
@@ -447,6 +448,17 @@ struct Index {
   // 是否正在查看协议（从协议页返回时需要重新显示弹窗）
   aboutToAppear() {
     console.info('【协议检查】aboutToAppear called');
+
+    // 立即同步获取屏幕尺寸，确保广告遮罩能正确覆盖全屏（在任何异步操作之前）
+    try {
+      const d = display.getDefaultDisplaySync();
+      this.screenWidth = px2vp(d.width);
+      this.screenHeight = px2vp(d.height);
+      console.info('【屏幕尺寸】screenWidth=' + this.screenWidth + ', screenHeight=' + this.screenHeight);
+    } catch (e) {
+      console.info('获取屏幕尺寸失败，使用默认值');
+    }
+
     // 检查是否首次启动需要显示协议弹窗
     this.checkAgreementStatus();
 
@@ -735,11 +747,6 @@ struct Index {
           AppStorage.set<string>(KEY_AGREEMENT_ACCEPTED, 'true');
           // 重置标志，允许下次重新显示（如从设置页返回）
           this.agreementDialogShown = false;
-          // 协议同意后，立即触发开屏广告展示（如果之前因协议未同意而跳过了）
-          if (this.adImageUrl && !this.adImageShownThisSession) {
-            console.info('【广告图】协议同意后，补充展示广告图:', this.adImageUrl);
-            this.loadAdImage(this.adImageUrl);
-          }
           // 隐私协议同意后，执行登录并加载数据
           this.handleLogin().then(() => {
             if (!visitReported) {
@@ -759,6 +766,8 @@ struct Index {
           if (token && user && user.openId && (!user.displayName || !user.avatar)) {
             this.fetchAndUpdateUserProfile(user.openId, token);
           }
+          // 隐私协议同意后，请求通知权限
+          this.requestNotificationPermissionAfterAccept();
         },
         onViewAgreement: () => {
           // 标记弹窗已关闭，返回时可以重新打开
@@ -831,6 +840,46 @@ struct Index {
       }
     } catch (err) {
       console.error('【用户资料】获取失败:', JSON.stringify(err));
+    }
+  }
+
+  // 隐私协议同意后，请求通知权限
+  private async requestNotificationPermissionAfterAccept(): Promise<void> {
+    const wasRefused = AppStorage.get<boolean>(KEY_NOTIFICATION_REFUSED) ?? false;
+    if (wasRefused) {
+      console.info('[ANS] 用户之前已拒绝通知权限，不再弹窗申请');
+      return;
+    }
+    try {
+      let isEnabled = notificationManager.isNotificationEnabledSync();
+      console.info('[ANS] 通知权限状态: %{public}s', isEnabled ? '已开启' : '未开启');
+      if (isEnabled) {
+        console.info('[ANS] 通知权限已开启，无需申请');
+        return;
+      }
+      console.info('[ANS] 调用 requestEnableNotification...');
+      await notificationManager.requestEnableNotification();
+      console.info('[ANS] requestEnableNotification success');
+    } catch (error) {
+      const err = error as BusinessError;
+      console.error('[ANS] requestEnableNotification failed, code=%{public}d, message=%{public}s', err.code, err.message);
+      if (err.code === 1600004) {
+        console.info('[ANS] 用户拒绝通知权限，保存状态');
+        try {
+          const prefs = dataPreferences.getPreferencesSync(getContext(this), { name: PREFS_NAME });
+          prefs.putSync(KEY_NOTIFICATION_REFUSED, true);
+          prefs.flushSync();
+          AppStorage.setOrCreate<boolean>(KEY_NOTIFICATION_REFUSED, true);
+          console.info('[ANS] 已保存拒绝状态');
+        } catch (e) {
+          console.error('[ANS] 保存拒绝状态失败: %{public}s', JSON.stringify(e));
+        }
+      } else if (err.code === 1600013) {
+        console.warn('[ANS] 1600013 渲染异常，1秒后重试');
+        setTimeout(() => {
+          this.requestNotificationPermissionAfterAccept();
+        }, 1000);
+      }
     }
   }
 
@@ -1094,87 +1143,10 @@ struct Index {
       this.rewardTitle = config.rewardTitle || '呼叫飞手';
       this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
       this.rewardButtonText = config.rewardButtonText || '观看解锁';
-      // 处理开屏广告图
-      this.processAdConfig(config);
     } catch {
       this.marqueeText = '呼叫飞手';
       this.marqueeNeedsScroll = false;
     }
-  }
-
-  // 处理开屏广告图配置
-  processAdConfig(config: ConfigResult) {
-    console.info('【广告图】processAdConfig:', JSON.stringify(config));
-    // 需要同时满足：有 adImageUrl 且 showAdImage 为 true
-    if (config.adImageUrl && config.showAdImage) {
-      console.info('【广告图】检测到广告图URL且允许显示，开始加载', config.adImageUrl);
-      // 缓存广告图URL，以便协议同意后再展示
-      this.adImageUrl = config.adImageUrl;
-      // 隐私协议未同意时，不显示广告图（弹窗会遮盖且会提前标记已展示）
-      const agreed = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
-      if (!agreed) {
-        console.info('【广告图】隐私协议未同意，暂不显示广告图，等待协议确认后再展示');
-        return;
-      }
-      this.loadAdImage(config.adImageUrl);
-    }
-  }
-
-  // 加载广告图（首次下载，下次启动才显示）
-  loadAdImage(imageUrl: string) {
-    if (!imageUrl) return;
-    if (this.adImageShownThisSession) {
-      console.info('【广告图】本次启动已展示过广告图，跳过');
-      return;
-    }
-
-    console.info('【广告图】开始加载', imageUrl);
-    this.adImageUrl = imageUrl;
-
-    // 直接用网络URL显示（简化处理，参考小程序的兜底逻辑）
-    this.displayAdImage(imageUrl);
-  }
-
-  // 显示广告图
-  displayAdImage(imagePath: string) {
-    console.info('【广告图】displayAdImage:', imagePath);
-    if (!imagePath) {
-      console.warn('【广告图】路径为空');
-      return;
-    }
-
-    // 延迟显示，确保页面已准备好（减少延迟时间）
-    if (this.adImageDisplayTimer > 0) {
-      clearTimeout(this.adImageDisplayTimer);
-    }
-    this.adImageDisplayTimer = setTimeout(() => {
-      this.adImageDisplayTimer = -1;
-      this.adImagePath = imagePath;
-      this.showAdImage = true;
-      this.adImageOpacity = 0; // 初始透明度为0
-      // 淡入动画
-      animateTo({ duration: 400, curve: Curve.EaseInOut }, () => {
-        this.adImageOpacity = 1;
-      });
-      // 真正显示时才标记为已展示
-      this.adImageShownThisSession = true;
-      console.info('【广告图】广告图已显示，标记本次启动已展示');
-    }, 300) as number;
-  }
-
-  // 关闭广告图
-  closeAdImage() {
-    this.showAdImage = false;
-    this.adImagePath = '';
-    this.adImageOpacity = 0; // 重置透明度
-  }
-
-  // 广告图点击处理
-  onAdImageClick() {
-    console.info('【广告图】点击广告图');
-    // TODO: 根据 adClickType 处理跳转
-    // const config = AppStorage.get<ConfigResult>('configCache');
-    this.closeAdImage();
   }
 
   // 加载并展示激励视频广告
@@ -2517,35 +2489,6 @@ struct Index {
 
   build() {
     Stack() {
-      // 开屏广告图遮罩层（在最外层）
-      if (this.showAdImage) {
-        Stack() {
-          // 半透明遮罩
-          Column()
-            .width('100%')
-            .height('100%')
-            .backgroundColor('rgba(0, 0, 0, 0.65)')
-            .onClick(() => { this.closeAdImage(); })
-
-          // 广告图内容
-          Column() {
-            Image(this.adImagePath)
-              .width('72%') // 缩小20%（原90% * 0.8 = 72%）
-              .objectFit(ImageFit.Contain)
-              .opacity(this.adImageOpacity) // 淡入动画
-              .onClick(() => { this.onAdImageClick(); })
-          }
-          .width('100%')
-          .height('100%')
-          .justifyContent(FlexAlign.Center)
-          .alignItems(HorizontalAlign.Center)
-        }
-        .width('100%')
-        .height('100%')
-        .position({ x: 0, y: 0 })
-        .zIndex(9999)
-      }
-
       Column()
         .width('100%')
         .height('100%')
@@ -2623,14 +2566,14 @@ struct Index {
                     step: 6,
                     loop: -1
                   })
-                  .fontSize(14)
+                  .fontSize(16)
                   .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
                   .fontWeight(FontWeight.Medium)
                                     .width('100%')
                 } else {
                   // 短文字：居中显示
                   Text(this.marqueeText || '呼叫飞手')
-                    .fontSize(14)
+                    .fontSize(16)
                     .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
                     .fontWeight(FontWeight.Medium)
                                         .textAlign(TextAlign.Center)
@@ -3709,7 +3652,7 @@ struct Index {
         ForEach(this.orders, (order: OrderItem) => {
           ListItem() {
             Column() {
-              // 头部：头像 + 昵称 + 公司/职位
+              // 头部：头像 + 昵称 + 公司/职位 + 创建时间
               Row() {
                 Image(order.profile.avatarUrl || 'https://wetofly.com/data/image/avatar_placeholder.webp')
                   .width(45)
@@ -3717,36 +3660,43 @@ struct Index {
                   .borderRadius(22.5)
                   .backgroundColor($r('app.color.avatar_placeholder'))
 
-                Column() {
-                  Text(order.profile.nickname || '匿名')
-                    .fontSize(15)
-                    .fontWeight(600)
-                    .fontColor($r('app.color.text_title'))
-                                        .margin({ top: 4 })
-                    .maxLines(1)
-                    .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  if (order.profile.company || order.profile.position) {
-                    Text((order.profile.company || '') + (order.profile.company && order.profile.position ? '｜' : '') + (order.profile.position || ''))
-                      .fontSize(12)
-                      .fontColor($r('app.color.text_body'))
-                      .margin({ top: 4 })
+                Row() {
+                  Column() {
+                    Text(order.profile.nickname || '匿名')
+                      .fontSize(15)
+                      .fontWeight(600)
+                      .fontColor($r('app.color.text_title'))
                       .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  } else {
-                    Text('雇主')
-                      .fontSize(12)
-                      .fontColor($r('app.color.text_body'))
-                      .margin({ top: 4 })
+                    if (order.profile.company || order.profile.position) {
+                      Text((order.profile.company || '') + (order.profile.company && order.profile.position ? '｜' : '') + (order.profile.position || ''))
+                        .fontSize(12)
+                        .fontColor($r('app.color.text_body'))
+                        .margin({ top: 2 })
+                        .maxLines(1)
+                        .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    } else {
+                      Text('雇主')
+                        .fontSize(12)
+                        .fontColor($r('app.color.text_body'))
+                        .margin({ top: 2 })
+                    }
                   }
+                  .alignItems(HorizontalAlign.Start)
+
+                  Text(formatDateShort(order.createdAt))
+                    .fontSize(12)
+                    .fontColor($r('app.color.text_body'))
+                    .alignSelf(ItemAlign.Start)
                 }
-                .alignItems(HorizontalAlign.Start)
-                .justifyContent(FlexAlign.Center)
-                .height(56)
+                .layoutWeight(1)
                 .margin({ left: 14 })
-                .constraintSize({ maxWidth: 200 })
+                .alignItems(VerticalAlign.Top)
+                .justifyContent(FlexAlign.SpaceBetween)
               }
               .width('100%')
               .alignItems(VerticalAlign.Center)
+              .justifyContent(FlexAlign.SpaceBetween)
 
               // 分隔线
               Column()
