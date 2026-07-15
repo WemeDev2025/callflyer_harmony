@@ -2503,14 +2503,14 @@ struct Index {
                     step: 6,
                     loop: -1
                   })
-                  .fontSize(18)
+                  .fontSize(14)
                   .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
                   .fontWeight(FontWeight.Medium)
                                     .width('100%')
                 } else {
                   // 短文字：居中显示
                   Text(this.marqueeText || '呼叫飞手')
-                    .fontSize(18)
+                    .fontSize(14)
                     .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
                     .fontWeight(FontWeight.Medium)
                                         .textAlign(TextAlign.Center)

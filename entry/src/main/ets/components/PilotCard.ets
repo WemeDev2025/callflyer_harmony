@@ -811,8 +811,8 @@ export struct PilotCard {
 
       Divider()
         .color($r('app.color.divider'))
-        .strokeWidth(0.5)
-        .margin({ top: 12, bottom: 12 })
+        .strokeWidth(0.3)
+        .margin({ top: 10, bottom: 10 })
 
       // 最近活跃
       if (this.showRecentActive) {
@@ -1042,8 +1042,8 @@ export struct PilotCard {
       if (this.showActions || this.showDistance) {
         Divider()
           .color($r('app.color.divider'))
-          .strokeWidth(0.5)
-          .margin({ top: 12 })
+          .strokeWidth(0.3)
+          .margin({ top: 10 })
 
         Row() {
           Row() {
