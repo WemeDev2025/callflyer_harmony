@@ -2197,7 +2197,7 @@ struct Index {
           Text(param.title)
             .fontSize(16)
             .fontColor($r('app.color.text_title'))
-            .fontWeight(400)
+            .fontWeight(600)
                       Text(param.subtitle)
             .fontSize(12)
             .fontColor($r('app.color.text_body'))
