@@ -3490,7 +3490,7 @@ struct Index {
             .objectFit(ImageFit.Contain)
             .opacity(0.85)
           Column() {
-            Text('查看地图模式')
+            Text('查看职业飞手库')
               .fontSize(17)
               .fontWeight(700)
               .fontColor($r('app.color.text_title'))
@@ -3512,8 +3512,7 @@ struct Index {
         .backgroundColor($r('app.color.card_bg'))
         .borderRadius(14)
         .onClick(() => {
-          const mapUrl = 'https://wetofly.com/map';
-          router.pushUrl({ url: 'pages/WebView', params: { url: mapUrl, title: '地图' } });
+          router.pushUrl({ url: 'pages/CertifiedUsers' });
         })
       }
       .padding({ left: 18, right: 18 })
