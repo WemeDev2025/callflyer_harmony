@@ -158,6 +158,13 @@ export interface ConfigResult {
   rewardButtonText?: string;
   rewardOccupiedSubtitle?: string;
   carousel?: CarouselItem[];
+  // 开屏广告图
+  adImageUrl?: string;
+  showAdImage?: boolean;
+  adClickType?: string;
+  adClickPage?: string;
+  adClickUrl?: string;
+  adClickMiniprogram?: string;
 }
 
 export interface CarouselItem {

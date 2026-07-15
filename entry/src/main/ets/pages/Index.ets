@@ -372,6 +372,14 @@ struct Index {
   @State rewardSubtitle: string = '';  // 奖励位副标题
   @State rewardButtonText: string = '';  // 奖励位按钮文字
 
+  // 开屏广告图
+  @State showAdImage: boolean = false;  // 是否显示广告图
+  @State adImagePath: string = '';  // 广告图路径
+  @State adImageUrl: string = '';  // 广告图URL
+  @State adImageLoading: boolean = false;  // 广告图加载中
+  private adImageShownThisSession: boolean = false;  // 本次启动是否已展示过
+  private adImageDisplayTimer: number = -1;
+
   // 平行四边形按钮Canvas上下文（暂时未使用）
   private canvasCtx: CanvasRenderingContext2D = new CanvasRenderingContext2D();
 
@@ -1080,10 +1088,71 @@ struct Index {
       this.rewardTitle = config.rewardTitle || '呼叫飞手';
       this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
       this.rewardButtonText = config.rewardButtonText || '观看解锁';
+      // 处理开屏广告图
+      this.processAdConfig(config);
     } catch {
       this.marqueeText = '呼叫飞手';
       this.marqueeNeedsScroll = false;
     }
+  }
+
+  // 处理开屏广告图配置
+  processAdConfig(config: ConfigResult) {
+    console.info('【广告图】processAdConfig:', JSON.stringify(config));
+    // 需要同时满足：有 adImageUrl 且 showAdImage 为 true
+    if (config.adImageUrl && config.showAdImage) {
+      console.info('【广告图】检测到广告图URL且允许显示，开始加载', config.adImageUrl);
+      this.loadAdImage(config.adImageUrl);
+    }
+  }
+
+  // 加载广告图（首次下载，下次启动才显示）
+  loadAdImage(imageUrl: string) {
+    if (!imageUrl) return;
+    if (this.adImageShownThisSession) {
+      console.info('【广告图】本次启动已展示过广告图，跳过');
+      return;
+    }
+
+    console.info('【广告图】开始加载', imageUrl);
+    this.adImageShownThisSession = true;
+    this.adImageUrl = imageUrl;
+
+    // 直接用网络URL显示（简化处理，参考小程序的兜底逻辑）
+    this.displayAdImage(imageUrl);
+  }
+
+  // 显示广告图
+  displayAdImage(imagePath: string) {
+    console.info('【广告图】displayAdImage:', imagePath);
+    if (!imagePath) {
+      console.warn('【广告图】路径为空');
+      return;
+    }
+
+    // 延迟显示，确保页面已准备好
+    if (this.adImageDisplayTimer > 0) {
+      clearTimeout(this.adImageDisplayTimer);
+    }
+    this.adImageDisplayTimer = setTimeout(() => {
+      this.adImageDisplayTimer = -1;
+      this.adImagePath = imagePath;
+      this.showAdImage = true;
+    }, 1200) as number;
+  }
+
+  // 关闭广告图
+  closeAdImage() {
+    this.showAdImage = false;
+    this.adImagePath = '';
+  }
+
+  // 广告图点击处理
+  onAdImageClick() {
+    console.info('【广告图】点击广告图');
+    // TODO: 根据 adClickType 处理跳转
+    // const config = AppStorage.get<ConfigResult>('configCache');
+    this.closeAdImage();
   }
 
   // 加载并展示激励视频广告
@@ -3876,6 +3945,33 @@ struct Index {
           this.loadOrders(false, true);
         }
       })
+
+      // 开屏广告图遮罩层
+      if (this.showAdImage) {
+        Stack() {
+          // 半透明遮罩
+          Column()
+            .width('100%')
+            .height('100%')
+            .backgroundColor('rgba(0, 0, 0, 0.65)')
+            .onClick(() => { this.closeAdImage(); })
+
+          // 广告图内容
+          Column() {
+            Image(this.adImagePath)
+              .width('90%')
+              .objectFit(ImageFit.Contain)
+              .onClick(() => { this.onAdImageClick(); })
+          }
+          .width('100%')
+          .height('100%')
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Center)
+        }
+        .width('100%')
+        .height('100%')
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      }
     }
   }
 }
