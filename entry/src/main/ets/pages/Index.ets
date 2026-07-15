@@ -3600,7 +3600,7 @@ struct Index {
                 Column() {
                   Text(order.profile.nickname || '匿名')
                     .fontSize(15)
-                    .fontWeight(400)
+                    .fontWeight(600)
                     .fontColor($r('app.color.text_title'))
                                         .margin({ top: 4 })
                     .maxLines(1)
