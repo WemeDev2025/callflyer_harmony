@@ -2198,12 +2198,10 @@ struct Index {
             .fontSize(16)
             .fontColor($r('app.color.text_title'))
             .fontWeight(400)
-            .fontFamily('DouyinFont')
-          Text(param.subtitle)
+                      Text(param.subtitle)
             .fontSize(12)
             .fontColor($r('app.color.text_body'))
-            .fontFamily('DouyinFont')
-            .margin({ top: 2 })
+                        .margin({ top: 2 })
         }
         .alignItems(HorizontalAlign.Start)
         .margin({ left: 14 })
@@ -2263,12 +2261,10 @@ struct Index {
           .fontSize(17)
           .fontWeight(400)
           .fontColor($r('app.color.text_title'))
-          .fontFamily('DouyinFont')
-        Blank()
+                  Blank()
         Text('师徒匹配')
           .fontSize(11)
-          .fontFamily('DouyinFont')
-          .fontColor('#FFFFFF')
+                    .fontColor('#FFFFFF')
           .backgroundColor('#3B82F6')
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
           .borderRadius(4)
@@ -2277,8 +2273,7 @@ struct Index {
           })
         Text(this.standbyIsJoined ? '取消等待' : '等待任务')
           .fontSize(11)
-          .fontFamily('DouyinFont')
-          .fontColor('#FFFFFF')
+                    .fontColor('#FFFFFF')
           .backgroundColor(this.standbyIsJoined ? '#EF4444' : '#22C55E')
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
           .borderRadius(4)
@@ -2309,8 +2304,7 @@ struct Index {
                       .fontSize(13)
                       .fontWeight(400)
                       .fontColor($r('app.color.text_primary'))
-                      .fontFamily('DouyinFont')
-                      .maxLines(1)
+                                            .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
                     if (item.profile.city) {
                       Text(item.profile.city)
@@ -2512,16 +2506,14 @@ struct Index {
                   .fontSize(18)
                   .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
                   .fontWeight(FontWeight.Medium)
-                  .fontFamily('DouyinFont')
-                  .width('100%')
+                                    .width('100%')
                 } else {
                   // 短文字：居中显示
                   Text(this.marqueeText || '呼叫飞手')
                     .fontSize(18)
                     .fontColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a')
                     .fontWeight(FontWeight.Medium)
-                    .fontFamily('DouyinFont')
-                    .textAlign(TextAlign.Center)
+                                        .textAlign(TextAlign.Center)
                     .width('100%')
                 }
               }
@@ -2751,8 +2743,7 @@ struct Index {
                                   .fontSize(18)
                                   .fontWeight(400)
                                   .fontColor('#FFFFFF')
-                                  .fontFamily('DouyinFont')
-                                  .margin({ bottom: 8 })
+                                                                    .margin({ bottom: 8 })
                                 Row() {
                                   Text(this.rewardSlotUser.city || '')
                                     .fontSize(12)
@@ -2877,8 +2868,7 @@ struct Index {
                             Text(item.title || '')
                               .fontSize(28)
                               .fontWeight(500)
-                              .fontFamily('DouyinFont')
-                              .fontColor('#FFFFFF')
+                                                            .fontColor('#FFFFFF')
                               .textAlign(TextAlign.Center)
                               .textShadow({
                                 radius: 6,
@@ -2926,8 +2916,7 @@ struct Index {
                               Text(item.actionText || '观看解锁')
                                 .fontSize(15)
                                 .fontWeight(500)
-                                .fontFamily('DouyinFont')
-                                .fontColor('#2c2c2c')
+                                                                .fontColor('#2c2c2c')
                                 .textAlign(TextAlign.Center)
                                 .transform(matrix4.identity()
                                   .combine(matrix4.init([
@@ -3076,10 +3065,9 @@ struct Index {
             Row() {
               Text('常用功能')
                 .fontSize(17)
-                .fontWeight(400)
+                .fontWeight(600)
                 .fontColor($r('app.color.text_title'))
-                .fontFamily('DouyinFont')
-            }
+                            }
             .width('100%')
             .padding({ left: 18, right: 18 })
             .margin({ top: 16 })
@@ -3139,10 +3127,9 @@ struct Index {
               Column() {
                 Text('附近飞手')
                   .fontSize(17)
-                  .fontWeight(400)
+                  .fontWeight(600)
                   .fontColor(this.currentTab === 'pilots' ? $r('app.color.text_title') : $r('app.color.text_secondary'))
-                  .fontFamily('DouyinFont')
-              }
+                                }
               .height(44)
               .justifyContent(FlexAlign.Center)
               .onClick(() => { this.currentTab = 'pilots'; })
@@ -3150,10 +3137,9 @@ struct Index {
               Column() {
                 Text('最新任务')
                   .fontSize(17)
-                  .fontWeight(400)
+                  .fontWeight(600)
                   .fontColor(this.currentTab === 'orders' ? $r('app.color.text_title') : $r('app.color.text_secondary'))
-                  .fontFamily('DouyinFont')
-              }
+                                }
               .height(44)
               .justifyContent(FlexAlign.Center)
               .margin({ left: 12 })
@@ -3616,8 +3602,7 @@ struct Index {
                     .fontSize(15)
                     .fontWeight(400)
                     .fontColor($r('app.color.text_title'))
-                    .fontFamily('DouyinFont')
-                    .margin({ top: 4 })
+                                        .margin({ top: 4 })
                     .maxLines(1)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
                   if (order.profile.company || order.profile.position) {

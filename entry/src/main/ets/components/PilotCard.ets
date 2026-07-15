@@ -742,10 +742,9 @@ export struct PilotCard {
         Column() {
           Text(this.user.nickname.length > 12 ? this.user.nickname.substring(0, 12) + '...' : this.user.nickname)
             .fontSize(15)
-            .fontWeight(400)
+            .fontWeight(600)
             .fontColor($r('app.color.text_title'))
-            .fontFamily('DouyinFont')
-            .maxLines(1)
+                        .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .width('100%')
 
