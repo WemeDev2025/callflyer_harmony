@@ -98,7 +98,7 @@
     },
     {
       "name": "indicator_selected",
-      "value": "#555555"
+      "value": "#FFFFFF"
     },
     {
       "name": "indicator_unselected",
