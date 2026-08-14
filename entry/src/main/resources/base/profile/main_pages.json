@@ -12,6 +12,7 @@
     "pages/ContactLog",
     "pages/Standby",
     "pages/ImagePreviewPage",
-    "pages/PublishTask"
+    "pages/PublishTask",
+    "pages/SplashAdPage"
   ]
 }

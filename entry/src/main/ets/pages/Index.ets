@@ -49,6 +49,12 @@ function formatDateShort(dateStr: string): string {
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
+// 截断昵称为最大12个字符
+function truncateNickname(name: string): string {
+  if (!name) return '';
+  return name.length > 8 ? name.substring(0, 8) + '...' : name;
+}
+
 // 防抖标记：确保每次启动只上报一次访问
 let visitReported = false;
 
@@ -2322,12 +2328,13 @@ struct Index {
       Row() {
         Text('今日有空')
           .fontSize(17)
-          .fontWeight(400)
+          .fontWeight(700)
           .fontColor($r('app.color.text_title'))
                   Blank()
         Text('师徒匹配')
           .fontSize(11)
-                    .fontColor('#FFFFFF')
+          .fontWeight(700)
+          .fontColor('#FFFFFF')
           .backgroundColor('#3B82F6')
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
           .borderRadius(4)
@@ -2336,7 +2343,8 @@ struct Index {
           })
         Text(this.standbyIsJoined ? '取消等待' : '等待任务')
           .fontSize(11)
-                    .fontColor('#FFFFFF')
+          .fontWeight(700)
+          .fontColor('#FFFFFF')
           .backgroundColor(this.standbyIsJoined ? '#EF4444' : '#22C55E')
           .padding({ left: 12, right: 12, top: 6, bottom: 6 })
           .borderRadius(4)
@@ -3084,7 +3092,7 @@ struct Index {
                 })
               }
               .width('100%')
-              .height(200)
+              .height(204)
               .autoPlay(false)
               .interval(8000)
               .loop(true)
@@ -3100,8 +3108,9 @@ struct Index {
 
             }
             .width('100%')
-            .height(230)
-            .padding({ left: 18, right: 18, top: 0, bottom: 0 })
+            .height(204)
+            .padding({ left: 12, right: 12, top: 0, bottom: 0 })
+            .clip(true)
             .opacity(this.bannerLoaded ? this.bannerOpacity : 0)
             .animation({ duration: 300, curve: Curve.EaseOut })
 
@@ -3109,12 +3118,12 @@ struct Index {
             Row() {
               ForEach(this.imageList, (_: BannerItem, index: number) => {
                 Blank()
-                  .width(index === this.currentIndex ? 14 : 5)
-                  .height(5)
-                  .borderRadius(3)
+                  .width(index === this.currentIndex ? 17 : 6)
+                  .height(6)
+                  .borderRadius(4)
                   .backgroundColor(index === this.currentIndex ? $r('app.color.indicator_selected') : $r('app.color.indicator_unselected'))
                   .animation({ duration: 200, curve: Curve.EaseOut })
-                  .margin({ left: index === 0 ? 0 : 4, right: 4 })
+                  .margin({ left: index === 0 ? 0 : 5, right: 5 })
               })
             }
             .width('100%')
@@ -3494,7 +3503,7 @@ struct Index {
               .fontSize(17)
               .fontWeight(700)
               .fontColor($r('app.color.text_title'))
-            Text('查看附近所有飞手分布')
+            Text('精确筛选 快速找到适合的飞手')
               .fontSize(12)
               .fontColor($r('app.color.text_secondary'))
               .margin({ top: 4 })
@@ -3662,7 +3671,7 @@ struct Index {
 
                 Row() {
                   Column() {
-                    Text(order.profile.nickname || '匿名')
+                    Text(truncateNickname(order.profile.nickname || '匿名'))
                       .fontSize(15)
                       .fontWeight(600)
                       .fontColor($r('app.color.text_title'))
