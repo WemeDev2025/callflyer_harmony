@@ -102,7 +102,7 @@
     },
     {
       "name": "indicator_unselected",
-      "value": "#FFFFFF"
+      "value": "#BBBBBB"
     }
   ]
 }
