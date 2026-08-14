@@ -3132,7 +3132,7 @@ struct Index {
 
             // 轮播图与今日有空之间的间隙
             Blank()
-              .height(22)
+              .height(16)
 
             // 今日有空
             this.StandbyList()
