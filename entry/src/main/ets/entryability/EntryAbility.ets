@@ -7,6 +7,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import { Configuration, AbilityConstant } from '@kit.AbilityKit';
 import dataPreferences from '@ohos.data.preferences';
+import PushService from '../service/PushService';
 
 const TAG = 'EntryAbility';
 const DOMAIN = 0x0001;
@@ -34,6 +35,9 @@ export default class EntryAbility extends UIAbility {
     }
     // 保存当前颜色模式到 AppStorage
     AppStorage.setOrCreate('colorMode', this.context.config.colorMode ?? ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
+
+    // 初始化 PushService 并注册 Push Token（无需登录）
+    PushService.getInstance(this.context).getAndRegisterPushToken();
   }
 
   onConfigurationUpdate(newConfig: Configuration) {
@@ -131,8 +135,6 @@ export default class EntryAbility extends UIAbility {
         return;
       }
       hilog.info(DOMAIN, TAG, 'Succeeded in loading the content. Data: %{public}s', JSON.stringify(data));
-      // UI加载完成后请求通知权限
-      this.requestNotificationPermission();
     });
   }
 
