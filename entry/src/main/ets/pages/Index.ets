@@ -2373,7 +2373,7 @@ struct Index {
                   Column() {
                     Text(item.profile.nickname)
                       .fontSize(13)
-                      .fontWeight(400)
+                      .fontWeight(600)
                       .fontColor($r('app.color.text_primary'))
                                             .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
