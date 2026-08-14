@@ -3130,6 +3130,10 @@ struct Index {
             .justifyContent(FlexAlign.Center)
             .margin({ top: -20 })
 
+            // 轮播图与今日有空之间的间隙
+            Blank()
+              .height(22)
+
             // 今日有空
             this.StandbyList()
 
