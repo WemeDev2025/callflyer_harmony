@@ -1541,13 +1541,20 @@ struct Index {
         this.ordersCache = result.items;
       }
 
+      // 确保按创建时间倒序（最新的在最前面）
+      this.orders.sort((a, b) => {
+        const timeA = new Date(a.createdAt).getTime();
+        const timeB = new Date(b.createdAt).getTime();
+        return timeB - timeA;
+      });
+
       this.ordersTotal = result.total;
       this.ordersHasMore = this.orders.length < this.ordersTotal;
       this.ordersPage++;
 
       console.info('【最新任务】加载成功: page=' + currentPage + ', refresh=' + refresh + ', loadMore=' + loadMore +
         ', 本次=' + result.items.length + ', 累计=' + this.orders.length + ', 总数=' + this.ordersTotal +
-        ', hasMore=' + this.ordersHasMore);
+        ', hasMore=' + this.ordersHasMore + ', 首条时间=' + (this.orders.length > 0 ? this.orders[0].createdAt : '无'));
     } catch (err) {
       console.error('【最新任务】loadOrders 失败:', JSON.stringify(err), ', orders当前值:', this.orders.length);
       if (this.orders.length === 0) {
@@ -3219,7 +3226,13 @@ struct Index {
               .height(44)
               .justifyContent(FlexAlign.Center)
               .margin({ left: 12 })
-              .onClick(() => { this.currentTab = 'orders'; })
+              .onClick(() => {
+                this.currentTab = 'orders';
+                // 切换到订单 Tab 时，如果订单为空则触发加载
+                if (this.orders.length === 0 && !this.ordersLoading) {
+                  this.loadOrders();
+                }
+              })
 
               Blank()
 
