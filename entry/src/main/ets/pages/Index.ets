@@ -411,6 +411,7 @@ struct Index {
   private ordersTotal: number = 0;
   private ordersHasMore: boolean = true;
   private ordersLoadMoreInProgress: boolean = false;  // 防止重复触发加载更多
+  private ordersInitialLoading: boolean = false;      // 防止 aboutToAppear 中重复触发首次加载
 
   // Tab
   @State currentTab: string = 'pilots';
@@ -494,10 +495,15 @@ struct Index {
         });
       }
       this.loadPilots();
-      this.loadOrders();
       this.loadStandby();
       this.loadRewardSlotStatus();
     });
+
+    // 同步触发首次加载（与 handleLogin().then 中的防重逻辑互斥）
+    if (!this.ordersInitialLoading) {
+      this.ordersInitialLoading = true;
+      this.loadOrders();
+    }
 
     // 如果已登录但本地资料为空，尝试从服务端获取并更新本地缓存
     const token = AppStorage.get<string>('authToken');
@@ -1478,6 +1484,12 @@ struct Index {
     // refresh: 下拉刷新，重新加载第一页
     // loadMore: 加载更多，追加到列表末尾
 
+    // 防止首次加载时重复触发（修复竞态：两个 loadMore=false 调用同时执行）
+    if (!loadMore && this.ordersLoadMoreInProgress) {
+      console.info('【最新任务】首次加载已在进行中，跳过');
+      return;
+    }
+
     // 防止加载更多时重复触发
     if (loadMore && this.ordersLoadMoreInProgress) {
       console.info('【最新任务】loadMore 已在进行中，跳过');
@@ -1502,16 +1514,22 @@ struct Index {
       return;
     }
 
-    // 标记加载更多开始
-    if (loadMore) {
-      this.ordersLoadMoreInProgress = true;
-    }
+    // 标记加载开始（防止首次加载和加载更多的竞态）
+    this.ordersLoadMoreInProgress = true;
 
     const currentPage = this.ordersPage;
     console.info('【最新任务】开始加载: page=' + currentPage + ', refresh=' + refresh + ', loadMore=' + loadMore);
 
     try {
       const result = await fetchPublicOrders(currentPage, this.ordersPageSize);
+
+      // ========== 调试日志：API返回原始数据 ==========
+      console.info('【最新任务】========== API 返回原始数据 ==========');
+      console.info('【最新任务】page=' + currentPage + ', 返回 items 数量=' + result.items.length);
+      result.items.forEach((item: OrderItem, index: number) => {
+        console.info('【最新任务】  第' + index + '条: orderId=' + item.orderId + ', createdAt=' + item.createdAt);
+      });
+      console.info('【最新任务】=====================================');
 
       // 检查是否还有后续加载请求被拦截
       if (this.ordersPage !== currentPage) {
@@ -1541,12 +1559,30 @@ struct Index {
         this.ordersCache = result.items;
       }
 
+      // ========== 调试日志：排序前数据 ==========
+      console.info('【最新任务】========== 排序前数据 ==========');
+      console.info('【最新任务】当前 orders 数量=' + this.orders.length);
+      this.orders.forEach((item: OrderItem, index: number) => {
+        const timeMs = new Date(item.createdAt).getTime();
+        console.info('【最新任务】  排序前[' + index + ']: orderId=' + item.orderId + ', createdAt=' + item.createdAt + ', timeMs=' + timeMs);
+      });
+      console.info('【最新任务】===================================');
+
       // 确保按创建时间倒序（最新的在最前面）
       this.orders.sort((a, b) => {
         const timeA = new Date(a.createdAt).getTime();
         const timeB = new Date(b.createdAt).getTime();
         return timeB - timeA;
       });
+
+      // ========== 调试日志：排序后数据 ==========
+      console.info('【最新任务】========== 排序后数据 ==========');
+      console.info('【最新任务】排序后 orders 数量=' + this.orders.length);
+      this.orders.forEach((item: OrderItem, index: number) => {
+        const timeMs = new Date(item.createdAt).getTime();
+        console.info('【最新任务】  排序后[' + index + ']: orderId=' + item.orderId + ', createdAt=' + item.createdAt + ', timeMs=' + timeMs);
+      });
+      console.info('【最新任务】===================================');
 
       this.ordersTotal = result.total;
       this.ordersHasMore = this.orders.length < this.ordersTotal;
@@ -1563,6 +1599,9 @@ struct Index {
     } finally {
       this.ordersLoading = false;
       this.ordersLoadMoreInProgress = false;
+      if (!loadMore) {
+        this.ordersInitialLoading = false;
+      }
       this.stopOrdersSkeletonShimmer();
     }
   }
@@ -2541,7 +2580,12 @@ struct Index {
               this.loadConfig();
               this.loadBanner(true);
               this.loadPilots(true);
-              this.loadOrders(true);
+              // 防止初始加载时的竞争条件
+              if (this.ordersInitialLoading) {
+                hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】ordersInitialLoading 跳过');
+              } else {
+                this.loadOrders(true);
+              }
               this.loadStandby(true);
             } else {
               hilog.info(0x0000, 'RewardAd', '【onVisibleAreaChange】防抖跳过');
