@@ -251,85 +251,69 @@ struct AgreementDialog {
   onViewPrivacy: () => void = () => {};
 
   build() {
-    Stack() {
-      // 蒙层
-      Column()
-        .width('100%')
-        .height('100%')
-        .backgroundColor('rgba(0, 0, 0, 0.6)')
+    Column() {
+      Text('欢迎使用')
+        .fontSize(22)
+        .fontWeight(600)
+        .fontColor($r('app.color.text_primary'))
+        .margin({ top: 24 })
 
-      // 弹窗卡片
-      Column() {
-        Column() {
-          Text('欢迎使用')
-            .fontSize(22)
-            .fontWeight(600)
-            .fontColor($r('app.color.text_primary'))
-            .margin({ top: 24 })
+      Text('欢迎使用呼叫飞手！为了向您提供更好的服务，请您仔细阅读并同意以下协议：')
+        .fontSize(14)
+        .fontColor($r('app.color.text_body'))
+        .textAlign(TextAlign.Center)
+        .margin({ top: 16 })
 
-          Text('欢迎使用呼叫飞手！为了向您提供更好的服务，请您仔细阅读并同意以下协议：')
-            .fontSize(14)
-            .fontColor($r('app.color.text_body'))
-            .textAlign(TextAlign.Center)
-            .margin({ top: 16 })
-
-          Row() {
-            Text('《用户协议》')
-              .fontSize(14)
-              .fontColor($r('app.color.accent_green'))
-              .onClick(() => {
-                this.controller.close();
-                this.onViewAgreement();
-              })
-            Text('和')
-              .fontSize(14)
-              .fontColor($r('app.color.text_body'))
-            Text('《隐私政策》')
-              .fontSize(14)
-              .fontColor($r('app.color.accent_green'))
-              .onClick(() => {
-                this.controller.close();
-                this.onViewPrivacy();
-              })
-          }
-          .margin({ top: 16 })
-
-          Row() {
-            Button('拒绝')
-              .width('45%')
-              .height(44)
-              .fontSize(16)
-              .backgroundColor($r('app.color.card_bg_secondary'))
-              .fontColor($r('app.color.text_body'))
-              .borderRadius(22)
-              .onClick(() => {
-                promptAction.showToast({ message: '您需要同意用户协议和隐私政策才能使用本服务' });
-              })
-
-            Button('同意')
-              .width('45%')
-              .height(44)
-              .fontSize(16)
-              .backgroundColor($r('app.color.accent_green'))
-              .fontColor('#FFFFFF')
-              .borderRadius(22)
-              .onClick(() => {
-                this.controller.close();
-                this.onAccept();
-              })
-          }
-          .width('100%')
-          .margin({ top: 24, bottom: 16 })
-          .justifyContent(FlexAlign.SpaceBetween)
-        }
-        .width('85%')
-        .padding(24)
-        .backgroundColor($r('app.color.card_bg'))
-        .borderRadius(16)
+      Row() {
+        Text('《用户协议》')
+          .fontSize(14)
+          .fontColor($r('app.color.accent_green'))
+          .onClick(() => {
+            this.controller.close();
+            this.onViewAgreement();
+          })
+        Text('和')
+          .fontSize(14)
+          .fontColor($r('app.color.text_body'))
+        Text('《隐私政策》')
+          .fontSize(14)
+          .fontColor($r('app.color.accent_green'))
+          .onClick(() => {
+            this.controller.close();
+            this.onViewPrivacy();
+          })
       }
+      .margin({ top: 16 })
+
+      Row() {
+        Button('拒绝')
+          .width('45%')
+          .height(44)
+          .fontSize(16)
+          .backgroundColor($r('app.color.card_bg_secondary'))
+          .fontColor($r('app.color.text_body'))
+          .borderRadius(22)
+          .onClick(() => {
+            promptAction.showToast({ message: '您需要同意用户协议和隐私政策才能使用本服务' });
+          })
+
+        Button('同意')
+          .width('45%')
+          .height(44)
+          .fontSize(16)
+          .backgroundColor($r('app.color.accent_green'))
+          .fontColor('#FFFFFF')
+          .borderRadius(22)
+          .onClick(() => {
+            this.controller.close();
+            this.onAccept();
+          })
+      }
+      .width('100%')
+      .margin({ top: 24, bottom: 16 })
+      .justifyContent(FlexAlign.SpaceBetween)
     }
-    .width('100%')
-    .height('100%')
+    .padding(24)
   }
 }
 
@@ -792,8 +776,11 @@ struct Index {
           router.pushUrl({ url: 'pages/PrivacyPolicy' });
         }
       }),
-      customStyle: true,
-      maskColor: 'rgba(0, 0, 0, 0.01)'
+      customStyle: false,
+      alignment: DialogAlignment.Center,
+      maskColor: 'rgba(0, 0, 0, 0.6)',
+      openAnimation: { duration: 300 },
+      closeAnimation: { duration: 300 }
     });
     console.info('【协议检查】调用 controller.open()');
     this.agreementDialogController.open();
