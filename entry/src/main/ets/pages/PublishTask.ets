@@ -626,7 +626,7 @@ struct PublishTask {
         .width('100%')
         .height('100%')
         .backgroundColor(this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#000000' : '#E7F8FC')
-        .expandSafeArea([SafeAreaType.SYSTEM])
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
       Scroll() {
         Column() {
@@ -1036,10 +1036,12 @@ struct PublishTask {
         }
         .width('100%')
         .padding({ bottom: 40 })
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
       }
       .width('100%')
       .scrollBar(BarState.Off)
       .edgeEffect(EdgeEffect.Spring)
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
 
       // 底部发布按钮
       Column() {
@@ -1055,8 +1057,10 @@ struct PublishTask {
           .onClick(() => { this.handleSubmit(); })
       }
       .alignItems(HorizontalAlign.Center)
+      .padding({ bottom: 20 })
     }
     .width('100%')
     .height('100%')
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
   }
 }

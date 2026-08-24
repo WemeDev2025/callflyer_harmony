@@ -2,6 +2,7 @@ import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
 import router from '@ohos.router';
+import window from '@ohos.window';
 import { fetchCertifiedProfiles, fetchPilotContact, likeProfile, unlikeProfile, CertifiedUser, CertifiedProfilesParams, fetchCertifiedTags, CertifiedTag } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import { PilotCard, PilotCardData } from '../components/PilotCard';
@@ -149,6 +150,16 @@ struct CertifiedUsers {
   }
 
   aboutToAppear() {
+    // 设置状态栏背景色
+    try {
+      window.getLastWindow(getContext(this)).then((win) => {
+        win.setWindowSystemBarProperties({
+          statusBarColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC',
+          statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202'
+        });
+      });
+    } catch (e) {}
+
     // 并行加载标签和用户列表（无依赖关系）
     this.loadTags();
     this.loadCertifiedUsers();
@@ -340,7 +351,8 @@ struct CertifiedUsers {
         .width('100%')
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
-        .expandSafeArea([SafeAreaType.SYSTEM])
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+        .clip(false)
 
       List() {
         ListItem() {
@@ -623,9 +635,11 @@ struct CertifiedUsers {
         const estimatedScrollTop = firstIndex * 250;
         this.onScrollIndex(estimatedScrollTop);
       })
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
     }
     .width('100%')
     .height('100%')
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 
   @Builder

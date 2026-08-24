@@ -2,6 +2,7 @@ import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
+import window from '@ohos.window';
 import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, fetchPilotContact, DiscipleItem, DiscipleMaster, MyDisciplesResult, PilotContact, RatingInfo } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
@@ -563,6 +564,16 @@ struct Standby {
   private cacheTTL: number = 3 * 60 * 1000; // 3分钟缓存
 
   aboutToAppear() {
+    // 设置状态栏背景色
+    try {
+      window.getLastWindow(getContext(this)).then((win) => {
+        win.setWindowSystemBarProperties({
+          statusBarColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC',
+          statusBarContentColor: this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#E5FFFFFF' : '#E5020202'
+        });
+      });
+    } catch (e) {}
+
     this.loadData(true);
   }
 
@@ -1098,7 +1109,8 @@ struct Standby {
         .width('100%')
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
-        .expandSafeArea([SafeAreaType.SYSTEM])
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+        .clip(false)
 
       // 主内容区 - 可滚动
       HdsNavigation() {
@@ -1229,16 +1241,18 @@ struct Standby {
           }
           .width('100%')
           .alignItems(HorizontalAlign.Center)
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
         }
         .width('100%')
         .height('100%')
         .scrollBar(BarState.Off)
         .edgeEffect(EdgeEffect.Spring)
         .clip(false)
-        .expandSafeArea([SafeAreaType.SYSTEM])
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
       }
       .width('100%')
       .height('100%')
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
       .hideBackButton(true)
       .titleBar({
         enableComponentSafeArea: true,
@@ -1301,5 +1315,6 @@ struct Standby {
     }
     .width('100%')
     .height('100%')
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
   }
 }

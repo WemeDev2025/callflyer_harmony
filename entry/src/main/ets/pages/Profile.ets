@@ -33,6 +33,7 @@ struct Profile {
   @State licenseUploadVisible: boolean = false;
   @State showOptionalFields: boolean = false;  // 可选字段折叠状态
   @State uploadingDroneImage: boolean = false;
+  @State pilotSectionExpanded: boolean = false;  // 飞手区域是否展开
 
   // 角色选项
   roleOptions: RoleOption[] = [
@@ -373,6 +374,7 @@ struct Profile {
         .width('100%')
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
       if (this.loading) {
         Column() {
@@ -490,7 +492,13 @@ struct Profile {
                         duration: 300,
                         curve: Curve.EaseInOut
                       }, () => {
-                        this.form.userRole = item.value;
+                        if (item.value === 'pilot') {
+                          this.form.userRole = 'pilot';
+                          this.pilotSectionExpanded = true;
+                        } else {
+                          this.form.userRole = 'employer';
+                          this.pilotSectionExpanded = false;
+                        }
                       })
                     })
                   })
@@ -539,6 +547,7 @@ struct Profile {
               .margin({ top: 44 })
 
               // 飞手专属字段
+              if (this.pilotSectionExpanded) {
               Column({ space: 12 }) {
                 // 主营业务
                 Column() {
@@ -696,63 +705,64 @@ struct Profile {
               }
               .width('100%')
               .padding({ top: 16, bottom: 16 })
-              .opacity(this.form.userRole === 'pilot' ? 1 : 0)
-              .clip(true)
               .backgroundColor($r('app.color.card_bg'))
               .borderRadius(16)
               .margin({ top: 12 })
+              }
+
+              // 保存按钮和协议
+              Column() {
+                Row() {
+                  Button('保存')
+                    .width('80%')
+                    .height(48)
+                    .borderRadius(24)
+                    .fontSize(16)
+                    .fontColor($r('app.color.text_on_dark_background'))
+                    .backgroundColor($r('app.color.badge_green'))
+                    .onClick(() => this.handleSave())
+                }
+                .width('100%')
+                .justifyContent(FlexAlign.Center)
+
+                Row() {
+                  Text('《用户协议》')
+                    .fontSize(13)
+                    .fontColor($r('app.color.accent_green'))
+                    .onClick(() => router.push({ url: 'pages/UserAgreement' }))
+                  Text('和')
+                    .fontSize(13)
+                    .fontColor($r('app.color.text_secondary'))
+                    .margin({ left: 8, right: 8 })
+                  Text('《隐私政策》')
+                    .fontSize(13)
+                    .fontColor($r('app.color.accent_green'))
+                    .onClick(() => router.push({ url: 'pages/PrivacyPolicy' }))
+                }
+                .width('100%')
+                .justifyContent(FlexAlign.Center)
+                .padding({ top: 12, bottom: 32 })
+              }
+              .width('100%')
+              .margin({ top: 22 })
+              .padding({ left: 16, right: 16 })
 
               // 底部间距
               Column().height(80)
             }
             .width('100%')
             .padding({ left: 16, right: 16 })
+            .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
           }
           .width('100%')
           .layoutWeight(1)
           .scrollBar(BarState.Off)
           .edgeEffect(EdgeEffect.Spring)
-
-          // 保存按钮和协议
-          Column() {
-            Row() {
-              Button('保存')
-                .width('80%')
-                .height(48)
-                .borderRadius(24)
-                .fontSize(16)
-                .fontColor($r('app.color.text_on_dark_background'))
-                .backgroundColor($r('app.color.badge_green'))
-                .onClick(() => this.handleSave())
-            }
-            .width('100%')
-            .justifyContent(FlexAlign.Center)
-            .margin({ top: 16 })
-
-            Row() {
-              Text('《用户协议》')
-                .fontSize(13)
-                .fontColor($r('app.color.accent_green'))
-                .onClick(() => router.push({ url: 'pages/UserAgreement' }))
-              Text('和')
-                .fontSize(13)
-                .fontColor($r('app.color.text_secondary'))
-                .margin({ left: 8, right: 8 })
-              Text('《隐私政策》')
-                .fontSize(13)
-                .fontColor($r('app.color.accent_green'))
-                .onClick(() => router.push({ url: 'pages/PrivacyPolicy' }))
-            }
-            .width('100%')
-            .justifyContent(FlexAlign.Center)
-            .padding({ top: 12, bottom: 32 })
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16 })
-          .backgroundColor($r('app.color.page_bg'))
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
         }
         .width('100%')
         .height('100%')
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
       }
     }
     .width('100%')
