@@ -1304,7 +1304,7 @@ struct Index {
     await AuthService.refreshCurrentUser();
     const profileComplete = this.isProfileComplete();
     console.info('【奖励位点击】isProfileComplete: ' + profileComplete);
-    if (this.rewardSlotClaimed && this.rewardSlotUser) {
+    if (this.rewardSlotUser) {
       const user: PilotCardData = {
         openid: this.rewardSlotUser.openid,
         nickname: this.rewardSlotUser.nickname,
