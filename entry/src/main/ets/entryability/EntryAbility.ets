@@ -125,10 +125,12 @@ export default class EntryAbility extends UIAbility {
         statusBarColor: bgColor,
         statusBarContentColor: colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
       });
+      // 设置全屏布局，让内容延伸到状态栏和导航栏
+      win.setWindowLayoutFullScreen(true);
     });
 
     // 在 UI 加载完成后请求通知权限
-    windowStage.loadContent('pages/Index', (err: Error, data: void) => {
+    windowStage.loadContent('pages/SplashPage', (err: Error, data: void) => {
       let errCode = (err as BusinessError).code;
       if (err && errCode !== 0) {
         hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
