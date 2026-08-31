@@ -317,6 +317,7 @@ struct AgreementDialog {
   }
 }
 
+
 @Entry
 @Component
 struct Index {
@@ -437,6 +438,17 @@ struct Index {
   // 协议弹窗是否已打开（防止 onPageShow 重复调用 open）
   private isDialogOpened: boolean = false;
   // 是否正在查看协议（从协议页返回时需要重新显示弹窗）
+
+  // 开屏广告蒙层显示状态
+  @State showSplashMask: boolean = false;
+  // 广告数据
+  adImageUrl: string = '';
+  adClickType: string = '';
+  adClickUrl: string = '';
+  // 广告回调
+  onSplashAdSkipCallback: () => void = () => {};
+  onSplashAdClickCallback: () => void = () => {};
+
   aboutToAppear() {
     console.info('【协议检查】aboutToAppear called');
 
@@ -743,6 +755,11 @@ struct Index {
           AppStorage.set<string>(KEY_AGREEMENT_ACCEPTED, 'true');
           // 重置标志，允许下次重新显示（如从设置页返回）
           this.agreementDialogShown = false;
+          // 隐私协议同意后，如果有广告数据则显示广告弹窗
+          if (this.adImageUrl) {
+            console.info('【协议检查】同意后显示广告弹窗');
+            this.showSplashAdDialog();
+          }
           // 隐私协议同意后，执行登录并加载数据
           this.handleLogin().then(() => {
             if (!visitReported) {
@@ -786,6 +803,12 @@ struct Index {
     this.agreementDialogController.open();
     this.isDialogOpened = true;
     console.info('【协议检查】controller.open() 返回');
+  }
+
+  // 显示开屏广告蒙层
+  showSplashAdDialog() {
+    console.info('【开屏广告】showSplashAdDialog, adImageUrl=' + this.adImageUrl);
+    this.showSplashMask = true;
   }
 
   async handleLogin() {
@@ -1142,6 +1165,29 @@ struct Index {
       this.rewardTitle = config.rewardTitle || '呼叫飞手';
       this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
       this.rewardButtonText = config.rewardButtonText || '观看解锁';
+      // 获取开屏广告数据
+      // TODO: 正式环境使用 config.adImageUrl
+      // 测试用硬编码 URL
+      const testAdImageUrl = 'https://minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com/ccv2%2F2026-08-31%2FMiniMax-M2.7-highspeed%2F2056041922304156137%2F14752207e3e60a2e3001b3afb04c249073864fb634ad7981b33b0718461e4824..png?Expires=1788247016&OSSAccessKeyId=LTAI5tGLnRTkBjLuYPjNcKQ8&Signature=6w%2FlJUEtas6bt1%2FAqQQbuNpq7BQ%3D';
+      if (testAdImageUrl) {
+        this.adImageUrl = testAdImageUrl;
+        this.adClickType = '';
+        this.adClickUrl = '';
+        console.info('【开屏广告】获取到广告数据 adImageUrl=' + this.adImageUrl);
+        // 协议已同意 且 广告未被开屏页展示过，才显示广告弹窗
+        const agreed = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
+        const adShownBySplash = AppStorage.get<boolean>('splash_ad_shown') ?? false;
+        if (agreed && !adShownBySplash) {
+          console.info('【开屏广告】协议已同意+非开屏页触发，显示广告弹窗');
+          this.showSplashAdDialog();
+        } else if (adShownBySplash) {
+          console.info('【开屏广告】广告已由开屏页展示过，跳过重复展示');
+        } else {
+          console.info('【开屏广告】协议未同意，等待用户同意后显示');
+        }
+      } else {
+        console.info('【开屏广告】无广告数据或显示被禁用');
+      }
     } catch {
       this.marqueeText = '呼叫飞手';
       this.marqueeNeedsScroll = false;
@@ -2527,6 +2573,7 @@ struct Index {
     .justifyContent(FlexAlign.SpaceBetween)
     .margin({ top: 9, left: 24, right: 24 })
   }
+
 
   build() {
     Stack() {
@@ -4004,5 +4051,24 @@ struct Index {
         }
       })
     }
+
+    // 开屏广告蒙层（用 opacity 控制显隐）
+    Stack() {
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor('rgba(0, 0, 0, 0.6)')
+        .onClick(() => {
+          this.showSplashMask = false;
+          this.loadPilots();
+          this.loadOrders();
+          this.loadStandby();
+          this.loadRewardSlotStatus();
+        })
+    }
+    .width('100%')
+    .height('100%')
+    .opacity(this.showSplashMask ? 1 : 0)
+    .enabled(this.showSplashMask)
   }
 }

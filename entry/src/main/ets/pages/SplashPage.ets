@@ -87,13 +87,18 @@ struct SplashPage {
   private goToHome(): void {
     this.stopCountdown();
 
+    // 标记广告已由开屏页展示过，首页不再重复展示
+    AppStorage.setOrCreate<boolean>('splash_ad_shown', true);
+
     animateToImmediately({
       duration: 300,
       curve: Curve.Friction,
       onFinish: () => {
-        router.pushUrl({
+        // 用 replaceUrl 替换当前页，而非 pushUrl——这样返回栈里没有 SplashPage，
+        // 用户按返回键时直接退出应用，而非回到开屏页
+        router.replaceUrl({
           url: 'pages/Index'
-        }, router.RouterMode.Single);
+        });
       }
     }, () => {
       this.maskOpacity = 0;
@@ -103,7 +108,7 @@ struct SplashPage {
   }
 
   build() {
-    Stack({ alignContent: Alignment.TopEnd }) {
+    Stack({ alignContent: Alignment.BottomEnd }) {
       // ========== 底层：背景图片（延伸至安全区域） ==========
       Image($r('app.media.icon_startwindow'))
         .width('100%')
@@ -181,7 +186,7 @@ struct SplashPage {
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
       }
 
-      // ========== 跳过按钮（右上角，延伸至安全区域）==========
+      // ========== 跳过按钮（右下角，延伸至安全区域）==========
       if (this.isShowSplash) {
         Column() {
           Row({
@@ -208,7 +213,7 @@ struct SplashPage {
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
         .margin({
-          top: 56,
+          bottom: 56,
           right: 16
         })
         .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])

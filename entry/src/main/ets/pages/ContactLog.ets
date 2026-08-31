@@ -100,7 +100,8 @@ struct ContactLog {
         .width('100%')
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
-        .expandSafeArea([SafeAreaType.SYSTEM])
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+        .clip(false)
 
       if (this.loading) {
         Column() {
@@ -156,6 +157,7 @@ struct ContactLog {
           console.info('【ContactLog】onReachEnd triggered, hasMore:', this.hasMore, 'isLoading:', this.isLoading);
           this.loadMore()
         })
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
       }
     }
     .width('100%')

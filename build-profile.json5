@@ -5,13 +5,13 @@
         "name": "default",
         "type": "HarmonyOS",
         "material": {
-          "storeFile": "/Users/zhaojing/Downloads/callflyerDebug.p12",
-          "storePassword": "00000018AB99103E3364F11D097009686DE37CD6B075263F8EDBE6D566FEDC155C3E45CC46940220",
+          "storeFile": "/Users/zhaojing/Downloads/callflyer_Harmony/callflyerDebug.p12",
+          "storePassword": "00000018A1E728E537E28CBF9E9C9450A95C28AA0CA42D3F5E851C826250531F021B4740AC4A2CB1",
           "keyAlias": "callflyerDebug",
-          "keyPassword": "000000180F385981179A95D7C5B2D93E1DE0451667381FD60E815AC705BB9D287C51D63DE89EC692",
+          "keyPassword": "0000001811D0828C6B5E3E2B5E3FBEF0D9E1ED38BD29225E7090FB0076D162573CCB2AF0347F2E7E",
           "signAlg": "SHA256withECDSA",
-          "profile": "/Users/zhaojing/Downloads/callflyerDebugDebug (1).p7b",
-          "certpath": "/Users/zhaojing/Downloads/callflyerDebug.cer"
+          "profile": "/Users/zhaojing/Downloads/callflyer_Harmony/callflyerDebugDebug.p7b",
+          "certpath": "/Users/zhaojing/Downloads/callflyer_Harmony/callflyerDebug.cer"
         }
       },
       {
@@ -19,9 +19,9 @@
         "type": "HarmonyOS",
         "material": {
           "storeFile": "/Users/zhaojing/Downloads/callflyerRealease.p12",
-          "storePassword": "00000018B06D31DFCFAD48C5591E56FB29C4EEB60C4290E5B1E3F0AE3F3E9565D85A97E6A0FD744F",
-          "keyAlias": "callflyerRelease",
-          "keyPassword": "00000018970E437BB05D392817D59FE826D69A7B32F638F7E9515B17DCFF546C48F0BD55ECDA9DBE",
+          "storePassword": "0000001818C297F8E617CEC74EA1919E4A1FF9E9178C8540089F7CA7EECF3CC3EC148F0064859B5A",
+          "keyAlias": "callflyerRealease",
+          "keyPassword": "00000018A65859D66CAC385AF4B7CE3124D9A66F9C1B70DC2C2DCD7E5E407BC33347945679B9E288",
           "signAlg": "SHA256withECDSA",
           "profile": "/Users/zhaojing/Downloads/callflyerRealeaseRelease.p7b",
           "certpath": "/Users/zhaojing/Downloads/callflyerRealease.cer"

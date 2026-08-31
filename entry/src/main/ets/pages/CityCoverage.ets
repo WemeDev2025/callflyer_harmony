@@ -114,6 +114,8 @@ struct CityCoverage {
         .width('100%')
         .height('100%')
         .backgroundColor($r('app.color.page_bg'))
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+        .clip(false)
 
       HdsNavigation() {
         Scroll(this.scroller) {
@@ -298,6 +300,7 @@ struct CityCoverage {
         .align(Alignment.Top)
         .scrollBar(BarState.Off)
         .edgeEffect(EdgeEffect.Spring)
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
       }
       .width('100%')
       .height('100%')

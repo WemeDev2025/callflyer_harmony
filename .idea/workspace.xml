@@ -3,11 +3,17 @@
   <component name="ChangeListManager">
     <list default="true" id="3d039074-0630-4db2-9bde-dfccfe62564d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.hvigor/cache/file-cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/cache/file-cache.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.hvigor/cache/last-build-info.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/cache/last-build-info.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.hvigor/cache/meta.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/cache/meta.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.hvigor/cache/task-cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/cache/task-cache.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.hvigor/outputs/build-logs/build.log" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/outputs/build-logs/build.log" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.hvigor/outputs/logs/details/details.json" beforeDir="false" afterPath="$PROJECT_DIR$/.hvigor/outputs/logs/details/details.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.deveco/module/entry.cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.deveco/module/entry.cache.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.deveco/project.cache.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.deveco/project.cache.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets" beforeDir="false" afterPath="$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build-profile.json5" beforeDir="false" afterPath="$PROJECT_DIR$/build-profile.json5" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/entry/src/main/ets/pages/CityCoverage.ets" beforeDir="false" afterPath="$PROJECT_DIR$/entry/src/main/ets/pages/CityCoverage.ets" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/entry/src/main/ets/pages/ContactLog.ets" beforeDir="false" afterPath="$PROJECT_DIR$/entry/src/main/ets/pages/ContactLog.ets" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,9 +40,9 @@
         <entry key="1276*2848">
           <value>
             <LayoutWinWidthInfo>
-              <option name="attributeWidth" value="321px" />
+              <option name="attributeWidth" value="306px" />
               <option name="deviceResolution" value="1276*2848" />
-              <option name="layoutWidth" value="calc(100% - 541px)" />
+              <option name="layoutWidth" value="calc(100% - 526px)" />
               <option name="treeWidth" value="220px" />
             </LayoutWinWidthInfo>
           </value>
@@ -57,37 +63,55 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "127.0.0.1:5555": "5377255121786792509028",
+    "192.168.1.183:40255": "5374074141783673128842",
+    "192.168.5.3:33881": "5373717631787586541511",
+    "192.168.5.3:45665": "5370080481786945761257",
     "192.168.50.214:34161": "5375584241779632050434",
     "192.168.50.214:34695": "5374359851779594167522",
     "192.168.50.214:35605": "5369803591780236030163",
-    "192.168.50.214:43351": "5378756181780281168079",
+    "192.168.50.214:37263": "5369355741782717320020",
+    "192.168.50.214:40255": "5374932171782879453881",
+    "192.168.50.214:43351": "5378756181780281327421",
+    "192.168.50.214:44017": "5378756181780295388792",
+    "192.168.50.214:44583": "5375637881782820692055",
+    "192.168.50.214:44995": "5378756181780458700587",
+    "192.168.50.230:37131": "5369492141786694716012",
+    "192.168.50.230:38201": "5372838081784098633149",
+    "192.168.50.230:40719": "5372838081784098170819",
     "192.168.71.127:34161": "5375584241779669065717",
     "192.168.71.127:34695": "5369503141779608753852",
     "192.168.71.127:34943": "5369548741779850748464",
     "192.168.71.127:37023": "5370260681779754758834",
+    "192.168.71.127:37989": "5373006641782643742217",
     "192.168.71.127:38201": "5369503141779615166367",
     "192.168.71.127:38361": "5369548741780102957074",
+    "192.168.71.127:38463": "5370485141782641727220",
+    "192.168.71.127:40417": "5377365321780488251427",
     "192.168.71.127:40461": "5374316061780234512803",
     "192.168.71.127:40809": "5369548741779849240741",
     "192.168.71.127:43097": "5369548741780114500089",
     "192.168.71.127:45769": "5369548741780105432383",
+    "192.168.71.127:46089": "5370485141782641939560",
     "192.168.71.127:46271": "5370260681779753529938",
-    "7FC0226226004081": "5376350221780187077119",
+    "192.168.71.87:37131": "5373006581786793153498",
+    "192.168.71.87:45665": "5371094991786939584071",
+    "7FC0226226004081": "5374074141783674129135",
     "Application.entry.executor": "Run",
-    "MODULE_HAP_TIME": "{\"192.168.71.127:40809entry\":\"2026-05-27T02:33:59.494006512Z\",\"192.168.71.127:43097entry\":\"2026-05-30T04:14:57.296886492Z\",\"192.168.50.214:34161entry\":\"2026-05-24T14:14:08.161496118Z\",\"192.168.71.127:34161entry\":\"2026-05-25T00:31:05.456867762Z\",\"7FC0226226004081entry\":\"2026-05-31T00:24:36.355240378Z\",\"192.168.50.214:34695entry\":\"2026-05-24T03:42:45.893971550Z\",\"192.168.71.127:34695entry\":\"2026-05-24T07:45:52.898805794Z\",\"192.168.71.127:38201entry\":\"2026-05-24T09:32:45.422305417Z\",\"192.168.50.214:35605entry\":\"2026-05-31T00:24:36.355240378Z\",\"192.168.71.127:45769entry\":\"2026-05-30T01:43:51.055201363Z\",\"192.168.71.127:40461entry\":\"2026-05-31T00:24:36.355240378Z\",\"192.168.71.127:38361entry\":\"2026-05-30T01:02:35.868057257Z\",\"192.168.50.214:43351entry\":\"2026-06-01T02:32:47.021470667Z\",\"192.168.71.127:46271entry\":\"2026-05-25T23:58:43.556206129Z\",\"192.168.71.127:37023entry\":\"2026-05-26T00:19:17.324463007Z\",\"192.168.71.127:34943entry\":\"2026-05-27T02:59:06.978485292Z\"}",
+    "MODULE_HAP_TIME": "{\"192.168.71.127:40809entry\":\"2026-05-27T02:33:59.494006512Z\",\"192.168.50.214:34161entry\":\"2026-05-24T14:14:08.161496118Z\",\"192.168.71.127:34161entry\":\"2026-05-25T00:31:05.456867762Z\",\"7FC0226226004081entry\":\"2026-07-10T09:02:08.235881590Z\",\"192.168.50.214:44995entry\":\"2026-06-03T03:51:39.330928287Z\",\"192.168.1.183:40255entry\":\"2026-07-10T08:45:27.513268357Z\",\"192.168.71.127:38201entry\":\"2026-05-24T09:32:45.422305417Z\",\"192.168.50.214:35605entry\":\"2026-05-31T00:24:36.355240378Z\",\"192.168.71.127:45769entry\":\"2026-05-30T01:43:51.055201363Z\",\"192.168.50.214:44583entry\":\"2026-06-30T11:58:10.378824521Z\",\"192.168.71.127:46089entry\":\"2026-06-28T10:18:57.634035196Z\",\"192.168.71.127:40461entry\":\"2026-05-31T00:24:36.355240378Z\",\"192.168.50.230:37131entry\":\"2026-08-14T08:04:20.501426247Z\",\"192.168.71.127:38361entry\":\"2026-05-30T01:02:35.868057257Z\",\"192.168.50.214:44017entry\":\"2026-06-01T06:29:47.295432983Z\",\"192.168.71.87:45665entry\":\"2026-08-17T03:51:28.699207651Z\",\"192.168.71.127:46271entry\":\"2026-05-25T23:58:43.556206129Z\",\"192.168.71.127:37023entry\":\"2026-05-26T00:19:17.324463007Z\",\"192.168.71.127:34943entry\":\"2026-05-27T02:59:06.978485292Z\",\"192.168.71.87:37131entry\":\"2026-08-15T11:25:36.460708735Z\",\"192.168.71.127:43097entry\":\"2026-05-30T04:14:57.296886492Z\",\"192.168.5.3:33881entry\":\"2026-08-24T15:48:59.233927127Z\",\"192.168.50.230:40719entry\":\"2026-07-15T06:49:30.127899027Z\",\"192.168.5.3:45665entry\":\"2026-08-17T05:49:04.181206081Z\",\"192.168.50.214:34695entry\":\"2026-05-24T03:42:45.893971550Z\",\"192.168.71.127:34695entry\":\"2026-05-24T07:45:52.898805794Z\",\"127.0.0.1:5555entry\":\"2026-08-15T11:15:07.693744502Z\",\"192.168.50.230:38201entry\":\"2026-07-15T06:57:10.814163831Z\",\"192.168.71.127:40417entry\":\"2026-06-03T12:04:09.974537016Z\",\"192.168.71.127:38463entry\":\"2026-06-28T10:15:24.635462229Z\",\"192.168.71.127:37989entry\":\"2026-06-28T10:46:41.563217947Z\",\"192.168.50.214:43351entry\":\"2026-06-01T02:35:26.463248982Z\",\"192.168.50.214:37263entry\":\"2026-06-29T07:15:02.081164545Z\",\"192.168.50.214:40255entry\":\"2026-06-30T11:58:10.378824521Z\"}",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "ace.nodejs.version": "18.20.1",
-    "auto_debug_bundleName": "000000217FDFF85706DB5007CBC372251F8FDBE60A202C45109ACB9A4D49873C674E35111A1290D52EFAA0E75CD487DFBD",
-    "auto_debug_cert_list": "00000023F38AC542EA1A25DF8E9573DE9894AB6E8017D4CDAA157D37CCECE63E5F4F4F682A9DF8915EA65E1192EAE8D8272B17",
-    "auto_debug_device_list": "000000372C111309CD4BA40B8AE5D039AD0F512B7AE7F258474F03ED84C91BE67F0F3B2DD763455011534646564DE4FD17D4B4040B326FB40BD5368D9D8F734593539DCE390C9C",
-    "auto_debug_package_name": "000000219EEA25946A45FFBC8F61D07C7DE9F7E6E3AEEB148EC98CC5F4A71DD3B8D62062C304213D8E255321E9BCCD3B71",
-    "auto_debug_team_id": "000000229DDA593F42D1AD1C584204B06D50D4AE6D685BB880797DF138A80ACB78A34EA2BA45B8AD93663CE1356CEAB41A1F",
+    "auto_debug_bundleName": "000000215678750B28AB9C6C9665ABC4044B1D434D2DEBA84E0AF029850B77477373E0E3558E345B3A35B00040647CBF91",
+    "auto_debug_cert_list": "00000023442A2CDCD9C74737F99EE58EA04768E19D1E2E0B32B80B9D12DD5A4CA4A6818E2A2D6564CE68CDD32553578C810792",
+    "auto_debug_device_list": "00000073C3AABBA5AD9863CD4D2BE5EF8BEB0AD2B5E98E63E61E4119754944FCD11B731F05BAB0688AF1558CC7040ACB927A31AEA4F7AA1EE30507F41F4CED636CBEBC162DA3AA6C47C73C926E3DE732EC81BD4DF9FCA838E2E65795A04719B2118F75E0AACAE015740B6D9A4BBE2E62750ADBE37E5C98D61A0ACAD3C0022B724DBED6",
+    "auto_debug_package_name": "000000216B6D655EFC7DF4E0F47E4AEC86AC471CBB7FC624E2D1FC0ED3164BF9DF82319AFC3450161D70DA49F2409E2C53",
+    "auto_debug_team_id": "000000221B70FED4424DA6C727A0A991A0FCFED96F3651054EDD75ED8A3C0ED58C448713E2E7DEC8219B062769F249BC54C8",
     "git-widget-placeholder": "main",
-    "last_csr_path": "/Users/zhaojing/Downloads/callflyerDebug.csr",
-    "last_keystore_path": "/Users/zhaojing/Downloads/callflyerDebug.p12",
+    "last_csr_path": "/Users/zhaojing/Downloads/callflyer_Harmony/callflyerDebug.csr",
+    "last_keystore_path": "/Users/zhaojing/Downloads/callflyer_Harmony/callflyerDebug.p12",
     "last_opened_file_path": "/Users/zhaojing/Downloads/callflyer_Harmony",
-    "projectSizeLastTraceTimestamp-aca87fc6556eb6ad0a70881b49469c3730cd6471bf33d3c27abb3c426339": "1779641620780",
+    "projectSizeLastTraceTimestamp-aca87fc6556eb6ad0a70881b49469c3730cd6471bf33d3c27abb3c426339": "1787640764014",
     "resolution": "1080*2340",
     "settings.editor.selected.configurable": "com.huawei.deveco.sdkmanager.ohos.idea.ui.OhSdkConfigProvider",
     "shape": "phone"
@@ -131,15 +155,29 @@
         <option name="Build.Hvigor.HotReloadBeforeRunTask" enabled="true" />
       </method>
     </configuration>
+    <configuration name="callflyer_Harmony [assembleApp]" type="HvigorRunConfiguration" factoryName="HvigorRunConfiguration" temporary="true">
+      <option name="applicationParameters" value="--mode project -p product=release -p buildVersion=2 -p buildMode=release assembleApp --analyze=normal --parallel --incremental" />
+      <option name="nodeInterpreter" value="$APPLICATION_HOME_DIR$/tools/node/bin" />
+      <option name="scriptFile" value="$APPLICATION_HOME_DIR$/tools/hvigor/bin/hvigorw.js" />
+      <option name="workingDir" value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="callflyer_Harmony [assembleHap]" type="HvigorRunConfiguration" factoryName="HvigorRunConfiguration" temporary="true">
+      <option name="applicationParameters" value="--mode module -p product=release -p buildMode=release assembleHap --analyze=normal --parallel --incremental" />
+      <option name="nodeInterpreter" value="$APPLICATION_HOME_DIR$/tools/node/bin" />
+      <option name="scriptFile" value="$APPLICATION_HOME_DIR$/tools/hvigor/bin/hvigorw.js" />
+      <option name="workingDir" value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
     <configuration name="callflyer_Harmony [clean]" type="HvigorRunConfiguration" factoryName="HvigorRunConfiguration" temporary="true">
-      <option name="applicationParameters" value=" -p product=default clean --analyze=normal --parallel --incremental" />
+      <option name="applicationParameters" value=" -p product=release clean --analyze=normal --parallel --incremental" />
       <option name="nodeInterpreter" value="$APPLICATION_HOME_DIR$/tools/node/bin" />
       <option name="scriptFile" value="$APPLICATION_HOME_DIR$/tools/hvigor/bin/hvigorw.js" />
       <option name="workingDir" value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
     <configuration name="callflyer_Harmony [clean,assembleHap]" type="HvigorRunConfiguration" factoryName="HvigorRunConfiguration" temporary="true">
-      <option name="applicationParameters" value="clean --mode module -p product=default -p buildMode=debug assembleHap --analyze=normal --parallel --incremental" />
+      <option name="applicationParameters" value="clean --mode module -p product=release -p buildMode=release assembleHap --analyze=normal --parallel --incremental" />
       <option name="nodeInterpreter" value="$APPLICATION_HOME_DIR$/tools/node/bin" />
       <option name="scriptFile" value="$APPLICATION_HOME_DIR$/tools/hvigor/bin/hvigorw.js" />
       <option name="workingDir" value="$PROJECT_DIR$" />
@@ -216,16 +254,18 @@
       <item itemvalue="Application.entry" />
       <item itemvalue="Application.Unnamed" />
       <item itemvalue="Hot Reload.entry" />
+      <item itemvalue="Hvigor.callflyer_Harmony [assembleHap]" />
+      <item itemvalue="Hvigor.callflyer_Harmony [assembleApp]" />
       <item itemvalue="Hvigor.callflyer_Harmony [clean,assembleHap]" />
       <item itemvalue="Hvigor.callflyer_Harmony [clean]" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Hvigor.callflyer_Harmony [assembleApp]" />
+        <item itemvalue="Hvigor.callflyer_Harmony [assembleApp]" />
+        <item itemvalue="Hvigor.callflyer_Harmony [assembleHap]" />
         <item itemvalue="Hvigor.callflyer_Harmony [clean,assembleHap]" />
-        <item itemvalue="Hvigor.callflyer_Harmony [clean]" />
         <item itemvalue="Hvigor.callflyer_Harmony [clean,assembleHap]" />
-        <item itemvalue="Hvigor.callflyer_Harmony [clean]" />
-        <item itemvalue="Hvigor.callflyer_Harmony [clean]" />
       </list>
     </recent_temporary>
   </component>
@@ -235,12 +275,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Index.ets</url>
-          <line>1513</line>
+          <line>1886</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Index.ets</url>
-          <line>1110</line>
+          <line>1252</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
@@ -250,33 +290,68 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/ContactLog.ets</url>
-          <line>166</line>
+          <line>168</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Profile.ets</url>
-          <line>653</line>
+          <line>670</line>
           <option name="timeStamp" value="6" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Profile.ets</url>
-          <line>436</line>
+          <line>446</line>
           <option name="timeStamp" value="7" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Index.ets</url>
-          <line>1916</line>
+          <line>2397</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Standby.ets</url>
-          <line>1145</line>
+          <line>1320</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="JavaScript">
           <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Standby.ets</url>
-          <line>1115</line>
+          <line>1289</line>
           <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="JavaScript">
+          <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/Index.ets</url>
+          <line>2722</line>
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="JavaScript">
+          <url>file://$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets</url>
+          <line>742</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="JavaScript">
+          <url>file://$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets</url>
+          <line>751</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="JavaScript">
+          <url>file://$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets</url>
+          <line>741</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="JavaScript">
+          <url>file://$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets</url>
+          <line>840</line>
+          <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="JavaScript">
+          <url>file://$PROJECT_DIR$/entry/src/main/ets/components/PilotCard.ets</url>
+          <line>890</line>
+          <option name="timeStamp" value="19" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="JavaScript">
+          <url>file://$PROJECT_DIR$/entry/src/main/ets/pages/PublishTask.ets</url>
+          <line>659</line>
+          <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
