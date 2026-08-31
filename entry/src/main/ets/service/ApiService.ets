@@ -51,6 +51,9 @@ interface RawConfig {
   adClickPage?: string;
   adClickUrl?: string;
   adClickMiniprogram?: string;
+  // 鸿蒙开屏广告图
+  harmonyAdImageUrl?: string;
+  showHarmonyAdImage?: boolean;
 }
 
 interface RawRewardAdConfig {
@@ -247,7 +250,10 @@ export async function fetchConfig(): Promise<ConfigResult> {
               adClickType: response.adClickType,
               adClickPage: response.adClickPage,
               adClickUrl: response.adClickUrl,
-              adClickMiniprogram: response.adClickMiniprogram
+              adClickMiniprogram: response.adClickMiniprogram,
+              // 鸿蒙开屏广告图
+              harmonyAdImageUrl: response.harmonyAdImageUrl,
+              showHarmonyAdImage: response.showHarmonyAdImage
             });
           } catch (parseErr) {
             reject(parseErr);

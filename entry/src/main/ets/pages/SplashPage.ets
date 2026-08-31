@@ -44,9 +44,13 @@ struct SplashPage {
   private async loadAdConfig(): Promise<void> {
     try {
       const config = await fetchConfig();
+      console.info('【开屏页】fetchConfig result:', JSON.stringify(config));
+      console.info('【开屏页】showHarmonyAdImage:', config.showHarmonyAdImage);
+      console.info('【开屏页】harmonyAdImageUrl:', config.harmonyAdImageUrl);
       // 如果后端配置了鸿蒙开屏广告图且启用，则使用后端图片
       if (config.showHarmonyAdImage && config.harmonyAdImageUrl) {
         this.adImageUrl = config.harmonyAdImageUrl;
+        console.info('【开屏页】使用后端广告图:', this.adImageUrl);
       }
     } catch (e) {
       console.error('【开屏页】加载配置失败:', JSON.stringify(e));
