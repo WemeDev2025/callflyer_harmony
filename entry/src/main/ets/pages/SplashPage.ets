@@ -15,6 +15,9 @@ struct SplashPage {
   @State isShowSplash: boolean = true;
   @State adImageUrl: string = '';
   @State imageOpacity: number = 0; // 图片淡入动画
+  @State harmonyAdClickType: string = 'none';
+  @State harmonyAdClickPage: string = '';
+  @State harmonyAdClickUrl: string = '';
   private countdownTimer: number = -1;
 
   aboutToAppear(): void {
@@ -35,7 +38,11 @@ struct SplashPage {
       console.info('【开屏页】harmonyAdImageUrl:', config.harmonyAdImageUrl);
       if (config.showHarmonyAdImage && config.harmonyAdImageUrl) {
         this.adImageUrl = config.harmonyAdImageUrl;
+        this.harmonyAdClickType = config.harmonyAdClickType || 'none';
+        this.harmonyAdClickPage = config.harmonyAdClickPage || '';
+        this.harmonyAdClickUrl = config.harmonyAdClickUrl || '';
         console.info('【开屏页】使用后端广告图:', this.adImageUrl);
+        console.info('【开屏页】点击类型:', this.harmonyAdClickType, '页面:', this.harmonyAdClickPage, '链接:', this.harmonyAdClickUrl);
       }
     } catch (e) {
       console.error('【开屏页】加载配置失败:', JSON.stringify(e));
@@ -87,6 +94,23 @@ struct SplashPage {
     }, 300);
   }
 
+  private handleAdClick(): void {
+    const clickType = this.harmonyAdClickType;
+    if (clickType === 'none') {
+      return;
+    }
+    this.stopCountdown();
+    if (clickType === 'page' && this.harmonyAdClickPage) {
+      router.pushUrl({ url: this.harmonyAdClickPage });
+    } else if (clickType === 'url' && this.harmonyAdClickUrl) {
+      // 先跳首页（替换开屏页），再打开 WebView
+      this.goToHome();
+      setTimeout(() => {
+        router.pushUrl({ url: 'pages/WebView', params: { url: this.harmonyAdClickUrl, title: '网页' } });
+      }, 350);
+    }
+  }
+
   build() {
     Stack({ alignContent: Alignment.BottomEnd }) {
       // 底层：背景图片（淡入动画）
@@ -97,7 +121,10 @@ struct SplashPage {
           .objectFit(ImageFit.Cover)
           .opacity(this.imageOpacity)
           .animation({ duration: 600, curve: Curve.EaseOut })
-          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM]);
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+          .onClick(() => {
+            this.handleAdClick();
+          });
       } else {
         Image($r('app.media.icon_startwindow'))
           .width('100%')
@@ -105,7 +132,10 @@ struct SplashPage {
           .objectFit(ImageFit.Cover)
           .opacity(this.imageOpacity)
           .animation({ duration: 600, curve: Curve.EaseOut })
-          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM]);
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+          .onClick(() => {
+            this.handleAdClick();
+          });
       }
 
       // 跳过按钮（右下角）

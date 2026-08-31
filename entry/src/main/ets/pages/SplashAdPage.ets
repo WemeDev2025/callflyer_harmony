@@ -1,8 +1,10 @@
 import window from '@ohos.window';
+import router from '@ohos.router';
 
 // AppStorage keys（与 Index.ets 保持一致）
 const AD_IMAGE_URL_KEY = 'splashAdImageUrl';
 const AD_CLICK_TYPE_KEY = 'splashAdClickType';
+const AD_CLICK_PAGE_KEY = 'splashAdClickPage';
 const AD_CLICK_URL_KEY = 'splashAdClickUrl';
 
 const AD_DISPLAY_DURATION = 5000; // 广告最长展示时长（ms）
@@ -13,6 +15,9 @@ struct SplashAdPage {
   @State adImageUrl: string = '';
   @State adImageOpacity: number = 0;
   @State countdown: number = 5; // 倒计时秒数
+  @State adClickType: string = 'none';
+  @State adClickPage: string = '';
+  @State adClickUrl: string = '';
   private displayTimer: number = -1;
   private countdownTimer: number = -1;
   private startTime: number = 0;
@@ -20,6 +25,10 @@ struct SplashAdPage {
   aboutToAppear() {
     // 从 AppStorage 读取广告参数
     this.adImageUrl = AppStorage.get<string>(AD_IMAGE_URL_KEY) ?? '';
+    this.adClickType = AppStorage.get<string>(AD_CLICK_TYPE_KEY) ?? 'none';
+    this.adClickPage = AppStorage.get<string>(AD_CLICK_PAGE_KEY) ?? '';
+    this.adClickUrl = AppStorage.get<string>(AD_CLICK_URL_KEY) ?? '';
+    console.info('【开屏广告】SplashAdPage 数据: imageUrl=' + this.adImageUrl + ', clickType=' + this.adClickType + ', clickPage=' + this.adClickPage + ', clickUrl=' + this.adClickUrl);
 
     // 启动倒计时
     this.startTime = Date.now();
@@ -70,6 +79,31 @@ struct SplashAdPage {
     }
   }
 
+  // 处理广告点击事件，对齐后端点击行为
+  private handleAdClick(): void {
+    const clickType = this.adClickType;
+    console.info('【开屏广告】点击广告, clickType=' + clickType);
+    if (clickType === 'none') {
+      return;
+    }
+    this.clearTimers();
+    if (clickType === 'page' && this.adClickPage) {
+      // 跳转内部页面
+      console.info('【开屏广告】跳转页面:', this.adClickPage);
+      this.closeAd();
+      setTimeout(() => {
+        router.pushUrl({ url: this.adClickPage });
+      }, 50);
+    } else if (clickType === 'url' && this.adClickUrl) {
+      // 跳转外部链接：先关广告窗口，再在主页导航栈上打开 WebView
+      console.info('【开屏广告】跳转链接:', this.adClickUrl);
+      this.closeAd();
+      setTimeout(() => {
+        router.pushUrl({ url: 'pages/WebView', params: { url: this.adClickUrl, title: '网页' } });
+      }, 100);
+    }
+  }
+
   build() {
     // 根节点撑满整个窗口（子窗口已经是全屏，无需 expandSafeArea）
     Stack({ alignContent: Alignment.TopEnd }) {
@@ -92,9 +126,7 @@ struct SplashAdPage {
         .width('100%')
         .height('100%')
         .onClick(() => {
-          // 点击广告图关闭（可按需扩展跳转逻辑）
-          this.clearTimers();
-          this.closeAd();
+          this.handleAdClick();
         })
       }
 

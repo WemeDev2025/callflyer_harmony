@@ -76,6 +76,12 @@ const KEY_REWARD_STATUS = 'reward_ad_status';
 // 协议确认存储键
 const KEY_AGREEMENT_ACCEPTED = 'callflyer_agreement_accepted';
 
+// 开屏广告 AppStorage keys（与 SplashAdPage.ets 保持一致）
+const AD_IMAGE_URL_KEY = 'splashAdImageUrl';
+const AD_CLICK_TYPE_KEY = 'splashAdClickType';
+const AD_CLICK_PAGE_KEY = 'splashAdClickPage';
+const AD_CLICK_URL_KEY = 'splashAdClickUrl';
+
 class RewardAdStatusHandler {
   private subscriber: commonEventManager.CommonEventSubscriber | null = null;
   onRewardGranted: (() => void) | null = null;
@@ -444,6 +450,7 @@ struct Index {
   // 广告数据
   adImageUrl: string = '';
   adClickType: string = '';
+  adClickPage: string = '';
   adClickUrl: string = '';
   // 广告回调
   onSplashAdSkipCallback: () => void = () => {};
@@ -1165,15 +1172,22 @@ struct Index {
       this.rewardTitle = config.rewardTitle || '呼叫飞手';
       this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
       this.rewardButtonText = config.rewardButtonText || '观看解锁';
-      // 获取开屏广告数据
-      // TODO: 正式环境使用 config.adImageUrl
-      // 测试用硬编码 URL
-      const testAdImageUrl = 'https://minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com/ccv2%2F2026-08-31%2FMiniMax-M2.7-highspeed%2F2056041922304156137%2F14752207e3e60a2e3001b3afb04c249073864fb634ad7981b33b0718461e4824..png?Expires=1788247016&OSSAccessKeyId=LTAI5tGLnRTkBjLuYPjNcKQ8&Signature=6w%2FlJUEtas6bt1%2FAqQQbuNpq7BQ%3D';
-      if (testAdImageUrl) {
-        this.adImageUrl = testAdImageUrl;
-        this.adClickType = '';
-        this.adClickUrl = '';
-        console.info('【开屏广告】获取到广告数据 adImageUrl=' + this.adImageUrl);
+      // 获取鸿蒙开屏广告数据（与 SplashPage.ets 保持一致，使用 harmonyAd* 字段）
+      const adImageUrl = config.harmonyAdImageUrl || '';
+      const adClickType = config.harmonyAdClickType || 'none';
+      const adClickPage = config.harmonyAdClickPage || '';
+      const adClickUrl = config.harmonyAdClickUrl || '';
+      if (adImageUrl) {
+        // 写入 AppStorage，供 SplashAdPage 读取
+        AppStorage.set<string>(AD_IMAGE_URL_KEY, adImageUrl);
+        AppStorage.set<string>(AD_CLICK_TYPE_KEY, adClickType);
+        AppStorage.set<string>(AD_CLICK_PAGE_KEY, adClickPage);
+        AppStorage.set<string>(AD_CLICK_URL_KEY, adClickUrl);
+        this.adImageUrl = adImageUrl;
+        this.adClickType = adClickType;
+        this.adClickPage = adClickPage;
+        this.adClickUrl = adClickUrl;
+        console.info('【开屏广告】获取到广告数据 adImageUrl=' + adImageUrl + ', adClickType=' + adClickType + ', adClickUrl=' + adClickUrl);
         // 协议已同意 且 广告未被开屏页展示过，才显示广告弹窗
         const agreed = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
         const adShownBySplash = AppStorage.get<boolean>('splash_ad_shown') ?? false;
@@ -4054,10 +4068,41 @@ struct Index {
 
     // 开屏广告蒙层（用 opacity 控制显隐）
     Stack() {
+      // 底层：广告图
+      if (this.adImageUrl) {
+        Image(this.adImageUrl)
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
+          .onClick(() => {
+            // 对齐后端点击行为
+            const clickType = this.adClickType;
+            if (clickType === 'none') {
+              return;
+            }
+            this.showSplashMask = false;
+            if (clickType === 'page' && this.adClickPage) {
+              router.pushUrl({ url: this.adClickPage });
+            } else if (clickType === 'url' && this.adClickUrl) {
+              router.pushUrl({ url: 'pages/WebView', params: { url: this.adClickUrl, title: '网页' } });
+            }
+            this.loadPilots();
+            this.loadOrders();
+            this.loadStandby();
+            this.loadRewardSlotStatus();
+          })
+      } else {
+        Column()
+          .width('100%')
+          .height('100%')
+          .backgroundColor('rgba(0, 0, 0, 0.6)')
+      }
+
+      // 半透明黑色蒙层（点击背景区域关闭广告，不跳转）
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('rgba(0, 0, 0, 0.6)')
+        .backgroundColor('rgba(0, 0, 0, 0.3)')
         .onClick(() => {
           this.showSplashMask = false;
           this.loadPilots();

@@ -54,6 +54,9 @@ interface RawConfig {
   // 鸿蒙开屏广告图
   harmonyAdImageUrl?: string;
   showHarmonyAdImage?: boolean;
+  harmonyAdClickType?: string;
+  harmonyAdClickPage?: string;
+  harmonyAdClickUrl?: string;
 }
 
 interface RawRewardAdConfig {
@@ -178,6 +181,9 @@ export interface ConfigResult {
   // 鸿蒙开屏广告图
   harmonyAdImageUrl?: string;
   showHarmonyAdImage?: boolean;
+  harmonyAdClickType?: string;
+  harmonyAdClickPage?: string;
+  harmonyAdClickUrl?: string;
 }
 
 export interface CarouselItem {
@@ -253,7 +259,10 @@ export async function fetchConfig(): Promise<ConfigResult> {
               adClickMiniprogram: response.adClickMiniprogram,
               // 鸿蒙开屏广告图
               harmonyAdImageUrl: response.harmonyAdImageUrl,
-              showHarmonyAdImage: response.showHarmonyAdImage
+              showHarmonyAdImage: response.showHarmonyAdImage,
+              harmonyAdClickType: response.harmonyAdClickType,
+              harmonyAdClickPage: response.harmonyAdClickPage,
+              harmonyAdClickUrl: response.harmonyAdClickUrl
             });
           } catch (parseErr) {
             reject(parseErr);
