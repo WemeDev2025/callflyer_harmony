@@ -172,6 +172,9 @@ export interface ConfigResult {
   adClickPage?: string;
   adClickUrl?: string;
   adClickMiniprogram?: string;
+  // 鸿蒙开屏广告图
+  harmonyAdImageUrl?: string;
+  showHarmonyAdImage?: boolean;
 }
 
 export interface CarouselItem {

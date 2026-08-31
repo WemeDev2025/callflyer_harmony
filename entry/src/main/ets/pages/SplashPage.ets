@@ -1,4 +1,5 @@
 import router from '@ohos.router';
+import { fetchConfig } from '../service/ApiService';
 
 /**
  * 开屏页 - Stack 方案
@@ -6,10 +7,10 @@ import router from '@ohos.router';
  *
  * 图层结构：
  * Stack
- * ├── 背景图片（全屏，延伸至安全区域）
+ * ├── 背景图片（全屏，延伸至安全区域，支持网络图片）
  * ├── 蒙层遮罩（半透明黑色渐变）
  * ├── 品牌 Logo + 标语
- * └── 跳过按钮（右上角）
+ * └── 跳过按钮（右下角）
  */
 
 const COUNTDOWN_SECONDS = 5; // 倒计时秒数
@@ -21,9 +22,12 @@ struct SplashPage {
   @State logoOpacity: number = 0; // Logo 透明度（动画驱动）
   @State countdown: number = COUNTDOWN_SECONDS;
   @State isShowSplash: boolean = true; // 控制开屏显隐（退出动画用）
+  @State adImageUrl: string = ''; // 后端返回的广告图 URL
   private countdownTimer: number = -1;
 
   aboutToAppear(): void {
+    // 加载后端配置
+    this.loadAdConfig();
     // 启动开屏动画
     this.startEntranceAnimation();
     // 启动倒计时
@@ -32,6 +36,21 @@ struct SplashPage {
 
   aboutToDisappear(): void {
     this.stopCountdown();
+  }
+
+  /**
+   * 加载后端开屏广告配置
+   */
+  private async loadAdConfig(): Promise<void> {
+    try {
+      const config = await fetchConfig();
+      // 如果后端配置了鸿蒙开屏广告图且启用，则使用后端图片
+      if (config.showHarmonyAdImage && config.harmonyAdImageUrl) {
+        this.adImageUrl = config.harmonyAdImageUrl;
+      }
+    } catch (e) {
+      console.error('【开屏页】加载配置失败:', JSON.stringify(e));
+    }
   }
 
   /**
@@ -110,11 +129,21 @@ struct SplashPage {
   build() {
     Stack({ alignContent: Alignment.BottomEnd }) {
       // ========== 底层：背景图片（延伸至安全区域） ==========
-      Image($r('app.media.icon_startwindow'))
-        .width('100%')
-        .height('100%')
-        .objectFit(ImageFit.Cover)
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      if (this.adImageUrl) {
+        // 后端配置了广告图，使用网络图片
+        Image(this.adImageUrl)
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      } else {
+        // 使用本地启动图
+        Image($r('app.media.icon_startwindow'))
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
+          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
+      }
 
       // ========== 上层：蒙层 + 内容 ==========
       if (this.isShowSplash) {
