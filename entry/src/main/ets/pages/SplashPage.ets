@@ -101,9 +101,13 @@ struct SplashPage {
     }
     this.stopCountdown();
     if (clickType === 'page' && this.harmonyAdClickPage) {
-      router.pushUrl({ url: this.harmonyAdClickPage });
+      // 先替换掉开屏页，再跳转目标页面，避免 back 回来看见开屏图
+      this.goToHome();
+      setTimeout(() => {
+        router.pushUrl({ url: this.harmonyAdClickPage });
+      }, 350);
     } else if (clickType === 'url' && this.harmonyAdClickUrl) {
-      // 先跳首页（替换开屏页），再打开 WebView
+      // 先替换掉开屏页，再打开 WebView
       this.goToHome();
       setTimeout(() => {
         router.pushUrl({ url: 'pages/WebView', params: { url: this.harmonyAdClickUrl, title: '网页' } });
