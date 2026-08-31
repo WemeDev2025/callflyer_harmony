@@ -1,72 +1,74 @@
 import router from '@ohos.router';
 import { fetchConfig } from '../service/ApiService';
+import dataPreferences from '@ohos.data.preferences';
+import window from '@ohos.window';
+
+// Preferences / AppStorage 键名（与 EntryAbility 保持一致）
+const PREFS_NAME = 'callflyer_prefs';
+const KEY_FIRST_LAUNCH_DONE = 'first_launch_done';
+const KEY_SHOW_HARMONY_AD = 'show_harmony_ad';
+const KEY_AD_IMAGE_URL = 'harmony_ad_image_url';
+const KEY_AD_CLICK_TYPE = 'harmony_ad_click_type';
+const KEY_AD_CLICK_PAGE = 'harmony_ad_click_page';
+const KEY_AD_CLICK_URL = 'harmony_ad_click_url';
 
 /**
- * 开屏页
- * 结构：图片（全屏，淡入动画）+ 跳过按钮（右下角）
+ * 开屏广告页
+ *
+ * 新逻辑：
+ *   1. 从 AppStorage 读取上次缓存的广告图参数，立即展示（无需等待网络）。
+ *   2. 后台异步拉取最新配置，仅将结果写入 Preferences / AppStorage 缓存，
+ *      供"下次启动"使用——本次展示内容不受影响。
+ *   3. 首次安装时 EntryAbility 不会路由到此页，故此页无需处理"无缓存"情况。
  */
-
-const COUNTDOWN_SECONDS = 5;
-
 @Entry
 @Component
 struct SplashPage {
-  @State countdown: number = COUNTDOWN_SECONDS;
-  @State isShowSplash: boolean = true;
+  @State countdown: number = 5;
+  @State adImageOpacity: number = 0;
   @State adImageUrl: string = '';
-  @State imageOpacity: number = 0; // 图片淡入动画
-  @State harmonyAdClickType: string = 'none';
-  @State harmonyAdClickPage: string = '';
-  @State harmonyAdClickUrl: string = '';
+  @State adClickType: string = 'none';
+  @State adClickPage: string = '';
+  @State adClickUrl: string = '';
   private countdownTimer: number = -1;
 
   aboutToAppear(): void {
-    this.loadAdConfig().then(() => {
-      this.startCountdown();
-    });
+    // 0. 确保窗口全屏（状态栏 + 导航栏都被内容覆盖）
+    window.getLastWindow(getContext(this)).then((win) => {
+      win.setWindowLayoutFullScreen(true);
+    }).catch(() => {});
+
+    // 1. 从缓存立即读取广告图参数
+    this.adImageUrl = AppStorage.get<string>(KEY_AD_IMAGE_URL) ?? '';
+    this.adClickType = AppStorage.get<string>(KEY_AD_CLICK_TYPE) ?? 'none';
+    this.adClickPage = AppStorage.get<string>(KEY_AD_CLICK_PAGE) ?? '';
+    this.adClickUrl = AppStorage.get<string>(KEY_AD_CLICK_URL) ?? '';
+    console.info('【开屏页】从缓存读取广告图: url=' + this.adImageUrl + ' clickType=' + this.adClickType);
+
+    // 2. 广告图淡入
+    setTimeout(() => {
+      animateToImmediately({ duration: 400, curve: Curve.EaseOut }, () => {
+        this.adImageOpacity = 1;
+      });
+    }, 100);
+
+    // 3. 启动倒计时
+    this.startCountdown();
+
+    // 4. 后台静默拉取最新配置，只写缓存，不影响本次展示
+    this.refreshConfigCache();
   }
 
   aboutToDisappear(): void {
     this.stopCountdown();
   }
 
-  private async loadAdConfig(): Promise<void> {
-    try {
-      const config = await fetchConfig();
-      console.info('【开屏页】fetchConfig result:', JSON.stringify(config));
-      console.info('【开屏页】showHarmonyAdImage:', config.showHarmonyAdImage);
-      console.info('【开屏页】harmonyAdImageUrl:', config.harmonyAdImageUrl);
-      if (config.showHarmonyAdImage && config.harmonyAdImageUrl) {
-        this.adImageUrl = config.harmonyAdImageUrl;
-        this.harmonyAdClickType = config.harmonyAdClickType || 'none';
-        this.harmonyAdClickPage = config.harmonyAdClickPage || '';
-        this.harmonyAdClickUrl = config.harmonyAdClickUrl || '';
-        console.info('【开屏页】使用后端广告图:', this.adImageUrl);
-        console.info('【开屏页】点击类型:', this.harmonyAdClickType, '页面:', this.harmonyAdClickPage, '链接:', this.harmonyAdClickUrl);
-      } else {
-        // 广告未启用，直接跳转到首页
-        console.info('【开屏页】广告未启用或无图片，直接跳首页');
-        this.goToHome();
-      }
-    } catch (e) {
-      console.error('【开屏页】加载配置失败:', JSON.stringify(e));
-    }
-  }
+  // ─── 倒计时 ──────────────────────────────────────────────────────────────────
 
   private startCountdown(): void {
-    // 延迟淡入动画
-    setTimeout(() => {
-      animateToImmediately({
-        duration: 600,
-        curve: Curve.EaseOut
-      }, () => {
-        this.imageOpacity = 1;
-      });
-    }, 100);
-
-    this.countdown = COUNTDOWN_SECONDS;
+    this.countdown = 5;
     this.countdownTimer = setInterval(() => {
-      this.countdown--;
+      this.countdown -= 1;
       if (this.countdown <= 0) {
         this.stopCountdown();
         this.goToHome();
@@ -81,103 +83,121 @@ struct SplashPage {
     }
   }
 
+  // ─── 后台刷新缓存（本次展示不受影响）────────────────────────────────────────
+
+  private async refreshConfigCache(): Promise<void> {
+    try {
+      const config = await fetchConfig();
+      const showAd = config.showHarmonyAdImage ?? false;
+      const imageUrl = config.harmonyAdImageUrl ?? '';
+      const clickType = config.harmonyAdClickType ?? 'none';
+      const clickPage = config.harmonyAdClickPage ?? '';
+      const clickUrl = config.harmonyAdClickUrl ?? '';
+
+      console.info('【开屏页】后台刷新配置缓存: show=' + String(showAd) + ' url=' + imageUrl);
+
+      // 更新 AppStorage（供下次启动 EntryAbility 读取路由决策用）
+      AppStorage.setOrCreate<boolean>(KEY_SHOW_HARMONY_AD, showAd);
+      AppStorage.setOrCreate<string>(KEY_AD_IMAGE_URL, imageUrl);
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_TYPE, clickType);
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_PAGE, clickPage);
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_URL, clickUrl);
+
+      // 持久化到 Preferences
+      const prefs = dataPreferences.getPreferencesSync(getContext(this), { name: PREFS_NAME });
+      prefs.putSync(KEY_SHOW_HARMONY_AD, showAd);
+      prefs.putSync(KEY_AD_IMAGE_URL, imageUrl);
+      prefs.putSync(KEY_AD_CLICK_TYPE, clickType);
+      prefs.putSync(KEY_AD_CLICK_PAGE, clickPage);
+      prefs.putSync(KEY_AD_CLICK_URL, clickUrl);
+      prefs.flushSync();
+    } catch (e) {
+      // 网络失败：缓存保持原值，下次启动依然使用旧缓存，静默处理
+      console.warn('【开屏页】后台刷新配置失败（缓存保持不变）:', JSON.stringify(e));
+    }
+  }
+
+  // ─── 路由跳转 ────────────────────────────────────────────────────────────────
+
   private goToHome(): void {
     this.stopCountdown();
-    AppStorage.setOrCreate<boolean>('splash_ad_shown', true);
-
-    // 淡出动画
-    animateToImmediately({
-      duration: 300,
-      curve: Curve.Friction
-    }, () => {
-      this.imageOpacity = 0;
-    });
-
-    setTimeout(() => {
-      router.replaceUrl({ url: 'pages/Index' });
-    }, 300);
+    router.replaceUrl({ url: 'pages/Index' });
   }
 
   private handleAdClick(): void {
-    const clickType = this.harmonyAdClickType;
-    if (clickType === 'none') {
+    if (this.adClickType === 'none') {
       return;
     }
     this.stopCountdown();
-    if (clickType === 'page' && this.harmonyAdClickPage) {
-      // 先替换掉开屏页，再跳转目标页面，避免 back 回来看见开屏图
+    if (this.adClickType === 'page' && this.adClickPage) {
       this.goToHome();
       setTimeout(() => {
-        router.pushUrl({ url: this.harmonyAdClickPage });
-      }, 350);
-    } else if (clickType === 'url' && this.harmonyAdClickUrl) {
-      // 先替换掉开屏页，再打开 WebView
+        router.pushUrl({ url: this.adClickPage });
+      }, 50);
+    } else if (this.adClickType === 'url' && this.adClickUrl) {
       this.goToHome();
       setTimeout(() => {
-        router.pushUrl({ url: 'pages/WebView', params: { url: this.harmonyAdClickUrl, title: '网页' } });
-      }, 350);
+        router.pushUrl({ url: 'pages/WebView', params: { url: this.adClickUrl, title: '网页' } });
+      }, 50);
     }
   }
 
+  // ─── UI ──────────────────────────────────────────────────────────────────────
+
   build() {
     Stack({ alignContent: Alignment.BottomEnd }) {
-      // 底层：背景图片（淡入动画）
+      // 底层：纯黑背景
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor('#000000')
+
+      // 广告图（从缓存 URL 加载，淡入展示）
       if (this.adImageUrl) {
-        Image(this.adImageUrl)
-          .width('100%')
-          .height('100%')
-          .objectFit(ImageFit.Cover)
-          .opacity(this.imageOpacity)
-          .animation({ duration: 600, curve: Curve.EaseOut })
-          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-          .onClick(() => {
-            this.handleAdClick();
-          });
-      } else {
-        Image($r('app.media.icon_startwindow'))
-          .width('100%')
-          .height('100%')
-          .objectFit(ImageFit.Cover)
-          .opacity(this.imageOpacity)
-          .animation({ duration: 600, curve: Curve.EaseOut })
-          .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-          .onClick(() => {
-            this.handleAdClick();
-          });
+        Column() {
+          Image(this.adImageUrl)
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Cover)
+        }
+        .width('100%')
+        .height('100%')
+        .opacity(this.adImageOpacity)
+        .onClick(() => {
+          this.handleAdClick();
+        })
       }
 
       // 跳过按钮（右下角）
-      if (this.isShowSplash) {
-        Column() {
-          Row({ space: 4 }) {
-            Text('跳过')
-              .fontSize(14)
-              .fontColor('#FFFFFF')
-              .fontWeight(400)
-            Text(this.countdown.toString())
-              .fontSize(14)
-              .fontColor('rgba(255, 255, 255, 0.7)')
-              .fontWeight(400)
-          }
+      Column() {
+        Row({ space: 4 }) {
+          Text('跳过')
+            .fontSize(14)
+            .fontColor('#FFFFFF')
+            .fontWeight(400)
+          Text(this.countdown.toString())
+            .fontSize(14)
+            .fontColor('rgba(255,255,255,0.7)')
+            .fontWeight(400)
         }
-        .width(72)
-        .height(36)
-        .backgroundColor('rgba(0, 0, 0, 0.45)')
-        .borderRadius(18)
-        .border({ width: 1, color: 'rgba(255, 255, 255, 0.25)' })
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
-        .margin({ bottom: 56, right: 16 })
-        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
-        .onClick(() => {
-          this.stopCountdown();
-          this.goToHome();
-        });
       }
+      .width(72)
+      .height(36)
+      .backgroundColor('rgba(0,0,0,0.45)')
+      .borderRadius(18)
+      .border({ width: 1, color: 'rgba(255,255,255,0.25)' })
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .margin({ bottom: 56, right: 16 })
+      .onClick(() => {
+        this.stopCountdown();
+        this.goToHome();
+      })
     }
     .width('100%')
     .height('100%')
     .backgroundColor('#000000')
-    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM]);
+    .expandSafeArea([SafeAreaType.SYSTEM, SafeAreaType.CUTOUT, SafeAreaType.KEYBOARD],
+      [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM, SafeAreaEdge.START, SafeAreaEdge.END]);
   }
 }

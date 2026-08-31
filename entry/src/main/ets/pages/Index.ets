@@ -76,11 +76,14 @@ const KEY_REWARD_STATUS = 'reward_ad_status';
 // 协议确认存储键
 const KEY_AGREEMENT_ACCEPTED = 'callflyer_agreement_accepted';
 
-// 开屏广告 AppStorage keys（与 SplashAdPage.ets 保持一致）
-const AD_IMAGE_URL_KEY = 'splashAdImageUrl';
-const AD_CLICK_TYPE_KEY = 'splashAdClickType';
-const AD_CLICK_PAGE_KEY = 'splashAdClickPage';
-const AD_CLICK_URL_KEY = 'splashAdClickUrl';
+// 开屏广告缓存键（与 EntryAbility / SplashPage 保持一致）
+const KEY_SHOW_HARMONY_AD = 'show_harmony_ad';
+const KEY_AD_IMAGE_URL = 'harmony_ad_image_url';
+const KEY_AD_CLICK_TYPE = 'harmony_ad_click_type';
+const KEY_AD_CLICK_PAGE = 'harmony_ad_click_page';
+const KEY_AD_CLICK_URL = 'harmony_ad_click_url';
+const KEY_FIRST_LAUNCH_DONE = 'first_launch_done';
+const PREFS_NAME_AD = 'callflyer_prefs';
 
 class RewardAdStatusHandler {
   private subscriber: commonEventManager.CommonEventSubscriber | null = null;
@@ -445,16 +448,7 @@ struct Index {
   private isDialogOpened: boolean = false;
   // 是否正在查看协议（从协议页返回时需要重新显示弹窗）
 
-  // 开屏广告蒙层显示状态
-  @State showSplashMask: boolean = false;
-  // 广告数据
-  adImageUrl: string = '';
-  adClickType: string = '';
-  adClickPage: string = '';
-  adClickUrl: string = '';
-  // 广告回调
-  onSplashAdSkipCallback: () => void = () => {};
-  onSplashAdClickCallback: () => void = () => {};
+  // ─── 开屏广告（已移至 SplashPage，Index 只负责首次安装后写缓存）────────────
 
   aboutToAppear() {
     console.info('【协议检查】aboutToAppear called');
@@ -762,11 +756,6 @@ struct Index {
           AppStorage.set<string>(KEY_AGREEMENT_ACCEPTED, 'true');
           // 重置标志，允许下次重新显示（如从设置页返回）
           this.agreementDialogShown = false;
-          // 隐私协议同意后，如果有广告数据则显示广告弹窗
-          if (this.adImageUrl) {
-            console.info('【协议检查】同意后显示广告弹窗');
-            this.showSplashAdDialog();
-          }
           // 隐私协议同意后，执行登录并加载数据
           this.handleLogin().then(() => {
             if (!visitReported) {
@@ -810,12 +799,6 @@ struct Index {
     this.agreementDialogController.open();
     this.isDialogOpened = true;
     console.info('【协议检查】controller.open() 返回');
-  }
-
-  // 显示开屏广告蒙层
-  showSplashAdDialog() {
-    console.info('【开屏广告】showSplashAdDialog, adImageUrl=' + this.adImageUrl);
-    this.showSplashMask = true;
   }
 
   async handleLogin() {
@@ -1172,35 +1155,31 @@ struct Index {
       this.rewardTitle = config.rewardTitle || '呼叫飞手';
       this.rewardSubtitle = config.rewardSubtitle || '打造职业飞手库';
       this.rewardButtonText = config.rewardButtonText || '观看解锁';
-      // 获取鸿蒙开屏广告数据（与 SplashPage.ets 保持一致，使用 harmonyAd* 字段）
-      const adImageUrl = config.harmonyAdImageUrl || '';
-      const adClickType = config.harmonyAdClickType || 'none';
-      const adClickPage = config.harmonyAdClickPage || '';
-      const adClickUrl = config.harmonyAdClickUrl || '';
-      if (adImageUrl) {
-        // 写入 AppStorage，供 SplashAdPage 读取
-        AppStorage.set<string>(AD_IMAGE_URL_KEY, adImageUrl);
-        AppStorage.set<string>(AD_CLICK_TYPE_KEY, adClickType);
-        AppStorage.set<string>(AD_CLICK_PAGE_KEY, adClickPage);
-        AppStorage.set<string>(AD_CLICK_URL_KEY, adClickUrl);
-        this.adImageUrl = adImageUrl;
-        this.adClickType = adClickType;
-        this.adClickPage = adClickPage;
-        this.adClickUrl = adClickUrl;
-        console.info('【开屏广告】获取到广告数据 adImageUrl=' + adImageUrl + ', adClickType=' + adClickType + ', adClickUrl=' + adClickUrl);
-        // 协议已同意 且 广告未被开屏页展示过，才显示广告弹窗
-        const agreed = AppStorage.get<string>(KEY_AGREEMENT_ACCEPTED);
-        const adShownBySplash = AppStorage.get<boolean>('splash_ad_shown') ?? false;
-        if (agreed && !adShownBySplash) {
-          console.info('【开屏广告】协议已同意+非开屏页触发，显示广告弹窗');
-          this.showSplashAdDialog();
-        } else if (adShownBySplash) {
-          console.info('【开屏广告】广告已由开屏页展示过，跳过重复展示');
-        } else {
-          console.info('【开屏广告】协议未同意，等待用户同意后显示');
-        }
-      } else {
-        console.info('【开屏广告】无广告数据或显示被禁用');
+      // 缓存鸿蒙开屏广告配置供下次启动使用（SplashPage 从缓存读取展示，不在此处弹窗）
+      const adImageUrl = config.harmonyAdImageUrl ?? '';
+      const adClickType = config.harmonyAdClickType ?? 'none';
+      const adClickPage = config.harmonyAdClickPage ?? '';
+      const adClickUrl = config.harmonyAdClickUrl ?? '';
+      const showAd = config.showHarmonyAdImage ?? false;
+      try {
+        const prefs = dataPreferences.getPreferencesSync(getContext(this), { name: PREFS_NAME_AD });
+        prefs.putSync(KEY_SHOW_HARMONY_AD, showAd);
+        prefs.putSync(KEY_AD_IMAGE_URL, adImageUrl);
+        prefs.putSync(KEY_AD_CLICK_TYPE, adClickType);
+        prefs.putSync(KEY_AD_CLICK_PAGE, adClickPage);
+        prefs.putSync(KEY_AD_CLICK_URL, adClickUrl);
+        // 首次安装时在此处标记"已完成首次启动"，下次启动 EntryAbility 才会路由到 SplashPage
+        prefs.putSync(KEY_FIRST_LAUNCH_DONE, true);
+        prefs.flushSync();
+        AppStorage.setOrCreate<boolean>(KEY_SHOW_HARMONY_AD, showAd);
+        AppStorage.setOrCreate<string>(KEY_AD_IMAGE_URL, adImageUrl);
+        AppStorage.setOrCreate<string>(KEY_AD_CLICK_TYPE, adClickType);
+        AppStorage.setOrCreate<string>(KEY_AD_CLICK_PAGE, adClickPage);
+        AppStorage.setOrCreate<string>(KEY_AD_CLICK_URL, adClickUrl);
+        AppStorage.setOrCreate<boolean>(KEY_FIRST_LAUNCH_DONE, true);
+        console.info('【loadConfig】广告缓存已写入: show=' + String(showAd) + ' url=' + adImageUrl);
+      } catch (e) {
+        console.warn('【loadConfig】写入广告缓存失败:', JSON.stringify(e));
       }
     } catch {
       this.marqueeText = '呼叫飞手';
@@ -2648,10 +2627,10 @@ struct Index {
       HdsNavigation() {
         Scroll(this.scroller) {
           Column() {
-            // 顶部留白（导航栏高度）
+            // 顶部留白（状态栏高度，动态获取）
             Column()
               .width('100%')
-              .height(40)
+              .height(this.statusBarHeight)
 
             // 跑马灯（两侧渐变遮罩）
             Stack() {
@@ -4066,54 +4045,5 @@ struct Index {
       })
     }
 
-    // 开屏广告蒙层（用 opacity 控制显隐）
-    Stack() {
-      // 底层：广告图
-      if (this.adImageUrl) {
-        Image(this.adImageUrl)
-          .width('100%')
-          .height('100%')
-          .objectFit(ImageFit.Cover)
-          .onClick(() => {
-            // 对齐后端点击行为
-            const clickType = this.adClickType;
-            if (clickType === 'none') {
-              return;
-            }
-            this.showSplashMask = false;
-            if (clickType === 'page' && this.adClickPage) {
-              router.pushUrl({ url: this.adClickPage });
-            } else if (clickType === 'url' && this.adClickUrl) {
-              router.pushUrl({ url: 'pages/WebView', params: { url: this.adClickUrl, title: '网页' } });
-            }
-            this.loadPilots();
-            this.loadOrders();
-            this.loadStandby();
-            this.loadRewardSlotStatus();
-          })
-      } else {
-        Column()
-          .width('100%')
-          .height('100%')
-          .backgroundColor('rgba(0, 0, 0, 0.6)')
-      }
-
-      // 半透明黑色蒙层（点击背景区域关闭广告，不跳转）
-      Column()
-        .width('100%')
-        .height('100%')
-        .backgroundColor('rgba(0, 0, 0, 0.3)')
-        .onClick(() => {
-          this.showSplashMask = false;
-          this.loadPilots();
-          this.loadOrders();
-          this.loadStandby();
-          this.loadRewardSlotStatus();
-        })
-    }
-    .width('100%')
-    .height('100%')
-    .opacity(this.showSplashMask ? 1 : 0)
-    .enabled(this.showSplashMask)
   }
 }

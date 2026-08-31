@@ -14,25 +14,60 @@ const DOMAIN = 0x0001;
 const PREFS_NAME = 'callflyer_prefs';
 const KEY_AGREEMENT_ACCEPTED = 'callflyer_agreement_accepted';
 const KEY_NOTIFICATION_REFUSED = 'notification_refused'; // 记录通知权限是否被用户拒绝
+const KEY_SHOW_HARMONY_AD = 'show_harmony_ad';           // 缓存广告开关（bool）
+const KEY_AD_IMAGE_URL = 'harmony_ad_image_url';         // 缓存广告图 URL
+const KEY_AD_CLICK_TYPE = 'harmony_ad_click_type';       // 缓存点击行为
+const KEY_AD_CLICK_PAGE = 'harmony_ad_click_page';       // 缓存内部页面路径
+const KEY_AD_CLICK_URL = 'harmony_ad_click_url';         // 缓存外部链接
+const KEY_FIRST_LAUNCH_DONE = 'first_launch_done';       // 是否已完成首次启动（首装标记）
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
     hilog.info(DOMAIN, TAG, 'EntryAbility onCreate');
-    // 从 Preferences 读取协议同意状态，写入 AppStorage 供页面同步读取
+
+    // 从 Preferences 一次性读取所有持久化状态
     try {
       const prefs = dataPreferences.getPreferencesSync(this.context, { name: PREFS_NAME });
+
+      // 用户协议同意状态
       const accepted = prefs.getSync(KEY_AGREEMENT_ACCEPTED, '') as string;
       hilog.info(DOMAIN, TAG, 'agreement accepted from prefs: %{public}s', accepted);
       AppStorage.setOrCreate<string>(KEY_AGREEMENT_ACCEPTED, accepted);
-      // 读取通知权限拒绝状态
+
+      // 通知权限拒绝状态
       const notificationRefused = prefs.getSync(KEY_NOTIFICATION_REFUSED, false) as boolean;
       AppStorage.setOrCreate<boolean>(KEY_NOTIFICATION_REFUSED, notificationRefused);
       hilog.info(DOMAIN, TAG, 'notification refused from prefs: %{public}s', notificationRefused.toString());
+
+      // 首次安装标记（不存在 = 首次安装）
+      const firstLaunchDone = prefs.getSync(KEY_FIRST_LAUNCH_DONE, false) as boolean;
+      AppStorage.setOrCreate<boolean>(KEY_FIRST_LAUNCH_DONE, firstLaunchDone);
+      hilog.info(DOMAIN, TAG, 'firstLaunchDone: %{public}s', String(firstLaunchDone));
+
+      // 广告缓存（完整参数）
+      const showHarmonyAd = prefs.getSync(KEY_SHOW_HARMONY_AD, false) as boolean;
+      const adImageUrl = prefs.getSync(KEY_AD_IMAGE_URL, '') as string;
+      const adClickType = prefs.getSync(KEY_AD_CLICK_TYPE, 'none') as string;
+      const adClickPage = prefs.getSync(KEY_AD_CLICK_PAGE, '') as string;
+      const adClickUrl = prefs.getSync(KEY_AD_CLICK_URL, '') as string;
+      AppStorage.setOrCreate<boolean>(KEY_SHOW_HARMONY_AD, showHarmonyAd);
+      AppStorage.setOrCreate<string>(KEY_AD_IMAGE_URL, adImageUrl);
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_TYPE, adClickType);
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_PAGE, adClickPage);
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_URL, adClickUrl);
+      hilog.info(DOMAIN, TAG, 'cached ad: show=%{public}s url=%{public}s', String(showHarmonyAd), adImageUrl);
     } catch (e) {
       hilog.error(DOMAIN, TAG, 'Failed to read preferences: %{public}s', JSON.stringify(e));
       AppStorage.setOrCreate<string>(KEY_AGREEMENT_ACCEPTED, '');
       AppStorage.setOrCreate<boolean>(KEY_NOTIFICATION_REFUSED, false);
+      AppStorage.setOrCreate<boolean>(KEY_FIRST_LAUNCH_DONE, false);
+      AppStorage.setOrCreate<boolean>(KEY_SHOW_HARMONY_AD, false);
+      AppStorage.setOrCreate<string>(KEY_AD_IMAGE_URL, '');
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_TYPE, 'none');
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_PAGE, '');
+      AppStorage.setOrCreate<string>(KEY_AD_CLICK_URL, '');
     }
+
     // 保存当前颜色模式到 AppStorage
     AppStorage.setOrCreate('colorMode', this.context.config.colorMode ?? ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
 
@@ -129,8 +164,19 @@ export default class EntryAbility extends UIAbility {
       win.setWindowLayoutFullScreen(true);
     });
 
-    // 在 UI 加载完成后请求通知权限
-    windowStage.loadContent('pages/SplashPage', (err: Error, data: void) => {
+    // 路由决策：
+    //   首次安装（first_launch_done = false） → 直接加载首页，后台由 Index 拉取并缓存配置
+    //   非首次安装，有缓存广告图且开关开启   → 加载开屏页，从缓存直接展示广告图
+    //   其他（无广告图 / 开关关闭）          → 直接加载首页
+    const firstLaunchDone = AppStorage.get<boolean>(KEY_FIRST_LAUNCH_DONE) ?? false;
+    const showHarmonyAd = AppStorage.get<boolean>(KEY_SHOW_HARMONY_AD) ?? false;
+    const cachedAdImageUrl = AppStorage.get<string>(KEY_AD_IMAGE_URL) ?? '';
+    const hasCachedAd = firstLaunchDone && showHarmonyAd && cachedAdImageUrl.length > 0;
+    const startPage = hasCachedAd ? 'pages/SplashPage' : 'pages/Index';
+    hilog.info(DOMAIN, TAG,
+      'firstLaunchDone=%{public}s showHarmonyAd=%{public}s cachedAdUrl=%{public}s → loading: %{public}s',
+      String(firstLaunchDone), String(showHarmonyAd), cachedAdImageUrl, startPage);
+    windowStage.loadContent(startPage, (err: Error, data: void) => {
       let errCode = (err as BusinessError).code;
       if (err && errCode !== 0) {
         hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
