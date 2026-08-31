@@ -43,6 +43,10 @@ struct SplashPage {
         this.harmonyAdClickUrl = config.harmonyAdClickUrl || '';
         console.info('【开屏页】使用后端广告图:', this.adImageUrl);
         console.info('【开屏页】点击类型:', this.harmonyAdClickType, '页面:', this.harmonyAdClickPage, '链接:', this.harmonyAdClickUrl);
+      } else {
+        // 广告未启用，直接跳转到首页
+        console.info('【开屏页】广告未启用或无图片，直接跳首页');
+        this.goToHome();
       }
     } catch (e) {
       console.error('【开屏页】加载配置失败:', JSON.stringify(e));
