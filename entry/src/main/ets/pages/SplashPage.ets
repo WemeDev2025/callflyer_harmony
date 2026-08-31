@@ -188,7 +188,7 @@ struct SplashPage {
       .border({ width: 1, color: 'rgba(255,255,255,0.25)' })
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
-      .margin({ bottom: 56, right: 16 })
+      .margin({ bottom: 18, right: 18 })
       .onClick(() => {
         this.stopCountdown();
         this.goToHome();
