@@ -33,10 +33,23 @@ struct SplashPage {
   private countdownTimer: number = -1;
 
   aboutToAppear(): void {
-    // 0. 确保窗口全屏（状态栏 + 导航栏都被内容覆盖）
+    // 0. 开屏页独占全屏（状态栏 + 导航栏都被内容覆盖）
     window.getLastWindow(getContext(this)).then((win) => {
-      win.setWindowLayoutFullScreen(true);
-    }).catch(() => {});
+      win.setWindowLayoutFullScreen(true).then(() => {
+        console.info('【SplashPage】setWindowLayoutFullScreen(true) 成功');
+      }).catch((e: Error) => {
+        console.error('【SplashPage】setWindowLayoutFullScreen(true) 失败:', JSON.stringify(e));
+      });
+      // 隐藏状态栏（透明背景融入黑色）
+      win.setWindowSystemBarProperties({
+        statusBarColor: '#00000000',
+        statusBarContentColor: '#00000000'
+      }).catch((e: Error) => {
+        console.error('【SplashPage】setWindowSystemBarProperties 失败:', JSON.stringify(e));
+      });
+    }).catch((e: Error) => {
+      console.error('【SplashPage】getLastWindow 失败:', JSON.stringify(e));
+    });
 
     // 1. 从缓存立即读取广告图参数
     this.adImageUrl = AppStorage.get<string>(KEY_AD_IMAGE_URL) ?? '';
@@ -61,6 +74,16 @@ struct SplashPage {
 
   aboutToDisappear(): void {
     this.stopCountdown();
+    // 离开开屏页，恢复正常布局（不再全屏，内容不延伸到状态栏下方）
+    window.getLastWindow(getContext(this)).then((win) => {
+      win.setWindowLayoutFullScreen(false).then(() => {
+        console.info('【SplashPage】aboutToDisappear: setWindowLayoutFullScreen(false) 成功');
+      }).catch((e: Error) => {
+        console.error('【SplashPage】aboutToDisappear: setWindowLayoutFullScreen(false) 失败:', JSON.stringify(e));
+      });
+    }).catch((e: Error) => {
+      console.error('【SplashPage】aboutToDisappear: getLastWindow 失败:', JSON.stringify(e));
+    });
   }
 
   // ─── 倒计时 ──────────────────────────────────────────────────────────────────
