@@ -309,12 +309,13 @@ struct ReferralLeaderboard {
     Stack() {
       Scroll() {
         Column() {
-          // 顶部 banner
+          // 顶部 banner（延伸到状态栏上方）
           Column()
             .width('100%')
             .height(200)
             .backgroundImage('https://wetofly.com/data/image/pic_top.webp')
             .backgroundImageSize(ImageSize.Cover)
+            .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
 
           // 榜单卡片容器
           Column() {
@@ -356,10 +357,12 @@ struct ReferralLeaderboard {
           .padding({ bottom: 34 })
         }
         .width('100%')
+        .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
       }
       .width('100%')
       .scrollBar(BarState.Off)
       .align(Alignment.Top)
+      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM])
 
       if (this.showCopySuccess) {
         Column() {
