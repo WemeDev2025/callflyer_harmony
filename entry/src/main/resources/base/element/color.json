@@ -50,7 +50,7 @@
     },
     {
       "name": "card_bg_secondary",
-      "value": "#F5F5F5"
+      "value": "#26F5F5F5"
     },
     {
       "name": "tag_bg",
@@ -98,7 +98,7 @@
     },
     {
       "name": "indicator_selected",
-      "value": "#FFFFFF"
+      "value": "#80FFFFFF"
     },
     {
       "name": "indicator_unselected",

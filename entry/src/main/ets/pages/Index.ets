@@ -513,18 +513,26 @@ struct Index {
     // 获取状态栏高度并设置状态栏颜色（跟随深浅色模式）
     try {
       window.getLastWindow(getContext(this)).then((win) => {
+        // 确保首页不是全屏布局（从开屏页跳转过来时重置）
+        win.setWindowLayoutFullScreen(false).then(() => {
+          console.info('【Index】setWindowLayoutFullScreen(false) 成功');
+        }).catch((e: Error) => {
+          console.error('【Index】setWindowLayoutFullScreen(false) 失败:', JSON.stringify(e));
+        });
         const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
         this.statusBarHeight = px2vp(avoidArea.topRect.height);
-        console.info('状态栏高度:', this.statusBarHeight, 'vp');
+        console.info('【Index】状态栏高度:', this.statusBarHeight, 'vp');
         // 状态栏背景色跟随深浅色模式，不设为透明
         const isDarkMode = this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
         win.setWindowSystemBarProperties({
           statusBarColor: isDarkMode ? '#FF121212' : '#FFE7F8FC',
           statusBarContentColor: isDarkMode ? '#FFFFFF' : '#14233a'
         });
+      }).catch((e: Error) => {
+        console.error('【Index】getLastWindow 失败:', JSON.stringify(e));
       });
     } catch (e) {
-      console.info('获取状态栏高度失败', JSON.stringify(e));
+      console.error('【Index】获取状态栏高度失败:', JSON.stringify(e));
     }
   }
 
@@ -2627,10 +2635,6 @@ struct Index {
       HdsNavigation() {
         Scroll(this.scroller) {
           Column() {
-            // 顶部留白（状态栏高度，动态获取）
-            Column()
-              .width('100%')
-              .height(this.statusBarHeight)
 
             // 跑马灯（两侧渐变遮罩）
             Stack() {
@@ -2693,7 +2697,7 @@ struct Index {
                 .borderRadius({ topRight: 12, bottomRight: 12 })
             }
             .height(30)
-            .margin({ top: -40 })
+            .margin({ top: 8 })
 
             // 占位，让内容穿过导航栏
             Column().width('100%').height(16)
@@ -3064,8 +3068,8 @@ struct Index {
                                 )
                               Text(item.actionText || '观看解锁')
                                 .fontSize(15)
-                                .fontWeight(500)
-                                                                .fontColor('#2c2c2c')
+                                .fontWeight(700)
+                                .fontColor('#2c2c2c')
                                 .textAlign(TextAlign.Center)
                                 .transform(matrix4.identity()
                                   .combine(matrix4.init([
@@ -3196,12 +3200,12 @@ struct Index {
             Row() {
               ForEach(this.imageList, (_: BannerItem, index: number) => {
                 Blank()
-                  .width(index === this.currentIndex ? 17 : 6)
-                  .height(6)
-                  .borderRadius(4)
+                  .width(index === this.currentIndex ? 14 : 5)
+                  .height(5)
+                  .borderRadius(3)
                   .backgroundColor(index === this.currentIndex ? $r('app.color.indicator_selected') : $r('app.color.indicator_unselected'))
                   .animation({ duration: 200, curve: Curve.EaseOut })
-                  .margin({ left: index === 0 ? 0 : 5, right: 5 })
+                  .margin({ left: index === 0 ? 0 : 4, right: 4 })
               })
             }
             .width('100%')
