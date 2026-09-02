@@ -43,7 +43,8 @@
             "uris": [
               {
                 "scheme": "https",
-                "host": "wetofly.com"
+                "host": "wetofly.com",
+                "path": "callflyer"
               }
             ],
             "domainVerify": true
