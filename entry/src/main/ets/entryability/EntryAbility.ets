@@ -160,8 +160,6 @@ export default class EntryAbility extends UIAbility {
         statusBarColor: bgColor,
         statusBarContentColor: colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
       });
-      // 设置全屏布局，让内容延伸到状态栏和导航栏
-      win.setWindowLayoutFullScreen(true);
     });
 
     // 路由决策：

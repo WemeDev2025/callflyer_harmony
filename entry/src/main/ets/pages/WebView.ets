@@ -28,6 +28,11 @@ struct WebView {
     });
   }
 
+  // 判断是否是 AppGallery 链接（WebView 会白屏）
+  private isAppGalleryUrl(url: string): boolean {
+    return url.includes('appgallery.huawei.com');
+  }
+
   extractDomain(url: string): string {
     if (!url) return '网页';
     const match = url.match(/https?:\/\/([^\/]+)/);
@@ -41,6 +46,15 @@ struct WebView {
           .width('100%')
           .height('100%')
           .geolocationAccess(true)
+          .onPageBegin((event) => {
+            const loadingUrl = event.url || '';
+            console.info('【WebView】开始加载: ' + loadingUrl);
+            // AppGallery 链接直接关闭 WebView，避免白屏
+            if (this.isAppGalleryUrl(loadingUrl)) {
+              console.info('【WebView】检测到 AppGallery 链接，关闭 WebView');
+              router.back();
+            }
+          })
           .onGeolocationShow((event) => {
             console.info('【WebView】地理位置请求, origin: ' + event.origin);
             event.geolocation.invoke(event.origin, true, false);

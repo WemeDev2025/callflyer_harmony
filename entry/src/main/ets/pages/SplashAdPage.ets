@@ -1,5 +1,7 @@
 import window from '@ohos.window';
 import router from '@ohos.router';
+import { Want, common } from '@kit.AbilityKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 // AppStorage keys（与 Index.ets 保持一致）
 const AD_IMAGE_URL_KEY = 'splashAdImageUrl';
@@ -79,6 +81,32 @@ struct SplashAdPage {
     }
   }
 
+  // 判断是否是 AppGallery 链接（WebView 会白屏）
+  private isAppGalleryUrl(url: string): boolean {
+    return url.includes('appgallery.huawei.com');
+  }
+
+  // 用系统浏览器打开链接
+  private openInBrowser(url: string): void {
+    console.info('【开屏广告】用系统浏览器打开:', url);
+    const wantInfo: Want = {
+      action: 'ohos.want.action.viewData',
+      uri: url
+    };
+    try {
+      const context = getContext(this) as common.UIAbilityContext;
+      context.startAbility(wantInfo, (err: BusinessError) => {
+        if (err) {
+          console.error('【开屏广告】浏览器打开失败:', JSON.stringify(err));
+          router.pushUrl({ url: 'pages/WebView', params: { url: url, title: '网页' } });
+        }
+      });
+    } catch (e) {
+      console.error('【开屏广告】系统浏览器异常:', JSON.stringify(e));
+      router.pushUrl({ url: 'pages/WebView', params: { url: url, title: '网页' } });
+    }
+  }
+
   // 处理广告点击事件，对齐后端点击行为
   private handleAdClick(): void {
     const clickType = this.adClickType;
@@ -95,12 +123,18 @@ struct SplashAdPage {
         router.pushUrl({ url: this.adClickPage });
       }, 50);
     } else if (clickType === 'url' && this.adClickUrl) {
-      // 跳转外部链接：先关广告窗口，再在主页导航栈上打开 WebView
       console.info('【开屏广告】跳转链接:', this.adClickUrl);
-      this.closeAd();
-      setTimeout(() => {
-        router.pushUrl({ url: 'pages/WebView', params: { url: this.adClickUrl, title: '网页' } });
-      }, 100);
+      if (this.isAppGalleryUrl(this.adClickUrl)) {
+        // AppGallery 链接：先启动浏览器（不依赖 context），再关广告窗口
+        this.openInBrowser(this.adClickUrl);
+        this.closeAd();
+      } else {
+        // 其他链接：先关广告窗口，再在主页导航栈上打开 WebView
+        this.closeAd();
+        setTimeout(() => {
+          router.pushUrl({ url: 'pages/WebView', params: { url: this.adClickUrl, title: '网页' } });
+        }, 100);
+      }
     }
   }
 
