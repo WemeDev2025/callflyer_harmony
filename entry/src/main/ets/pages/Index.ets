@@ -3212,38 +3212,38 @@ struct Index {
             .justifyContent(FlexAlign.Center)
             .margin({ top: -20 })
 
-            // 测试 Banner：跳转 iFlyer（path=iflyer）
-            Row() {
-              Column() {
-                Text('测试：跳转 iFlyer')
-                  .fontSize(14)
-                  .fontColor('#ffffff')
-                  .textAlign(TextAlign.Center)
-                Text('https://wetofly.com/iflyer')
-                  .fontSize(11)
-                  .fontColor('rgba(255,255,255,0.7)')
-                  .textAlign(TextAlign.Center)
-              }
-              .width('88%')
-              .height(44)
-              .backgroundColor('#10b981')
-              .borderRadius(10)
-              .justifyContent(FlexAlign.Center)
-              .onClick(() => {
-                const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-                const link = 'https://wetofly.com/iflyer';
-                hilog.info(0x0000, 'Index', '【测试Banner】点击跳转: %{public}s', link);
-                context.openLink(link, { appLinkingOnly: false })
-                  .then(() => {
-                    hilog.info(0x0000, 'Index', '【测试Banner】App Linking success');
-                  })
-                  .catch((err: BusinessError) => {
-                    hilog.error(0x0000, 'Index', '【测试Banner】App Linking failed: %{public}d, %{public}s', err.code, err.message);
-                  });
-              })
-            }
-            .width('100%')
-            .padding({ left: 12, right: 12 })
+            // TODO: 测试 Banner：跳转 iFlyer（path=iflyer）
+            // Row() {
+            //   Column() {
+            //     Text('测试：跳转 iFlyer')
+            //       .fontSize(14)
+            //       .fontColor('#ffffff')
+            //       .textAlign(TextAlign.Center)
+            //     Text('https://wetofly.com/iflyer')
+            //       .fontSize(11)
+            //       .fontColor('rgba(255,255,255,0.7)')
+            //       .textAlign(TextAlign.Center)
+            //   }
+            //   .width('88%')
+            //   .height(44)
+            //   .backgroundColor('#10b981')
+            //   .borderRadius(10)
+            //   .justifyContent(FlexAlign.Center)
+            //   .onClick(() => {
+            //     const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+            //     const link = 'https://wetofly.com/iflyer';
+            //     hilog.info(0x0000, 'Index', '【测试Banner】点击跳转: %{public}s', link);
+            //     context.openLink(link, { appLinkingOnly: false })
+            //       .then(() => {
+            //         hilog.info(0x0000, 'Index', '【测试Banner】App Linking success');
+            //       })
+            //       .catch((err: BusinessError) => {
+            //         hilog.error(0x0000, 'Index', '【测试Banner】App Linking failed: %{public}d, %{public}s', err.code, err.message);
+            //       });
+            //   })
+            // }
+            // .width('100%')
+            // .padding({ left: 12, right: 12 })
             .margin({ top: 12 })
 
             // 轮播图与今日有空之间的间隙

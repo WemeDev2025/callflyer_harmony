@@ -747,6 +747,14 @@ struct Profile {
               .margin({ top: 22 })
               .padding({ left: 16, right: 16 })
 
+              // TODO: 底部 iFlyer Banner（待启用）
+              // Image($r('app.media.banner_iflyer'))
+              //   .width('100%')
+              //   .borderRadius(16)
+              //   .objectFit(ImageFit.Contain)
+              //   .onClick(() => {
+              //     promptAction.showToast({ message: '即将跳转到 iFlyer 下载页' });
+              //   })
               // 底部间距
               Column().height(80)
             }
