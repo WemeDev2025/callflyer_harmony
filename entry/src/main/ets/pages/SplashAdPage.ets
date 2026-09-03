@@ -125,9 +125,12 @@ struct SplashAdPage {
     } else if (clickType === 'url' && this.adClickUrl) {
       console.info('【开屏广告】跳转链接:', this.adClickUrl);
       if (this.isAppGalleryUrl(this.adClickUrl)) {
-        // AppGallery 链接：先启动浏览器（不依赖 context），再关广告窗口
-        this.openInBrowser(this.adClickUrl);
+        // AppGallery 链接：先关广告窗口，再启动浏览器
+        // 避免从浏览器返回时看到白屏
         this.closeAd();
+        setTimeout(() => {
+          this.openInBrowser(this.adClickUrl);
+        }, 100);
       } else {
         // 其他链接：先关广告窗口，再在主页导航栈上打开 WebView
         this.closeAd();

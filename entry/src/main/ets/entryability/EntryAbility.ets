@@ -151,13 +151,16 @@ export default class EntryAbility extends UIAbility {
   onWindowStageCreate(windowStage: window.WindowStage) {
     hilog.info(DOMAIN, TAG, 'EntryAbility onWindowStageCreate');
 
-    // 设置窗口背景色跟随深浅色模式
+    // 设置窗口背景色跟随深浅色模式，隐藏导航栏，状态栏透明
     windowStage.getMainWindow().then((win: window.Window) => {
       const colorMode = AppStorage.get<ConfigurationConstant.ColorMode>('colorMode') ?? ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
       const bgColor = colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#121212' : '#E7F8FC';
       win.setWindowBackgroundColor(bgColor);
+      // 隐藏底部导航栏
+      win.setSpecificSystemBarEnabled('navigationIndicator', false);
+      // 状态栏透明，内容延伸
       win.setWindowSystemBarProperties({
-        statusBarColor: bgColor,
+        statusBarColor: '#00000000',
         statusBarContentColor: colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK ? '#FFFFFF' : '#14233a'
       });
     });

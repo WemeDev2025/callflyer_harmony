@@ -76,12 +76,17 @@ struct SplashPage {
 
   aboutToDisappear(): void {
     this.stopCountdown();
-    // 离开开屏页，恢复正常布局（不再全屏，内容不延伸到状态栏下方）
+    // 恢复窗口状态：非全屏 + 显示导航栏 + 状态栏颜色跟随深浅色
     window.getLastWindow(getContext(this)).then((win) => {
       win.setWindowLayoutFullScreen(false).then(() => {
         console.info('【SplashPage】aboutToDisappear: setWindowLayoutFullScreen(false) 成功');
       }).catch((e: Error) => {
         console.error('【SplashPage】aboutToDisappear: setWindowLayoutFullScreen(false) 失败:', JSON.stringify(e));
+      });
+      win.setSpecificSystemBarEnabled('navigationIndicator', true);
+      win.setWindowSystemBarProperties({
+        statusBarColor: '#00000000',
+        statusBarContentColor: '#14233a'
       });
     }).catch((e: Error) => {
       console.error('【SplashPage】aboutToDisappear: getLastWindow 失败:', JSON.stringify(e));
@@ -187,9 +192,12 @@ struct SplashPage {
       }, 50);
     } else if (this.adClickType === 'url' && this.adClickUrl) {
       if (this.isAppGalleryUrl(this.adClickUrl)) {
-        // AppGallery 链接：先启动浏览器，再跳转首页
-        this.openInBrowser(this.adClickUrl);
+        // AppGallery 链接：先关闭 SplashPage，再启动浏览器
+        // 避免从浏览器返回时看到白屏
         this.goToHome();
+        setTimeout(() => {
+          this.openInBrowser(this.adClickUrl);
+        }, 50);
       } else {
         this.goToHome();
         setTimeout(() => {

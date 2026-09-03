@@ -513,16 +513,11 @@ struct Index {
     // 获取状态栏高度并设置状态栏颜色（跟随深浅色模式）
     try {
       window.getLastWindow(getContext(this)).then((win) => {
-        // 确保首页不是全屏布局（从开屏页跳转过来时重置）
-        win.setWindowLayoutFullScreen(false).then(() => {
-          console.info('【Index】setWindowLayoutFullScreen(false) 成功');
-        }).catch((e: Error) => {
-          console.error('【Index】setWindowLayoutFullScreen(false) 失败:', JSON.stringify(e));
-        });
+        // 窗口状态已在 SplashPage.aboutToDisappear 中恢复，此处无需再调用 setWindowLayoutFullScreen(false)
         const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
         this.statusBarHeight = px2vp(avoidArea.topRect.height);
         console.info('【Index】状态栏高度:', this.statusBarHeight, 'vp');
-        // 状态栏背景色跟随深浅色模式，不设为透明
+        // 状态栏背景色跟随深浅色模式
         const isDarkMode = this.colorMode === ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
         win.setWindowSystemBarProperties({
           statusBarColor: isDarkMode ? '#FF121212' : '#FFE7F8FC',

@@ -15,16 +15,24 @@ struct WebView {
       this.url = params['url'] || '';
       this.title = params['title'] || this.extractDomain(this.url);
     }
-    // 全屏沉浸
+    // 全屏沉浸：隐藏导航栏 + 透明状态栏
     window.getLastWindow(getContext(this)).then((win) => {
-      win.setFullScreen(true);
+      win.setSpecificSystemBarEnabled('navigationIndicator', false);
+      win.setWindowSystemBarProperties({
+        statusBarColor: '#00000000',
+        statusBarContentColor: '#000000'
+      });
     });
   }
 
   aboutToDisappear() {
-    // 恢复状态栏
+    // 恢复状态栏和导航栏
     window.getLastWindow(getContext(this)).then((win) => {
-      win.setFullScreen(false);
+      win.setSpecificSystemBarEnabled('navigationIndicator', true);
+      win.setWindowSystemBarProperties({
+        statusBarColor: '#00000000',
+        statusBarContentColor: '#14233a'
+      });
     });
   }
 
