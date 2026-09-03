@@ -2394,12 +2394,8 @@ struct Index {
 
   @Builder
   StandbyList() {
-    if (this.standbyItems.length === 0) {
-      Blank()
-        .height(12)
-    } else {
     Column() {
-      // 标题栏 - 在白色容器外
+      // 标题栏 - 始终显示
       Row() {
         Text('今日有空')
           .fontSize(17)
@@ -2434,7 +2430,8 @@ struct Index {
       Column() {
         // 横向滚动卡片列表（渐显动画）
         List() {
-          ForEach(this.standbyItems, (item: StandbyItem) => {
+          if (this.standbyItems.length > 0) {
+            ForEach(this.standbyItems, (item: StandbyItem) => {
             ListItem() {
               Column() {
                 // 头像 + 昵称 + 城市
@@ -2502,6 +2499,63 @@ struct Index {
               .onClick(() => this.onStandbyCardTap(item))
             }
           })
+          } else {
+            // 空状态：显示一个预置占位卡片
+            ListItem() {
+              Column() {
+                Row() {
+                  Image('https://wetofly.com/data/image/avatar01.webp')
+                    .width(32)
+                    .height(32)
+                    .borderRadius(18)
+                    .backgroundColor($r('app.color.avatar_placeholder'))
+                  Column() {
+                    Text('吊运 植保 巡检')
+                      .fontSize(13)
+                      .fontWeight(600)
+                      .fontColor($r('app.color.text_primary'))
+                      .maxLines(1)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    Text('全国')
+                      .fontSize(12)
+                      .fontColor($r('app.color.text_caption'))
+                      .maxLines(1)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  }
+                  .alignItems(HorizontalAlign.Start)
+                  .layoutWeight(1)
+                  .margin({ left: 8 })
+                }
+                .width('100%')
+                .alignItems(VerticalAlign.Center)
+
+                Row() {
+                  Row() {
+                    Image($r('app.media.icon_star1'))
+                      .width(14)
+                      .height(14)
+                      .objectFit(ImageFit.Contain)
+                  }
+                  .width(36)
+                  .justifyContent(FlexAlign.Center)
+
+                  Text('预览效果')
+                    .fontSize(10)
+                    .fontColor($r('app.color.text_caption'))
+                    .fontWeight(400)
+                }
+                .width('100%')
+                .justifyContent(FlexAlign.SpaceBetween)
+                .margin({ top: 6 })
+              }
+              .width(150)
+              .height('100%')
+              .justifyContent(FlexAlign.Center)
+              .padding({ left: 12, right: 12, top: 10, bottom: 10 })
+              .backgroundColor($r('app.color.card_bg_secondary'))
+              .borderRadius(9)
+            }
+          }
         }
         .width('100%')
         .height('70')
@@ -2516,9 +2570,6 @@ struct Index {
       .padding({ top: 8, bottom: 8 })
       .backgroundColor($r('app.color.card_bg'))
       .borderRadius(9)
-    }
-    .width('100%')
-    .alignItems(HorizontalAlign.Center)
     }
   }
 
@@ -2889,7 +2940,7 @@ struct Index {
                               Column() {
                                 Text(this.rewardSlotUser.nickname.length > 12 ? this.rewardSlotUser.nickname.substring(0, 12) + '...' : this.rewardSlotUser.nickname || '匿名用户')
                                   .fontSize(18)
-                                  .fontWeight(400)
+                                  .fontWeight(600)
                                   .fontColor('#FFFFFF')
                                                                     .margin({ bottom: 8 })
                                 Row() {
