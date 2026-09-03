@@ -2424,7 +2424,7 @@ struct Index {
       }
       .width('100%')
       .padding({ left: 18, right: 18 })
-      .margin({ bottom: 12, top: 22 })
+      .margin({ bottom: 12, top: 0 })
 
       // 白色圆角容器
       Column() {
