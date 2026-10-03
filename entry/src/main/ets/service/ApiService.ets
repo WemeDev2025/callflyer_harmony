@@ -1950,7 +1950,7 @@ export interface MyDisciplesResult {
 }
 
 // 获取徒弟列表
-export async function fetchDisciples(): Promise<DisciplesResult> {
+export async function fetchDisciples(token: string): Promise<DisciplesResult> {
   return new Promise<DisciplesResult>((resolve, reject) => {
     const httpRequest = http.createHttp();
     const url = `${BASE_URL}/api/disciple`;
@@ -1959,7 +1959,10 @@ export async function fetchDisciples(): Promise<DisciplesResult> {
       url,
       {
         method: http.RequestMethod.GET,
-        header: [{ 'Content-Type': 'application/json' }],
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
         connectTimeout: 10000,
         readTimeout: 10000
       },

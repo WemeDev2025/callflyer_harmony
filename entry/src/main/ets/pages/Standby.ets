@@ -3,7 +3,7 @@ import promptAction from '@ohos.promptAction';
 import pasteboard from '@ohos.pasteboard';
 import call from '@ohos.telephony.call';
 import window from '@ohos.window';
-import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, fetchPilotContact, DiscipleItem, DiscipleMaster, MyDisciplesResult, PilotContact, RatingInfo } from '../service/ApiService';
+import { fetchDisciples, fetchMyDisciples, matchDisciple, removeDisciple, joinDisciple, leaveDisciple, createStandbyRating, fetchPilotContact, DiscipleItem, DiscipleMaster, DisciplesResult, MyDisciplesResult, PilotContact, RatingInfo } from '../service/ApiService';
 import AuthService from '../service/AuthService';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import { HdsNavigation, HdsNavigationTitleMode, ScrollEffectType } from '@kit.UIDesignKit';
@@ -607,8 +607,8 @@ struct Standby {
     // 如果是静默刷新，只更新数据不修改 UI
     if (silentRefresh) {
       try {
-        const discipleRes = await fetchDisciples();
         const token = AuthService.getAuthToken();
+        const discipleRes = token ? await fetchDisciples(token) : { items: [], isJoined: false } as DisciplesResult;
         const myDiscipleRes = token ? await fetchMyDisciples(token) : { items: [] } as MyDisciplesResult;
         const items = discipleRes.items || [];
         this.pilotList = items.map((item: DiscipleItem) => new ObservedDiscipleItem(item));
@@ -646,8 +646,8 @@ struct Standby {
 
     // 后台静默刷新
     try {
-      const discipleRes = await fetchDisciples();
       const token = AuthService.getAuthToken();
+      const discipleRes = token ? await fetchDisciples(token) : { items: [], isJoined: false } as DisciplesResult;
       const myDiscipleRes = token ? await fetchMyDisciples(token) : { items: [] } as MyDisciplesResult;
 
       const items = discipleRes.items || [];
