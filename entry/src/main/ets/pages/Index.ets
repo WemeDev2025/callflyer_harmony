@@ -389,6 +389,7 @@ struct Index {
   @State pilots: PilotItem[] = [];
   @State pilotsLoading: boolean = false;
   @State skeletonShimmer: boolean = false;
+  @State locationPermissionDenied: boolean = false;  // 位置权限未授权
   private pilotsLat: number = 39.9;
   private pilotsLng: number = 116.4;
   private skeletonTimer: number = -1;
@@ -491,7 +492,6 @@ struct Index {
           console.info('【访问上报失败】', e.message);
         });
       }
-      this.loadPilots();
       this.loadStandby();
       this.loadRewardSlotStatus();
     });
@@ -768,7 +768,6 @@ struct Index {
                 console.info('【访问上报失败】', e.message);
               });
             }
-            this.loadPilots();
             this.loadOrders();
             this.loadStandby();
             this.loadRewardSlotStatus();
@@ -1463,23 +1462,56 @@ struct Index {
     }
   }
 
-  async loadPilots(silent: boolean = false) {
-    // 首次或缓存为空时，显示骨架屏
-    if (!silent || this.pilots.length === 0) {
-      this.pilotsLoading = true;
-      this.startSkeletonShimmer();
-    }
-
-    // 优先使用缓存（首次加载时缓存已有数据）
-    if (this.pilots.length > 0) {
-      this.pilotsLoading = false;
-    }
+  // 请求位置权限并加载附近飞手（由 Tab 点击触发）
+  async requestLocationAndLoadPilots(): Promise<void> {
+    this.pilotsLoading = true;
+    this.startSkeletonShimmer();
 
     try {
       const context = getContext(this) as Context;
       const location = await LocationService.getCurrentLocation(context);
-      this.pilotsLat = location?.latitude ?? 39.9;
-      this.pilotsLng = location?.longitude ?? 116.4;
+      if (location === null) {
+        // 权限被拒绝或获取失败
+        this.locationPermissionDenied = true;
+        this.pilotsLoading = false;
+        this.stopSkeletonShimmer();
+        return;
+      }
+      this.pilotsLat = location.latitude;
+      this.pilotsLng = location.longitude;
+
+      const result = await fetchNearbyPilots(this.pilotsLat, this.pilotsLng, 1, 50);
+      const MAX_DISPLAY = 7;
+      this.pilotsCache = result.pilots;
+      this.pilots = result.pilots.slice(0, MAX_DISPLAY);
+    } catch {
+      if (this.pilots.length === 0) {
+        this.pilots = [];
+      }
+    }
+    this.pilotsLoading = false;
+    this.stopSkeletonShimmer();
+  }
+
+  // 加载附近飞手（静默刷新，不请求权限，使用已有坐标）
+  async loadPilots(silent: boolean = false): Promise<void> {
+    // 优先使用缓存（首次加载时缓存已有数据）
+    if (this.pilots.length > 0) {
+      return;
+    }
+
+    // 无有效坐标时跳过（未授权且未点击 Tab）
+    if (this.pilotsLat === 39.9 && this.pilotsLng === 116.4 && this.locationPermissionDenied) {
+      return;
+    }
+
+    // 显示骨架屏
+    if (!silent) {
+      this.pilotsLoading = true;
+      this.startSkeletonShimmer();
+    }
+
+    try {
       const result = await fetchNearbyPilots(this.pilotsLat, this.pilotsLng, 1, 50);
 
       // 静默刷新时：比对列表是否变化（比较原始数据）
@@ -1487,7 +1519,6 @@ struct Index {
         const prevIds = this.pilotsCache.map((item: PilotItem) => item.openid).sort().join(',');
         const newIds = result.pilots.map((item: PilotItem) => item.openid).sort().join(',');
         if (prevIds === newIds) {
-          // 列表无变化，跳过更新
           console.info('【附近飞手】列表无变化，跳过更新');
           this.pilotsLoading = false;
           this.stopSkeletonShimmer();
@@ -1496,7 +1527,6 @@ struct Index {
         console.info('【附近飞手】列表有变化，执行更新');
       }
 
-      // 取前7个飞手显示
       const MAX_DISPLAY = 7;
       this.pilotsCache = result.pilots;
       this.pilots = result.pilots.slice(0, MAX_DISPLAY);
@@ -3370,7 +3400,13 @@ struct Index {
                                 }
               .height(44)
               .justifyContent(FlexAlign.Center)
-              .onClick(() => { this.currentTab = 'pilots'; })
+              .onClick(() => {
+                this.currentTab = 'pilots';
+                // 切换到附近飞手 Tab 时，请求位置权限（权限被拒绝后不再触发）
+                if (!this.pilotsLoading && !this.locationPermissionDenied) {
+                  this.requestLocationAndLoadPilots();
+                }
+              })
 
               Column() {
                 Text('最新任务')
@@ -3610,13 +3646,37 @@ struct Index {
       }
       .padding({ left: 18, right: 18 })
     } else if (this.pilots.length === 0) {
+      // 列表为空时，显示位置权限引导卡片
       Column() {
-        Text('暂无附近飞手')
-          .fontColor($r('app.color.text_secondary'))
-          .fontSize(13)
+        Column() {
+          Text('位置权限未开启')
+            .fontColor($r('app.color.text_primary'))
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium)
+          Text('查看附近飞手需要获取位置权限')
+            .fontColor($r('app.color.text_secondary'))
+            .fontSize(13)
+            .margin({ top: 6 })
+          Text('点击授权')
+            .fontColor('#FFFFFF')
+            .fontSize(14)
+            .fontWeight(FontWeight.Medium)
+            .textAlign(TextAlign.Center)
+            .width('100%')
+            .padding({ top: 12, bottom: 12 })
+            .backgroundColor($r('app.color.accent_green'))
+            .borderRadius(8)
+            .margin({ top: 16 })
+            .onClick(() => {
+              this.requestLocationAndLoadPilots();
+            })
+        }
+        .width('100%')
+        .padding(24)
+        .backgroundColor($r('app.color.card_bg'))
+        .borderRadius(14)
       }
-      .width('100%')
-      .padding(20)
+      .padding({ left: 18, right: 18, top: 12, bottom: 12 })
     } else {
       List() {
         ForEach(this.pilots, (item: PilotItem) => {
