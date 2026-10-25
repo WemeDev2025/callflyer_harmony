@@ -96,11 +96,12 @@ export class PushService {
           readTimeout: 15000
         },
         (err, data) => {
-          if (!err && data.responseCode === 200) {
+          const responseCode = data ? data.responseCode : -1;
+          if (!err && responseCode === 200) {
             hilog.info(DOMAIN, TAG, '【PushService】注册成功');
             resolve(true);
           } else {
-            hilog.error(DOMAIN, TAG, '【PushService】注册失败: %{public}s %{public}d', JSON.stringify(err), data.responseCode);
+            hilog.error(DOMAIN, TAG, '【PushService】注册失败: %{public}s %{public}d', JSON.stringify(err), responseCode);
             resolve(false);
           }
           req.destroy();
